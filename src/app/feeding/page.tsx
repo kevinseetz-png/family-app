@@ -26,7 +26,7 @@ export default function FeedingPage() {
     }
   }, [authLoading, user, router]);
 
-  const { feedings, isLoading, error, dailyTotalMl, timeSinceLastFeeding, refetch, deleteFeeding, updateFeeding } = useFeedings(
+  const { feedings, isLoading, error, feedingCount, timeSinceLastFeeding, refetch, deleteFeeding, updateFeeding } = useFeedings(
     user?.familyId
   );
 
@@ -40,7 +40,7 @@ export default function FeedingPage() {
   return (
     <main id="main-content" className="min-h-screen p-4 max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-emerald-600">Milk Tracker</h1>
+        <h1 className="text-2xl font-bold text-emerald-600">Food Tracker</h1>
         <Link
           href="/"
           className="text-sm text-emerald-600 hover:text-emerald-500 font-medium"
@@ -50,7 +50,7 @@ export default function FeedingPage() {
       </div>
 
       <FeedingSummary
-        dailyTotalMl={dailyTotalMl}
+        feedingCount={feedingCount}
         timeSinceLastFeeding={timeSinceLastFeeding}
       />
 
@@ -71,14 +71,16 @@ export default function FeedingPage() {
         />
       </div>
 
-      <div className="mt-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Past 30 days</h2>
-        <FeedingHistory
-          history={history}
-          isLoading={historyLoading}
-          error={historyError}
-        />
-      </div>
+      {(historyLoading || history.length > 0 || historyError) && (
+        <div className="mt-6">
+          <h2 className="text-lg font-semibold text-gray-900 mb-3">Past 30 days</h2>
+          <FeedingHistory
+            history={history}
+            isLoading={historyLoading}
+            error={historyError}
+          />
+        </div>
+      )}
 
       {editingFeeding && (
         <EditFeedingModal

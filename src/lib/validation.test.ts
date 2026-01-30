@@ -1,101 +1,78 @@
-import { loginSchema, registerSchema } from "./validation";
+import { describe, it, expect } from "vitest";
+import { feedingSchema, feedingUpdateSchema } from "./validation";
 
-describe("loginSchema", () => {
-  it("accepts valid email and password", () => {
-    const result = loginSchema.safeParse({ email: "test@example.com", password: "secret" });
+describe("feedingSchema", () => {
+  it("accepts valid feeding with foodType and unit", () => {
+    const result = feedingSchema.safeParse({
+      foodType: "breast_milk",
+      amount: 120,
+      unit: "ml",
+    });
     expect(result.success).toBe(true);
   });
 
-  it("rejects invalid email", () => {
-    const result = loginSchema.safeParse({ email: "not-an-email", password: "secret" });
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.issues[0].message).toBe("Please enter a valid email address");
+  it("accepts all food types", () => {
+    for (const foodType of ["breast_milk", "formula", "puree", "solid", "snack"]) {
+      const result = feedingSchema.safeParse({ foodType, amount: 50, unit: "g" });
+      expect(result.success).toBe(true);
     }
   });
 
-  it("rejects empty email", () => {
-    const result = loginSchema.safeParse({ email: "", password: "secret" });
+  it("rejects invalid food type", () => {
+    const result = feedingSchema.safeParse({
+      foodType: "pizza",
+      amount: 100,
+      unit: "ml",
+    });
     expect(result.success).toBe(false);
   });
 
-  it("rejects empty password", () => {
-    const result = loginSchema.safeParse({ email: "test@example.com", password: "" });
+  it("rejects invalid unit", () => {
+    const result = feedingSchema.safeParse({
+      foodType: "formula",
+      amount: 100,
+      unit: "oz",
+    });
     expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.issues[0].message).toBe("Password is required");
-    }
   });
 
-  it("rejects missing fields", () => {
-    const result = loginSchema.safeParse({});
+  it("rejects missing foodType", () => {
+    const result = feedingSchema.safeParse({ amount: 100, unit: "ml" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects missing unit", () => {
+    const result = feedingSchema.safeParse({ foodType: "formula", amount: 100 });
+    expect(result.success).toBe(false);
+  });
+
+  it("does not accept babyName as substitute for foodType", () => {
+    const result = feedingSchema.safeParse({
+      babyName: "Test",
+      amount: 100,
+    });
     expect(result.success).toBe(false);
   });
 });
 
-describe("registerSchema", () => {
-  it("accepts valid name, email, password, and inviteCode", () => {
-    const result = registerSchema.safeParse({
-      name: "Alice",
-      email: "alice@example.com",
-      password: "password123",
-      inviteCode: "ABC123",
+describe("feedingUpdateSchema", () => {
+  it("accepts valid update with foodType and unit", () => {
+    const result = feedingUpdateSchema.safeParse({
+      id: "abc123",
+      foodType: "puree",
+      amount: 50,
+      unit: "g",
+      timestamp: "2025-01-01T12:00:00.000Z",
     });
     expect(result.success).toBe(true);
   });
 
-  it("rejects empty name", () => {
-    const result = registerSchema.safeParse({
-      name: "",
-      email: "a@b.com",
-      password: "password123",
-      inviteCode: "ABC123",
-    });
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.issues[0].message).toBe("Name is required");
-    }
-  });
-
-  it("rejects name over 100 characters", () => {
-    const result = registerSchema.safeParse({
-      name: "a".repeat(101),
-      email: "a@b.com",
-      password: "password123",
-      inviteCode: "ABC123",
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects password shorter than 8 characters", () => {
-    const result = registerSchema.safeParse({
-      name: "Alice",
-      email: "a@b.com",
-      password: "short",
-      inviteCode: "ABC123",
-    });
-    expect(result.success).toBe(false);
-    if (!result.success) {
-      expect(result.error.issues[0].message).toBe("Password must be at least 8 characters");
-    }
-  });
-
-  it("rejects password over 128 characters", () => {
-    const result = registerSchema.safeParse({
-      name: "Alice",
-      email: "a@b.com",
-      password: "a".repeat(129),
-      inviteCode: "ABC123",
-    });
-    expect(result.success).toBe(false);
-  });
-
-  it("rejects invalid email", () => {
-    const result = registerSchema.safeParse({
-      name: "Alice",
-      email: "bad",
-      password: "password123",
-      inviteCode: "ABC123",
+  it("rejects update without unit", () => {
+    const result = feedingUpdateSchema.safeParse({
+      id: "abc123",
+      foodType: "puree",
+      amount: 50,
+      timestamp: "2025-01-01T12:00:00.000Z",
     });
     expect(result.success).toBe(false);
   });

@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { Feeding } from "@/types/feeding";
+import type { Feeding, FoodType, FeedingUnit } from "@/types/feeding";
 
 interface FeedingResponse {
   id: string;
   familyId: string;
-  babyName: string;
+  foodType: FoodType;
   amount: number;
+  unit: FeedingUnit;
   loggedBy: string;
   loggedByName: string;
   timestamp: string;
@@ -33,8 +34,9 @@ export function useFeedings(familyId: string | undefined) {
       const results: Feeding[] = (data.feedings as FeedingResponse[]).map((f) => ({
         id: f.id,
         familyId: f.familyId,
-        babyName: f.babyName,
+        foodType: f.foodType,
         amount: f.amount,
+        unit: f.unit,
         loggedBy: f.loggedBy,
         loggedByName: f.loggedByName,
         timestamp: new Date(f.timestamp),
@@ -53,7 +55,7 @@ export function useFeedings(familyId: string | undefined) {
     fetchFeedings();
   }, [fetchFeedings]);
 
-  const dailyTotalMl = feedings.reduce((sum, f) => sum + f.amount, 0);
+  const feedingCount = feedings.length;
 
   const lastFeeding = feedings.length > 0 ? feedings[0] : null;
   const timeSinceLastFeeding = lastFeeding
@@ -75,8 +77,9 @@ export function useFeedings(familyId: string | undefined) {
 
   const updateFeeding = useCallback(async (data: {
     id: string;
-    babyName: string;
+    foodType: FoodType;
     amount: number;
+    unit: FeedingUnit;
     timestamp: string;
   }) => {
     const res = await fetch("/api/feedings", {
@@ -91,5 +94,5 @@ export function useFeedings(familyId: string | undefined) {
     await fetchFeedings();
   }, [fetchFeedings]);
 
-  return { feedings, isLoading, error, dailyTotalMl, lastFeeding, timeSinceLastFeeding, refetch: fetchFeedings, deleteFeeding, updateFeeding };
+  return { feedings, isLoading, error, feedingCount, lastFeeding, timeSinceLastFeeding, refetch: fetchFeedings, deleteFeeding, updateFeeding };
 }

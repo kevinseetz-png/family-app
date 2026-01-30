@@ -34,7 +34,7 @@ export default function Home() {
           href="/feeding"
           className="rounded-lg bg-emerald-600 px-4 py-3 text-center text-white font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none"
         >
-          Milk Tracker
+          Food Tracker
         </Link>
         <Link
           href="/invite"

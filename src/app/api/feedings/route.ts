@@ -34,8 +34,9 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         return {
           id: doc.id,
           familyId: data.familyId,
-          babyName: data.babyName,
+          foodType: data.foodType,
           amount: data.amount,
+          unit: data.unit,
           loggedBy: data.loggedBy,
           loggedByName: data.loggedByName,
           timestamp: ts.toISOString(),
@@ -80,12 +81,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { babyName, amount, timestamp } = result.data;
+  const { foodType, amount, unit, timestamp } = result.data;
 
   const feeding = {
     familyId: user.familyId,
-    babyName,
+    foodType,
     amount,
+    unit,
     loggedBy: user.id,
     loggedByName: user.name,
     timestamp: timestamp ? new Date(timestamp) : new Date(),
@@ -161,7 +163,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { id, babyName, amount, timestamp } = result.data;
+  const { id, foodType, amount, unit, timestamp } = result.data;
 
   const docRef = adminDb.collection("feedings").doc(id);
   const doc = await docRef.get();
@@ -175,8 +177,9 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
   }
 
   await docRef.update({
-    babyName,
+    foodType,
     amount,
+    unit,
     timestamp: new Date(timestamp),
   });
 

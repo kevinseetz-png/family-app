@@ -1,6 +1,7 @@
 "use client";
 
 import type { Feeding } from "@/types/feeding";
+import { FOOD_TYPE_LABELS } from "@/types/feeding";
 
 interface FeedingListProps {
   feedings: Feeding[];
@@ -22,18 +23,18 @@ export function FeedingList({ feedings, onDelete, onEdit }: FeedingListProps) {
       {feedings.map((f) => (
         <li key={f.id} className="py-3 flex justify-between items-center">
           <div>
-            <span className="font-medium text-gray-900">{f.babyName}</span>
+            <span className="font-medium text-gray-900">{FOOD_TYPE_LABELS[f.foodType]}</span>
             <span className="text-gray-500 text-sm ml-2">by {f.loggedByName}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="font-semibold text-emerald-600">
-              {f.amount} ml
+              {f.amount} {f.unit}
             </span>
             <span className="text-gray-400 text-sm">{formatTime(f.timestamp)}</span>
             {onEdit && (
               <button
                 onClick={() => onEdit(f)}
-                aria-label={`Edit feeding for ${f.babyName}`}
+                aria-label={`Edit feeding`}
                 className="ml-1 rounded p-1 text-gray-400 hover:text-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4" aria-hidden="true">
@@ -44,11 +45,11 @@ export function FeedingList({ feedings, onDelete, onEdit }: FeedingListProps) {
             {onDelete && (
               <button
                 onClick={() => {
-                  if (window.confirm(`Delete this feeding for ${f.babyName}?`)) {
+                  if (window.confirm("Delete this feeding?")) {
                     onDelete(f.id);
                   }
                 }}
-                aria-label={`Delete feeding for ${f.babyName}`}
+                aria-label={`Delete feeding`}
                 className="rounded p-1 text-gray-400 hover:text-red-600 focus:ring-2 focus:ring-red-500 focus:outline-none"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4" aria-hidden="true">

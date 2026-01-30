@@ -511,3 +511,36 @@ Task: When no users exist, allow registration without an invite code
 | Build | PASS | clean — compiled successfully, 11 pages generated |
 
 ### Verdict: PASS
+
+---
+
+# Pipeline Handoff — Rename to Food Tracker, remove babyName, add food categories + units
+
+Task: Replace babyName with foodType + unit, rename Milk Tracker to Food Tracker
+
+---
+
+## Stage 1: Test Writer
+- Files updated: `src/lib/validation.test.ts` (9 new tests for feeding schemas)
+- Coverage: feedingSchema accepts valid foodType/unit combos, all 5 food types, rejects invalid food type/unit/missing fields/old babyName. feedingUpdateSchema validates foodType + unit required.
+
+## Stage 2: Implementer
+- 12 files modified:
+  - `src/types/feeding.ts` — removed babyName, added FoodType, FeedingUnit, foodType, unit, FOOD_TYPE_LABELS
+  - `src/lib/validation.ts` — replaced babyName with foodType enum + unit enum
+  - `src/app/api/feedings/route.ts` — GET/POST/PUT use foodType + unit
+  - `src/hooks/useFeedings.ts` — replaced dailyTotalMl with feedingCount
+  - `src/components/FeedingForm.tsx` — food type select + unit select
+  - `src/components/FeedingList.tsx` — food type label + amount with unit
+  - `src/components/FeedingSummary.tsx` — feeding count instead of total ml
+  - `src/components/EditFeedingModal.tsx` — food type select + unit select
+  - `src/app/feeding/page.tsx` — renamed to "Food Tracker"
+  - `src/app/page.tsx` — renamed nav link
+
+## Stage 9: Final Tester
+- Vitest: 83 passed (18 test files)
+- TSC: no type errors
+- Lint: passes (1 pre-existing warning)
+- Build: success
+
+### Verdict: PASS

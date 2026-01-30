@@ -1,7 +1,7 @@
 "use client";
 
 interface FeedingSummaryProps {
-  dailyTotalMl: number;
+  feedingCount: number;
   timeSinceLastFeeding: number | null;
 }
 
@@ -12,13 +12,13 @@ function formatDuration(minutes: number): string {
   return `${h}h ${m}m ago`;
 }
 
-export function FeedingSummary({ dailyTotalMl, timeSinceLastFeeding }: FeedingSummaryProps) {
+export function FeedingSummary({ feedingCount, timeSinceLastFeeding }: FeedingSummaryProps) {
   return (
     <div className="grid grid-cols-2 gap-4">
       <div className="rounded-lg bg-emerald-50 p-4 text-center">
-        <p className="text-sm text-gray-600">Today&apos;s total</p>
+        <p className="text-sm text-gray-600">Today&apos;s feedings</p>
         <p className="text-2xl font-bold text-emerald-600">
-          {dailyTotalMl} ml
+          {feedingCount} {feedingCount === 1 ? "feeding" : "feedings"}
         </p>
       </div>
       <div className="rounded-lg bg-emerald-50 p-4 text-center">
