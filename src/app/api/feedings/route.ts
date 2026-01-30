@@ -20,30 +20,35 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const today = startOfDay(new Date());
-  const snapshot = await adminDb
-    .collection("feedings")
-    .where("familyId", "==", user.familyId)
-    .where("timestamp", ">=", today)
-    .orderBy("timestamp", "desc")
-    .get();
+  try {
+    const today = startOfDay(new Date());
+    const snapshot = await adminDb
+      .collection("feedings")
+      .where("familyId", "==", user.familyId)
+      .where("timestamp", ">=", today)
+      .orderBy("timestamp", "desc")
+      .get();
 
-  const feedings = snapshot.docs.map((doc) => {
-    const data = doc.data();
-    return {
-      id: doc.id,
-      familyId: data.familyId,
-      babyName: data.babyName,
-      amount: data.amount,
-      unit: data.unit,
-      loggedBy: data.loggedBy,
-      loggedByName: data.loggedByName,
-      timestamp: data.timestamp.toDate().toISOString(),
-      createdAt: data.createdAt.toDate().toISOString(),
-    };
-  });
+    const feedings = snapshot.docs.map((doc) => {
+      const data = doc.data();
+      return {
+        id: doc.id,
+        familyId: data.familyId,
+        babyName: data.babyName,
+        amount: data.amount,
+        unit: data.unit,
+        loggedBy: data.loggedBy,
+        loggedByName: data.loggedByName,
+        timestamp: data.timestamp.toDate().toISOString(),
+        createdAt: data.createdAt.toDate().toISOString(),
+      };
+    });
 
-  return NextResponse.json({ feedings });
+    return NextResponse.json({ feedings });
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "Failed to fetch feedings";
+    return NextResponse.json({ message, feedings: [] }, { status: 500 });
+  }
 }
 
 export async function POST(request: NextRequest): Promise<NextResponse> {

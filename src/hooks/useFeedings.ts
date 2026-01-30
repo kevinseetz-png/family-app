@@ -18,13 +18,18 @@ interface FeedingResponse {
 export function useFeedings(familyId: string | undefined) {
   const [feedings, setFeedings] = useState<Feeding[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchFeedings = useCallback(async () => {
     if (!familyId) return;
 
     try {
       const res = await fetch("/api/feedings");
-      if (!res.ok) return;
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        setError(body.message || `Failed to load feedings (${res.status})`);
+        return;
+      }
       const data = await res.json();
       const results: Feeding[] = (data.feedings as FeedingResponse[]).map((f) => ({
         id: f.id,
@@ -38,8 +43,9 @@ export function useFeedings(familyId: string | undefined) {
         createdAt: new Date(f.createdAt),
       }));
       setFeedings(results);
+      setError(null);
     } catch {
-      // Network error — keep existing data
+      setError("Network error loading feedings");
     } finally {
       setIsLoading(false);
     }
@@ -56,5 +62,5 @@ export function useFeedings(familyId: string | undefined) {
     ? Math.round((Date.now() - lastFeeding.timestamp.getTime()) / 60000)
     : null;
 
-  return { feedings, isLoading, dailyTotalMl, lastFeeding, timeSinceLastFeeding, refetch: fetchFeedings };
+  return { feedings, isLoading, error, dailyTotalMl, lastFeeding, timeSinceLastFeeding, refetch: fetchFeedings };
 }

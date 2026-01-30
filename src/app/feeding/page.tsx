@@ -22,7 +22,7 @@ export default function FeedingPage() {
     }
   }, [authLoading, user, router]);
 
-  const { feedings, isLoading, dailyTotalMl, timeSinceLastFeeding, refetch } = useFeedings(
+  const { feedings, isLoading, error, dailyTotalMl, timeSinceLastFeeding, refetch } = useFeedings(
     user?.familyId
   );
 
@@ -65,6 +65,9 @@ export default function FeedingPage() {
 
       <div className="mt-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-3">Today&apos;s feedings</h2>
+        {error && (
+          <p role="alert" className="text-sm text-red-600 mb-3">{error}</p>
+        )}
         <FeedingList feedings={feedings} displayUnit={displayUnit} />
       </div>
     </main>
