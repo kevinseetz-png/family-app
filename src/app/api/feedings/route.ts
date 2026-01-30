@@ -25,24 +25,28 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const snapshot = await adminDb
       .collection("feedings")
       .where("familyId", "==", user.familyId)
-      .where("timestamp", ">=", today)
-      .orderBy("timestamp", "desc")
       .get();
 
-    const feedings = snapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        familyId: data.familyId,
-        babyName: data.babyName,
-        amount: data.amount,
-        unit: data.unit,
-        loggedBy: data.loggedBy,
-        loggedByName: data.loggedByName,
-        timestamp: data.timestamp.toDate().toISOString(),
-        createdAt: data.createdAt.toDate().toISOString(),
-      };
-    });
+    const feedings = snapshot.docs
+      .map((doc) => {
+        const data = doc.data();
+        const ts = data.timestamp.toDate();
+        return {
+          id: doc.id,
+          familyId: data.familyId,
+          babyName: data.babyName,
+          amount: data.amount,
+          unit: data.unit,
+          loggedBy: data.loggedBy,
+          loggedByName: data.loggedByName,
+          timestamp: ts.toISOString(),
+          createdAt: data.createdAt.toDate().toISOString(),
+          _ts: ts.getTime(),
+        };
+      })
+      .filter((f) => f._ts >= today.getTime())
+      .sort((a, b) => b._ts - a._ts)
+      .map(({ _ts, ...f }) => f);
 
     return NextResponse.json({ feedings });
   } catch (err) {
