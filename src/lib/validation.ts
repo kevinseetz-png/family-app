@@ -46,3 +46,17 @@ export const noteUpdateSchema = z.object({
   title: z.string().min(1, "Title is required").max(200, "Title is too long"),
   content: z.string().min(1, "Content is required").max(5000, "Content is too long"),
 });
+
+const dayField = z.string().max(500, "Max 500 characters per day");
+
+export const weekMenuSchema = z.object({
+  days: z.object({
+    mon: dayField,
+    tue: dayField,
+    wed: dayField,
+    thu: dayField,
+    fri: dayField,
+    sat: dayField,
+    sun: dayField,
+  }),
+});

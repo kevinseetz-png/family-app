@@ -61,9 +61,9 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
+    <div className="fixed inset-0 z-50 bg-black/50" onClick={onClose}>
       <div
-        className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4"
+        className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-xl shadow-xl p-6 max-h-[90vh] overflow-y-auto"
         role="dialog"
         aria-label="Edit feeding"
         onClick={(e) => e.stopPropagation()}
