@@ -470,3 +470,21 @@ Task: Implement invite-only registration to block bot signups
 | 9. Final Tests | PASS | All checks green |
 
 ### Verdict: PASS
+
+---
+
+# Pipeline Handoff — First-User Bypass Invite Code
+
+Task: When no users exist, allow registration without an invite code
+
+---
+
+## Stage 1: Test Writer (First-User Bypass)
+- Files created:
+  - `src/lib/users.firstuser.test.ts`
+  - `src/lib/invites.firstuser.test.ts`
+- Test count: 7 tests across 2 describe blocks
+- Coverage:
+  - **users.ts hasUsers()**: export exists, returns false when empty, returns true after user creation (3 tests)
+  - **Register route first-user bypass**: skips invite when no users, requires invite when users exist, allows valid invite when users exist, schema makes inviteCode optional for first user (4 tests)
+- Status: All tests failing as expected (6 failed, 1 incidental pass due to existing 403 behavior)

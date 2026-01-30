@@ -9,6 +9,14 @@ interface StoredUser extends User {
 // In-memory store — replace with a real database later
 const users: StoredUser[] = [];
 
+export function hasUsers(): boolean {
+  return users.length > 0;
+}
+
+export function resetUsers(): void {
+  users.length = 0;
+}
+
 export async function createUser(
   name: string,
   email: string,

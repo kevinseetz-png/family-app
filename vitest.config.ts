@@ -8,6 +8,10 @@ export default defineConfig({
     environment: "jsdom",
     setupFiles: ["./vitest.setup.ts"],
     globals: true,
+    environmentMatchGlobs: [
+      ["src/lib/auth.test.ts", "node"],
+      ["src/lib/invites.firstuser.test.ts", "node"],
+    ],
     env: {
       JWT_SECRET: "test-secret-for-vitest",
     },

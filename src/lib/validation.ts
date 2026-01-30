@@ -14,3 +14,5 @@ export const registerSchema = z.object({
     .max(128),
   inviteCode: z.string().min(1, "Invite code is required"),
 });
+
+export const firstUserRegisterSchema = registerSchema.omit({ inviteCode: true });

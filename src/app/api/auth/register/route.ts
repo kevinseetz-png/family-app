@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
-import { registerSchema } from "@/lib/validation";
-import { createUser } from "@/lib/users";
+import { registerSchema, firstUserRegisterSchema } from "@/lib/validation";
+import { createUser, hasUsers } from "@/lib/users";
 import { createToken } from "@/lib/auth";
 import { redeemInvite } from "@/lib/invites";
 
@@ -13,7 +13,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ message: "Invalid JSON" }, { status: 400 });
   }
 
-  const result = registerSchema.safeParse(body);
+  const usersExist = hasUsers();
+  const schema = usersExist ? registerSchema : firstUserRegisterSchema;
+  const result = schema.safeParse(body);
   if (!result.success) {
     return NextResponse.json(
       { message: result.error.issues[0].message },
@@ -21,11 +23,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  if (!redeemInvite(result.data.inviteCode)) {
-    return NextResponse.json(
-      { message: "Invalid or expired invite code" },
-      { status: 403 }
-    );
+  if (usersExist) {
+    const inviteCode = (result.data as { inviteCode: string }).inviteCode;
+    if (!redeemInvite(inviteCode)) {
+      return NextResponse.json(
+        { message: "Invalid or expired invite code" },
+        { status: 403 }
+      );
+    }
   }
 
   const user = await createUser(
