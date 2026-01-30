@@ -24,7 +24,7 @@ export default function Home() {
 
   return (
     <main id="main-content" className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-4xl font-bold text-indigo-600 mb-2">Family App</h1>
+      <h1 className="text-4xl font-bold text-emerald-600 mb-2">Family App</h1>
       <p className="text-lg text-gray-600 mb-8">
         Welcome back, <span className="font-semibold">{user.name}</span>!
       </p>
@@ -32,13 +32,13 @@ export default function Home() {
       <nav className="flex flex-col gap-3 w-full max-w-xs mb-8">
         <Link
           href="/feeding"
-          className="rounded-lg bg-indigo-600 px-4 py-3 text-center text-white font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+          className="rounded-lg bg-emerald-600 px-4 py-3 text-center text-white font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none"
         >
           Milk Tracker
         </Link>
         <Link
           href="/invite"
-          className="rounded-lg border border-gray-300 px-4 py-3 text-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+          className="rounded-lg border border-gray-300 px-4 py-3 text-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none"
         >
           Invite family member
         </Link>
@@ -46,7 +46,7 @@ export default function Home() {
 
       <button
         onClick={logout}
-        className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none"
+        className="rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none"
       >
         Log out
       </button>

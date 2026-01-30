@@ -71,7 +71,7 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
               value={babyName}
               onChange={(e) => setBabyName(e.target.value)}
               required
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>
           <div className="flex gap-3">
@@ -87,7 +87,7 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
                 value={amount}
                 onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
                 required
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
             <div>
@@ -98,7 +98,7 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
                 id="edit-unit"
                 value={unit}
                 onChange={(e) => setUnit(e.target.value as "ml" | "oz")}
-                className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               >
                 <option value="ml">ml</option>
                 <option value="oz">oz</option>
@@ -115,7 +115,7 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
               value={timestamp}
               onChange={(e) => setTimestamp(e.target.value)}
               required
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>
           {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
@@ -123,14 +123,14 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+              className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isSaving}
-              className="flex-1 rounded-lg bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:outline-none disabled:opacity-50"
+              className="flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none disabled:opacity-50"
             >
               {isSaving ? "Saving..." : "Save"}
             </button>

@@ -42,7 +42,7 @@ export function RegisterForm({ onSubmit, onSwitchToLogin }: RegisterFormProps): 
           required
           value={inviteCode}
           onChange={(e) => setInviteCode(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
           placeholder="Enter your invite code"
           aria-describedby={error ? "register-error" : undefined}
         />
@@ -58,7 +58,7 @@ export function RegisterForm({ onSubmit, onSwitchToLogin }: RegisterFormProps): 
           required
           value={name}
           onChange={(e) => setName(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
           placeholder="Your name"
         />
       </div>
@@ -73,7 +73,7 @@ export function RegisterForm({ onSubmit, onSwitchToLogin }: RegisterFormProps): 
           required
           value={email}
           onChange={(e) => setEmail(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
           placeholder="you@example.com"
         />
       </div>
@@ -89,7 +89,7 @@ export function RegisterForm({ onSubmit, onSwitchToLogin }: RegisterFormProps): 
           minLength={8}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 placeholder-gray-500 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
           placeholder="At least 8 characters"
         />
       </div>
@@ -103,7 +103,7 @@ export function RegisterForm({ onSubmit, onSwitchToLogin }: RegisterFormProps): 
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-white font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-white font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSubmitting ? "Creating account..." : "Sign up"}
       </button>
@@ -113,7 +113,7 @@ export function RegisterForm({ onSubmit, onSwitchToLogin }: RegisterFormProps): 
         <button
           type="button"
           onClick={onSwitchToLogin}
-          className="font-medium text-indigo-600 hover:text-indigo-500 focus:underline focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          className="font-medium text-emerald-600 hover:text-emerald-500 focus:underline focus:ring-2 focus:ring-emerald-500 focus:outline-none"
         >
           Log in
         </button>

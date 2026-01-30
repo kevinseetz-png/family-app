@@ -35,7 +35,7 @@ export default function FeedingPage() {
   return (
     <main id="main-content" className="min-h-screen p-4 max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-indigo-600">Milk Tracker</h1>
+        <h1 className="text-2xl font-bold text-emerald-600">Milk Tracker</h1>
         <div className="flex items-center gap-3">
           <select
             value={displayUnit}
@@ -48,7 +48,7 @@ export default function FeedingPage() {
           </select>
           <Link
             href="/"
-            className="text-sm text-indigo-600 hover:text-indigo-500 font-medium"
+            className="text-sm text-emerald-600 hover:text-emerald-500 font-medium"
           >
             Home
           </Link>

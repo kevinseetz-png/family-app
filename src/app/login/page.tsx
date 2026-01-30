@@ -26,7 +26,7 @@ export default function LoginPage() {
 
   return (
     <main id="main-content" className="flex min-h-screen flex-col items-center justify-center p-8">
-      <h1 className="text-3xl font-bold text-indigo-600 mb-2">Family App</h1>
+      <h1 className="text-3xl font-bold text-emerald-600 mb-2">Family App</h1>
       <p className="text-gray-600 mb-8">
         {mode === "login" ? "Sign in to your account" : "Create your account"}
       </p>

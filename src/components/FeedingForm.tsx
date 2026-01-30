@@ -56,7 +56,7 @@ export function FeedingForm({ onSuccess }: FeedingFormProps) {
           required
           value={babyName}
           onChange={(e) => setBabyName(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
           placeholder="Baby's name"
         />
       </div>
@@ -74,7 +74,7 @@ export function FeedingForm({ onSuccess }: FeedingFormProps) {
             step="any"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             placeholder="0"
           />
         </div>
@@ -87,7 +87,7 @@ export function FeedingForm({ onSuccess }: FeedingFormProps) {
             id="unit"
             value={unit}
             onChange={(e) => setUnit(e.target.value as "ml" | "oz")}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+            className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
           >
             <option value="ml">ml</option>
             <option value="oz">oz</option>
@@ -102,7 +102,7 @@ export function FeedingForm({ onSuccess }: FeedingFormProps) {
       <button
         type="submit"
         disabled={isSubmitting}
-        className="w-full rounded-lg bg-indigo-600 px-4 py-2 text-white font-medium hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
+        className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-white font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
       >
         {isSubmitting ? "Logging..." : "Log feeding"}
       </button>

@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#4f46e5",
+  themeColor: "#059669",
   width: "device-width",
   initialScale: 1,
 };
@@ -27,7 +27,7 @@ export default function RootLayout({
       <body className="min-h-screen bg-gray-50 text-gray-900 antialiased">
         <a
           href="#main-content"
-          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-white focus:text-indigo-600"
+          className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-white focus:text-emerald-600"
         >
           Skip to content
         </a>

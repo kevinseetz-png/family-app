@@ -23,15 +23,15 @@ function formatDuration(minutes: number): string {
 export function FeedingSummary({ dailyTotalMl, timeSinceLastFeeding, displayUnit }: FeedingSummaryProps) {
   return (
     <div className="grid grid-cols-2 gap-4">
-      <div className="rounded-lg bg-indigo-50 p-4 text-center">
+      <div className="rounded-lg bg-emerald-50 p-4 text-center">
         <p className="text-sm text-gray-600">Today&apos;s total</p>
-        <p className="text-2xl font-bold text-indigo-600">
+        <p className="text-2xl font-bold text-emerald-600">
           {formatTotal(dailyTotalMl, displayUnit)}
         </p>
       </div>
-      <div className="rounded-lg bg-indigo-50 p-4 text-center">
+      <div className="rounded-lg bg-emerald-50 p-4 text-center">
         <p className="text-sm text-gray-600">Last feeding</p>
-        <p className="text-2xl font-bold text-indigo-600">
+        <p className="text-2xl font-bold text-emerald-600">
           {timeSinceLastFeeding !== null ? formatDuration(timeSinceLastFeeding) : "—"}
         </p>
       </div>
