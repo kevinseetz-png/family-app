@@ -5,7 +5,6 @@ import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/components/AuthProvider";
 import { LoginForm } from "@/components/LoginForm";
 import { RegisterForm } from "@/components/RegisterForm";
-import { InstallBanner } from "@/components/InstallBanner";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 
 export default function LoginPage() {
@@ -38,7 +37,6 @@ export default function LoginPage() {
         <RegisterForm onSubmit={register} onSwitchToLogin={() => setMode("login")} />
       )}
 
-      <InstallBanner />
     </main>
   );
 }

@@ -3,6 +3,7 @@ import "./globals.css";
 import { AuthProvider } from "@/components/AuthProvider";
 import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { RouteAnnouncer } from "@/components/RouteAnnouncer";
+import { InstallBanner } from "@/components/InstallBanner";
 
 export const metadata: Metadata = {
   title: "Family App",
@@ -33,6 +34,7 @@ export default function RootLayout({
         <AuthProvider>
           <RouteAnnouncer />
           {children}
+          <InstallBanner />
         </AuthProvider>
         <ServiceWorkerRegister />
       </body>

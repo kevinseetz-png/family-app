@@ -3,7 +3,6 @@
 import { useAuthContext } from "@/components/AuthProvider";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import { InstallBanner } from "@/components/InstallBanner";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import Link from "next/link";
 
@@ -51,7 +50,6 @@ export default function Home() {
       >
         Log out
       </button>
-      <InstallBanner />
     </main>
   );
 }

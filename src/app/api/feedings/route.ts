@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
-import { feedingSchema } from "@/lib/validation";
+import { feedingSchema, feedingUpdateSchema } from "@/lib/validation";
 import { adminDb } from "@/lib/firebase-admin";
 
 function startOfDay(date: Date): Date {
@@ -100,4 +100,93 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const docRef = await adminDb.collection("feedings").add(feeding);
 
   return NextResponse.json({ id: docRef.id, ...feeding }, { status: 201 });
+}
+
+export async function DELETE(request: NextRequest): Promise<NextResponse> {
+  const token = request.cookies.get("auth_token")?.value;
+  if (!token) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const user = await verifyToken(token);
+  if (!user) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ message: "Invalid JSON" }, { status: 400 });
+  }
+
+  const { id } = body as { id?: string };
+  if (!id) {
+    return NextResponse.json({ message: "Feeding ID is required" }, { status: 400 });
+  }
+
+  const docRef = adminDb.collection("feedings").doc(id);
+  const doc = await docRef.get();
+
+  if (!doc.exists) {
+    return NextResponse.json({ message: "Feeding not found" }, { status: 404 });
+  }
+
+  if (doc.data()?.familyId !== user.familyId) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+  }
+
+  await docRef.delete();
+  return NextResponse.json({ message: "Deleted" });
+}
+
+export async function PUT(request: NextRequest): Promise<NextResponse> {
+  const token = request.cookies.get("auth_token")?.value;
+  if (!token) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const user = await verifyToken(token);
+  if (!user) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ message: "Invalid JSON" }, { status: 400 });
+  }
+
+  const result = feedingUpdateSchema.safeParse(body);
+  if (!result.success) {
+    return NextResponse.json(
+      { message: result.error.issues[0].message },
+      { status: 400 }
+    );
+  }
+
+  const { id, babyName, amount, unit, timestamp } = result.data;
+
+  const docRef = adminDb.collection("feedings").doc(id);
+  const doc = await docRef.get();
+
+  if (!doc.exists) {
+    return NextResponse.json({ message: "Feeding not found" }, { status: 404 });
+  }
+
+  if (doc.data()?.familyId !== user.familyId) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
+  }
+
+  const amountMl = unit === "oz" ? Math.round(amount * 29.5735) : amount;
+
+  await docRef.update({
+    babyName,
+    amount: amountMl,
+    unit,
+    timestamp: new Date(timestamp),
+  });
+
+  return NextResponse.json({ message: "Updated" });
 }

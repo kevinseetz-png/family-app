@@ -6,15 +6,18 @@ import { useFeedings } from "@/hooks/useFeedings";
 import { FeedingForm } from "@/components/FeedingForm";
 import { FeedingList } from "@/components/FeedingList";
 import { FeedingSummary } from "@/components/FeedingSummary";
+import { EditFeedingModal } from "@/components/EditFeedingModal";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import Link from "next/link";
+import type { Feeding } from "@/types/feeding";
 
 export default function FeedingPage() {
   const { user, isLoading: authLoading } = useAuthContext();
   const router = useRouter();
   const [displayUnit, setDisplayUnit] = useState<"ml" | "oz">("ml");
+  const [editingFeeding, setEditingFeeding] = useState<Feeding | null>(null);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -22,7 +25,7 @@ export default function FeedingPage() {
     }
   }, [authLoading, user, router]);
 
-  const { feedings, isLoading, error, dailyTotalMl, timeSinceLastFeeding, refetch } = useFeedings(
+  const { feedings, isLoading, error, dailyTotalMl, timeSinceLastFeeding, refetch, deleteFeeding, updateFeeding } = useFeedings(
     user?.familyId
   );
 
@@ -68,8 +71,21 @@ export default function FeedingPage() {
         {error && (
           <p role="alert" className="text-sm text-red-600 mb-3">{error}</p>
         )}
-        <FeedingList feedings={feedings} displayUnit={displayUnit} />
+        <FeedingList
+          feedings={feedings}
+          displayUnit={displayUnit}
+          onDelete={deleteFeeding}
+          onEdit={setEditingFeeding}
+        />
       </div>
+
+      {editingFeeding && (
+        <EditFeedingModal
+          feeding={editingFeeding}
+          onSave={updateFeeding}
+          onClose={() => setEditingFeeding(null)}
+        />
+      )}
     </main>
   );
 }

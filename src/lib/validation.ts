@@ -23,3 +23,11 @@ export const feedingSchema = z.object({
   unit: z.enum(["ml", "oz"]),
   timestamp: z.string().datetime().optional(),
 });
+
+export const feedingUpdateSchema = z.object({
+  id: z.string().min(1, "Feeding ID is required"),
+  babyName: z.string().min(1, "Baby name is required").max(100),
+  amount: z.number().positive("Amount must be positive"),
+  unit: z.enum(["ml", "oz"]),
+  timestamp: z.string().datetime("Invalid timestamp"),
+});

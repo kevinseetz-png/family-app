@@ -62,5 +62,37 @@ export function useFeedings(familyId: string | undefined) {
     ? Math.round((Date.now() - lastFeeding.timestamp.getTime()) / 60000)
     : null;
 
-  return { feedings, isLoading, error, dailyTotalMl, lastFeeding, timeSinceLastFeeding, refetch: fetchFeedings };
+  const deleteFeeding = useCallback(async (id: string) => {
+    const res = await fetch("/api/feedings", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.message || "Failed to delete feeding");
+    }
+    await fetchFeedings();
+  }, [fetchFeedings]);
+
+  const updateFeeding = useCallback(async (data: {
+    id: string;
+    babyName: string;
+    amount: number;
+    unit: "ml" | "oz";
+    timestamp: string;
+  }) => {
+    const res = await fetch("/api/feedings", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.message || "Failed to update feeding");
+    }
+    await fetchFeedings();
+  }, [fetchFeedings]);
+
+  return { feedings, isLoading, error, dailyTotalMl, lastFeeding, timeSinceLastFeeding, refetch: fetchFeedings, deleteFeeding, updateFeeding };
 }
