@@ -24,7 +24,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   }
 
   if (usersExist) {
-    const inviteCode = (result.data as { inviteCode: string }).inviteCode;
+    const inviteCode = (result.data as unknown as { inviteCode: string }).inviteCode;
     if (!redeemInvite(inviteCode)) {
       return NextResponse.json(
         { message: "Invalid or expired invite code" },
