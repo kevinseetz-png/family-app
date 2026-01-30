@@ -35,3 +35,14 @@ export const feedingUpdateSchema = z.object({
   unit: z.enum(["ml", "g"], { message: "Unit is required" }),
   timestamp: z.string().datetime("Invalid timestamp"),
 });
+
+export const noteSchema = z.object({
+  title: z.string().min(1, "Title is required").max(200, "Title is too long"),
+  content: z.string().min(1, "Content is required").max(5000, "Content is too long"),
+});
+
+export const noteUpdateSchema = z.object({
+  id: z.string().min(1, "Note ID is required"),
+  title: z.string().min(1, "Title is required").max(200, "Title is too long"),
+  content: z.string().min(1, "Content is required").max(5000, "Content is too long"),
+});

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { createPortal } from "react-dom";
 import type { Feeding, FoodType, FeedingUnit } from "@/types/feeding";
 import { FOOD_TYPE_LABELS } from "@/types/feeding";
 
@@ -19,15 +20,22 @@ interface EditFeedingModalProps {
 }
 
 function toLocalDatetime(date: Date): string {
-  const offset = date.getTimezoneOffset();
-  const local = new Date(date.getTime() - offset * 60000);
-  return local.toISOString().slice(0, 16);
+  try {
+    const offset = date.getTimezoneOffset();
+    const local = new Date(date.getTime() - offset * 60000);
+    return local.toISOString().slice(0, 16);
+  } catch {
+    const now = new Date();
+    const offset = now.getTimezoneOffset();
+    const local = new Date(now.getTime() - offset * 60000);
+    return local.toISOString().slice(0, 16);
+  }
 }
 
 export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalProps) {
-  const [foodType, setFoodType] = useState<FoodType>(feeding.foodType);
-  const [amount, setAmount] = useState(feeding.amount);
-  const [unit, setUnit] = useState<FeedingUnit>(feeding.unit);
+  const [foodType, setFoodType] = useState<FoodType>(feeding.foodType ?? "breast_milk");
+  const [amount, setAmount] = useState(feeding.amount ?? 0);
+  const [unit, setUnit] = useState<FeedingUnit>(feeding.unit ?? "ml");
   const [timestamp, setTimestamp] = useState(toLocalDatetime(feeding.timestamp));
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -52,7 +60,7 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
     }
   };
 
-  return (
+  return createPortal(
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50" onClick={onClose}>
       <div
         className="bg-white rounded-xl shadow-xl p-6 w-full max-w-sm mx-4"
@@ -141,6 +149,7 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }
