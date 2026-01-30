@@ -22,7 +22,7 @@ export default function FeedingPage() {
     }
   }, [authLoading, user, router]);
 
-  const { feedings, isLoading, dailyTotalMl, timeSinceLastFeeding } = useFeedings(
+  const { feedings, isLoading, dailyTotalMl, timeSinceLastFeeding, refetch } = useFeedings(
     user?.familyId
   );
 
@@ -60,7 +60,7 @@ export default function FeedingPage() {
 
       <div className="mt-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-3">Log a feeding</h2>
-        <FeedingForm onSuccess={() => {}} />
+        <FeedingForm onSuccess={refetch} />
       </div>
 
       <div className="mt-6">

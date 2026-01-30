@@ -1,77 +1,53 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import {
-  collection,
-  query,
-  where,
-  orderBy,
-  onSnapshot,
-  type Timestamp,
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
+import { useState, useEffect, useCallback } from "react";
 import type { Feeding } from "@/types/feeding";
 
-interface FeedingDoc {
+interface FeedingResponse {
+  id: string;
   familyId: string;
   babyName: string;
   amount: number;
   unit: "ml" | "oz";
   loggedBy: string;
   loggedByName: string;
-  timestamp: Timestamp;
-  createdAt: Timestamp;
-}
-
-function startOfDay(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
+  timestamp: string;
+  createdAt: string;
 }
 
 export function useFeedings(familyId: string | undefined) {
   const [feedings, setFeedings] = useState<Feeding[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const fetchFeedings = useCallback(async () => {
     if (!familyId) return;
 
-    const today = startOfDay(new Date());
-    const feedingsRef = collection(db, "feedings");
-    const q = query(
-      feedingsRef,
-      where("familyId", "==", familyId),
-      where("timestamp", ">=", today),
-      orderBy("timestamp", "desc")
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const results: Feeding[] = snapshot.docs.map((doc) => {
-          const data = doc.data() as FeedingDoc;
-          return {
-            id: doc.id,
-            familyId: data.familyId,
-            babyName: data.babyName,
-            amount: data.amount,
-            unit: data.unit,
-            loggedBy: data.loggedBy,
-            loggedByName: data.loggedByName,
-            timestamp: data.timestamp.toDate(),
-            createdAt: data.createdAt.toDate(),
-          };
-        });
-        setFeedings(results);
-        setIsLoading(false);
-      },
-      () => {
-        setIsLoading(false);
-      }
-    );
-
-    return unsubscribe;
+    try {
+      const res = await fetch("/api/feedings");
+      if (!res.ok) return;
+      const data = await res.json();
+      const results: Feeding[] = (data.feedings as FeedingResponse[]).map((f) => ({
+        id: f.id,
+        familyId: f.familyId,
+        babyName: f.babyName,
+        amount: f.amount,
+        unit: f.unit,
+        loggedBy: f.loggedBy,
+        loggedByName: f.loggedByName,
+        timestamp: new Date(f.timestamp),
+        createdAt: new Date(f.createdAt),
+      }));
+      setFeedings(results);
+    } catch {
+      // Network error — keep existing data
+    } finally {
+      setIsLoading(false);
+    }
   }, [familyId]);
+
+  useEffect(() => {
+    fetchFeedings();
+  }, [fetchFeedings]);
 
   const dailyTotalMl = feedings.reduce((sum, f) => sum + f.amount, 0);
 
@@ -80,5 +56,5 @@ export function useFeedings(familyId: string | undefined) {
     ? Math.round((Date.now() - lastFeeding.timestamp.getTime()) / 60000)
     : null;
 
-  return { feedings, isLoading, dailyTotalMl, lastFeeding, timeSinceLastFeeding };
+  return { feedings, isLoading, dailyTotalMl, lastFeeding, timeSinceLastFeeding, refetch: fetchFeedings };
 }

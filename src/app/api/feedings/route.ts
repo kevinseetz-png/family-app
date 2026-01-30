@@ -3,6 +3,49 @@ import { verifyToken } from "@/lib/auth";
 import { feedingSchema } from "@/lib/validation";
 import { adminDb } from "@/lib/firebase-admin";
 
+function startOfDay(date: Date): Date {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+export async function GET(request: NextRequest): Promise<NextResponse> {
+  const token = request.cookies.get("auth_token")?.value;
+  if (!token) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const user = await verifyToken(token);
+  if (!user) {
+    return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
+  }
+
+  const today = startOfDay(new Date());
+  const snapshot = await adminDb
+    .collection("feedings")
+    .where("familyId", "==", user.familyId)
+    .where("timestamp", ">=", today)
+    .orderBy("timestamp", "desc")
+    .get();
+
+  const feedings = snapshot.docs.map((doc) => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      familyId: data.familyId,
+      babyName: data.babyName,
+      amount: data.amount,
+      unit: data.unit,
+      loggedBy: data.loggedBy,
+      loggedByName: data.loggedByName,
+      timestamp: data.timestamp.toDate().toISOString(),
+      createdAt: data.createdAt.toDate().toISOString(),
+    };
+  });
+
+  return NextResponse.json({ feedings });
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const token = request.cookies.get("auth_token")?.value;
   if (!token) {
