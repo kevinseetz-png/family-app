@@ -4,23 +4,15 @@ import type { Feeding } from "@/types/feeding";
 
 interface FeedingListProps {
   feedings: Feeding[];
-  displayUnit: "ml" | "oz";
   onDelete?: (id: string) => void;
   onEdit?: (feeding: Feeding) => void;
-}
-
-function formatAmount(amountMl: number, unit: "ml" | "oz"): string {
-  if (unit === "oz") {
-    return `${(amountMl / 29.5735).toFixed(1)} oz`;
-  }
-  return `${amountMl} ml`;
 }
 
 function formatTime(date: Date): string {
   return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
 }
 
-export function FeedingList({ feedings, displayUnit, onDelete, onEdit }: FeedingListProps) {
+export function FeedingList({ feedings, onDelete, onEdit }: FeedingListProps) {
   if (feedings.length === 0) {
     return <p className="text-gray-500 text-center py-4">No feedings logged today</p>;
   }
@@ -35,7 +27,7 @@ export function FeedingList({ feedings, displayUnit, onDelete, onEdit }: Feeding
           </div>
           <div className="flex items-center gap-2">
             <span className="font-semibold text-emerald-600">
-              {formatAmount(f.amount, displayUnit)}
+              {f.amount} ml
             </span>
             <span className="text-gray-400 text-sm">{formatTime(f.timestamp)}</span>
             {onEdit && (

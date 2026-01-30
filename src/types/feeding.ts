@@ -3,7 +3,6 @@ export interface Feeding {
   familyId: string;
   babyName: string;
   amount: number; // stored in ml
-  unit: "ml" | "oz";
   loggedBy: string;
   loggedByName: string;
   timestamp: Date;

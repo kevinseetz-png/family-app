@@ -8,7 +8,6 @@ interface FeedingResponse {
   familyId: string;
   babyName: string;
   amount: number;
-  unit: "ml" | "oz";
   loggedBy: string;
   loggedByName: string;
   timestamp: string;
@@ -36,7 +35,6 @@ export function useFeedings(familyId: string | undefined) {
         familyId: f.familyId,
         babyName: f.babyName,
         amount: f.amount,
-        unit: f.unit,
         loggedBy: f.loggedBy,
         loggedByName: f.loggedByName,
         timestamp: new Date(f.timestamp),
@@ -79,7 +77,6 @@ export function useFeedings(familyId: string | undefined) {
     id: string;
     babyName: string;
     amount: number;
-    unit: "ml" | "oz";
     timestamp: string;
   }) => {
     const res = await fetch("/api/feedings", {

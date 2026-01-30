@@ -3,9 +3,11 @@
 import { useState } from "react";
 import { useAuthContext } from "@/components/AuthProvider";
 import { useFeedings } from "@/hooks/useFeedings";
+import { useFeedingHistory } from "@/hooks/useFeedingHistory";
 import { FeedingForm } from "@/components/FeedingForm";
 import { FeedingList } from "@/components/FeedingList";
 import { FeedingSummary } from "@/components/FeedingSummary";
+import { FeedingHistory } from "@/components/FeedingHistory";
 import { EditFeedingModal } from "@/components/EditFeedingModal";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useRouter } from "next/navigation";
@@ -16,7 +18,6 @@ import type { Feeding } from "@/types/feeding";
 export default function FeedingPage() {
   const { user, isLoading: authLoading } = useAuthContext();
   const router = useRouter();
-  const [displayUnit, setDisplayUnit] = useState<"ml" | "oz">("ml");
   const [editingFeeding, setEditingFeeding] = useState<Feeding | null>(null);
 
   useEffect(() => {
@@ -29,6 +30,10 @@ export default function FeedingPage() {
     user?.familyId
   );
 
+  const { history, isLoading: historyLoading, error: historyError } = useFeedingHistory(
+    user?.familyId
+  );
+
   if (authLoading || isLoading) return <LoadingSpinner />;
   if (!user) return null;
 
@@ -36,29 +41,17 @@ export default function FeedingPage() {
     <main id="main-content" className="min-h-screen p-4 max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-emerald-600">Milk Tracker</h1>
-        <div className="flex items-center gap-3">
-          <select
-            value={displayUnit}
-            onChange={(e) => setDisplayUnit(e.target.value as "ml" | "oz")}
-            aria-label="Display unit"
-            className="rounded border border-gray-300 px-2 py-1 text-sm text-gray-700"
-          >
-            <option value="ml">ml</option>
-            <option value="oz">oz</option>
-          </select>
-          <Link
-            href="/"
-            className="text-sm text-emerald-600 hover:text-emerald-500 font-medium"
-          >
-            Home
-          </Link>
-        </div>
+        <Link
+          href="/"
+          className="text-sm text-emerald-600 hover:text-emerald-500 font-medium"
+        >
+          Home
+        </Link>
       </div>
 
       <FeedingSummary
         dailyTotalMl={dailyTotalMl}
         timeSinceLastFeeding={timeSinceLastFeeding}
-        displayUnit={displayUnit}
       />
 
       <div className="mt-6">
@@ -73,9 +66,17 @@ export default function FeedingPage() {
         )}
         <FeedingList
           feedings={feedings}
-          displayUnit={displayUnit}
           onDelete={deleteFeeding}
           onEdit={setEditingFeeding}
+        />
+      </div>
+
+      <div className="mt-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">Past 30 days</h2>
+        <FeedingHistory
+          history={history}
+          isLoading={historyLoading}
+          error={historyError}
         />
       </div>
 

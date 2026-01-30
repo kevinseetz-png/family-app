@@ -9,7 +9,6 @@ interface EditFeedingModalProps {
     id: string;
     babyName: string;
     amount: number;
-    unit: "ml" | "oz";
     timestamp: string;
   }) => Promise<void>;
   onClose: () => void;
@@ -23,10 +22,7 @@ function toLocalDatetime(date: Date): string {
 
 export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalProps) {
   const [babyName, setBabyName] = useState(feeding.babyName);
-  const [amount, setAmount] = useState(
-    feeding.unit === "oz" ? +(feeding.amount / 29.5735).toFixed(1) : feeding.amount
-  );
-  const [unit, setUnit] = useState<"ml" | "oz">(feeding.unit);
+  const [amount, setAmount] = useState(feeding.amount);
   const [timestamp, setTimestamp] = useState(toLocalDatetime(feeding.timestamp));
   const [error, setError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
@@ -40,7 +36,6 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
         id: feeding.id,
         babyName,
         amount,
-        unit,
         timestamp: new Date(timestamp).toISOString(),
       });
       onClose();
@@ -74,36 +69,20 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
               className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>
-          <div className="flex gap-3">
-            <div className="flex-1">
-              <label htmlFor="edit-amount" className="block text-sm font-medium text-gray-700 mb-1">
-                Amount
-              </label>
-              <input
-                id="edit-amount"
-                type="number"
-                step="any"
-                min="0.1"
-                value={amount}
-                onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
-                required
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              />
-            </div>
-            <div>
-              <label htmlFor="edit-unit" className="block text-sm font-medium text-gray-700 mb-1">
-                Unit
-              </label>
-              <select
-                id="edit-unit"
-                value={unit}
-                onChange={(e) => setUnit(e.target.value as "ml" | "oz")}
-                className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-              >
-                <option value="ml">ml</option>
-                <option value="oz">oz</option>
-              </select>
-            </div>
+          <div>
+            <label htmlFor="edit-amount" className="block text-sm font-medium text-gray-700 mb-1">
+              Amount (ml)
+            </label>
+            <input
+              id="edit-amount"
+              type="number"
+              step="any"
+              min="0.1"
+              value={amount}
+              onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
+              required
+              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+            />
           </div>
           <div>
             <label htmlFor="edit-timestamp" className="block text-sm font-medium text-gray-700 mb-1">

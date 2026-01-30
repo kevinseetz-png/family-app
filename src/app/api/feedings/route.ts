@@ -36,7 +36,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           familyId: data.familyId,
           babyName: data.babyName,
           amount: data.amount,
-          unit: data.unit,
           loggedBy: data.loggedBy,
           loggedByName: data.loggedByName,
           timestamp: ts.toISOString(),
@@ -81,16 +80,12 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { babyName, amount, unit, timestamp } = result.data;
-
-  // Convert oz to ml for storage
-  const amountMl = unit === "oz" ? Math.round(amount * 29.5735) : amount;
+  const { babyName, amount, timestamp } = result.data;
 
   const feeding = {
     familyId: user.familyId,
     babyName,
-    amount: amountMl,
-    unit,
+    amount,
     loggedBy: user.id,
     loggedByName: user.name,
     timestamp: timestamp ? new Date(timestamp) : new Date(),
@@ -166,7 +161,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { id, babyName, amount, unit, timestamp } = result.data;
+  const { id, babyName, amount, timestamp } = result.data;
 
   const docRef = adminDb.collection("feedings").doc(id);
   const doc = await docRef.get();
@@ -179,12 +174,9 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
   }
 
-  const amountMl = unit === "oz" ? Math.round(amount * 29.5735) : amount;
-
   await docRef.update({
     babyName,
-    amount: amountMl,
-    unit,
+    amount,
     timestamp: new Date(timestamp),
   });
 

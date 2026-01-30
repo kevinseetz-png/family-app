@@ -9,7 +9,6 @@ interface FeedingFormProps {
 export function FeedingForm({ onSuccess }: FeedingFormProps) {
   const [babyName, setBabyName] = useState("");
   const [amount, setAmount] = useState("");
-  const [unit, setUnit] = useState<"ml" | "oz">("ml");
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -25,7 +24,6 @@ export function FeedingForm({ onSuccess }: FeedingFormProps) {
         body: JSON.stringify({
           babyName,
           amount: parseFloat(amount),
-          unit,
         }),
       });
 
@@ -61,38 +59,21 @@ export function FeedingForm({ onSuccess }: FeedingFormProps) {
         />
       </div>
 
-      <div className="flex gap-3">
-        <div className="flex-1">
-          <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
-            Amount
-          </label>
-          <input
-            id="amount"
-            type="number"
-            required
-            min="0"
-            step="any"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            placeholder="0"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="unit" className="block text-sm font-medium text-gray-700 mb-1">
-            Unit
-          </label>
-          <select
-            id="unit"
-            value={unit}
-            onChange={(e) => setUnit(e.target.value as "ml" | "oz")}
-            className="rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-          >
-            <option value="ml">ml</option>
-            <option value="oz">oz</option>
-          </select>
-        </div>
+      <div>
+        <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
+          Amount (ml)
+        </label>
+        <input
+          id="amount"
+          type="number"
+          required
+          min="0"
+          step="any"
+          value={amount}
+          onChange={(e) => setAmount(e.target.value)}
+          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          placeholder="0"
+        />
       </div>
 
       {error && (
