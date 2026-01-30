@@ -1,4 +1,13 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
+import { vi } from "vitest";
+
+vi.mock("@/lib/firebase", () => ({
+  firebaseAuth: { signOut: vi.fn().mockResolvedValue(undefined) },
+}));
+vi.mock("firebase/auth", () => ({
+  signInWithCustomToken: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { useAuth } from "./useAuth";
 
 const mockFetch = vi.fn();
@@ -14,10 +23,12 @@ describe("useAuth register with invite code", () => {
     const { result } = renderHook(() => useAuth());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ user: { id: "1", name: "A", email: "a@a.com" } }),
-    });
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ user: { id: "1", name: "A", email: "a@a.com", familyId: "f1" } }),
+      })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ token: "fb-token" }) });
 
     await act(async () => {
       await result.current.register("A", "a@a.com", "password123", "INVITE1");

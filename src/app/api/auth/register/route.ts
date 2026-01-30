@@ -13,7 +13,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ message: "Invalid JSON" }, { status: 400 });
   }
 
-  const usersExist = hasUsers();
+  const usersExist = await hasUsers();
   const schema = usersExist ? registerSchema : firstUserRegisterSchema;
   const result = schema.safeParse(body);
   if (!result.success) {
@@ -23,20 +23,24 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
+  let familyId: string | undefined;
   if (usersExist) {
     const inviteCode = (result.data as unknown as { inviteCode: string }).inviteCode;
-    if (!redeemInvite(inviteCode)) {
+    const redeemedFamilyId = await redeemInvite(inviteCode);
+    if (!redeemedFamilyId) {
       return NextResponse.json(
         { message: "Invalid or expired invite code" },
         { status: 403 }
       );
     }
+    familyId = redeemedFamilyId;
   }
 
   const user = await createUser(
     result.data.name,
     result.data.email,
-    result.data.password
+    result.data.password,
+    familyId
   );
 
   if (!user) {

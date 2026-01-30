@@ -1,28 +1,38 @@
-import { describe, it, expect, beforeEach } from "vitest";
+import { describe, it, expect, vi, beforeEach } from "vitest";
+
+// Mock firebase-admin
+const mockSet = vi.fn().mockResolvedValue(undefined);
+const mockDoc = vi.fn(() => ({ set: mockSet }));
+const mockLimit = vi.fn();
+const mockGetResult = vi.fn();
+const mockWhere = vi.fn();
+
+vi.mock("@/lib/firebase-admin", () => ({
+  adminDb: {
+    collection: vi.fn(() => ({
+      doc: mockDoc,
+      where: mockWhere,
+      limit: mockLimit,
+    })),
+  },
+}));
+
+beforeEach(() => {
+  vi.clearAllMocks();
+  mockWhere.mockReturnValue({ limit: mockLimit });
+  mockLimit.mockReturnValue({ get: mockGetResult });
+});
+
+import { hasUsers } from "./users";
 
 describe("hasUsers", () => {
-  beforeEach(async () => {
-    // Reset the in-memory store between tests
-    const mod = await import("@/lib/users");
-    if ("resetUsers" in mod && typeof mod.resetUsers === "function") {
-      (mod as { resetUsers: () => void }).resetUsers();
-    }
-  });
-
-  it("should be exported from users module", async () => {
-    const mod = await import("@/lib/users");
-    expect(mod).toHaveProperty("hasUsers");
-    expect(typeof mod.hasUsers).toBe("function");
-  });
-
   it("should return false when no users exist", async () => {
-    const { hasUsers } = await import("@/lib/users");
-    expect(hasUsers()).toBe(false);
+    mockGetResult.mockResolvedValue({ empty: true });
+    expect(await hasUsers()).toBe(false);
   });
 
-  it("should return true after a user is created", async () => {
-    const { hasUsers, createUser } = await import("@/lib/users");
-    await createUser("Test User", "test@example.com", "password123");
-    expect(hasUsers()).toBe(true);
+  it("should return true when users exist", async () => {
+    mockGetResult.mockResolvedValue({ empty: false });
+    expect(await hasUsers()).toBe(true);
   });
 });

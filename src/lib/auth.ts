@@ -21,6 +21,7 @@ export async function createToken(user: User): Promise<string> {
       sub: user.id,
       name: user.name,
       email: user.email,
+      familyId: user.familyId,
       exp: Math.floor(Date.now() / 1000) + TOKEN_EXPIRY_SECONDS,
     })
   );
@@ -46,10 +47,16 @@ export async function verifyToken(token: string): Promise<User | null> {
     const id = data.sub;
     const name = data.name;
     const email = data.email;
-    if (typeof id !== "string" || typeof name !== "string" || typeof email !== "string") {
+    const familyId = data.familyId;
+    if (
+      typeof id !== "string" ||
+      typeof name !== "string" ||
+      typeof email !== "string" ||
+      typeof familyId !== "string"
+    ) {
       return null;
     }
-    return { id, name, email };
+    return { id, name, email, familyId };
   } catch {
     return null;
   }

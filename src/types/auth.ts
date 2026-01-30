@@ -2,6 +2,7 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  familyId: string;
 }
 
 export interface AuthState {

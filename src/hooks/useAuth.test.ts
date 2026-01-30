@@ -1,4 +1,14 @@
 import { renderHook, act, waitFor } from "@testing-library/react";
+import { vi } from "vitest";
+
+// Mock firebase modules to prevent initialization errors in tests
+vi.mock("@/lib/firebase", () => ({
+  firebaseAuth: { signOut: vi.fn().mockResolvedValue(undefined) },
+}));
+vi.mock("firebase/auth", () => ({
+  signInWithCustomToken: vi.fn().mockResolvedValue(undefined),
+}));
+
 import { useAuth } from "./useAuth";
 
 const mockFetch = vi.fn();
@@ -23,13 +33,15 @@ describe("useAuth", () => {
   });
 
   it("restores session from cookie on mount", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ user: { id: "1", name: "A", email: "a@a.com" } }),
-    });
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ user: { id: "1", name: "A", email: "a@a.com", familyId: "f1" } }),
+      })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ token: "fb-token" }) });
     const { result } = renderHook(() => useAuth());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
-    expect(result.current.user).toEqual({ id: "1", name: "A", email: "a@a.com" });
+    expect(result.current.user).toEqual({ id: "1", name: "A", email: "a@a.com", familyId: "f1" });
   });
 
   it("handles session restore failure gracefully", async () => {
@@ -43,17 +55,19 @@ describe("useAuth", () => {
     const { result } = renderHook(() => useAuth());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ user: { id: "1", name: "A", email: "a@a.com" } }),
-    });
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ user: { id: "1", name: "A", email: "a@a.com", familyId: "f1" } }),
+      })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ token: "fb-token" }) });
 
     let loginResult: string | null = null;
     await act(async () => {
       loginResult = await result.current.login("a@a.com", "pw");
     });
     expect(loginResult).toBeNull();
-    expect(result.current.user).toEqual({ id: "1", name: "A", email: "a@a.com" });
+    expect(result.current.user).toEqual({ id: "1", name: "A", email: "a@a.com", familyId: "f1" });
   });
 
   it("login returns error message on failure", async () => {
@@ -76,17 +90,19 @@ describe("useAuth", () => {
     const { result } = renderHook(() => useAuth());
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ user: { id: "2", name: "B", email: "b@b.com" } }),
-    });
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ user: { id: "2", name: "B", email: "b@b.com", familyId: "f1" } }),
+      })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ token: "fb-token" }) });
 
     let regResult: string | null = null;
     await act(async () => {
       regResult = await result.current.register("B", "b@b.com", "password123", "INVITE1");
     });
     expect(regResult).toBeNull();
-    expect(result.current.user).toEqual({ id: "2", name: "B", email: "b@b.com" });
+    expect(result.current.user).toEqual({ id: "2", name: "B", email: "b@b.com", familyId: "f1" });
   });
 
   it("register returns error on failure", async () => {
@@ -110,10 +126,12 @@ describe("useAuth", () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     // First login
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ user: { id: "1", name: "A", email: "a@a.com" } }),
-    });
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: true,
+        json: async () => ({ user: { id: "1", name: "A", email: "a@a.com", familyId: "f1" } }),
+      })
+      .mockResolvedValueOnce({ ok: true, json: async () => ({ token: "fb-token" }) });
     await act(async () => { await result.current.login("a@a.com", "pw"); });
 
     // Logout

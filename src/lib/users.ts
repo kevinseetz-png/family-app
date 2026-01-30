@@ -1,51 +1,60 @@
 import bcrypt from "bcryptjs";
 import type { User } from "@/types/auth";
 import { SALT_ROUNDS } from "@/lib/auth";
+import { adminDb } from "@/lib/firebase-admin";
 
-interface StoredUser extends User {
-  passwordHash: string;
-}
+const usersCol = () => adminDb.collection("users");
+const familiesCol = () => adminDb.collection("families");
 
-// In-memory store — replace with a real database later
-const users: StoredUser[] = [];
-
-export function hasUsers(): boolean {
-  return users.length > 0;
-}
-
-export function resetUsers(): void {
-  users.length = 0;
+export async function hasUsers(): Promise<boolean> {
+  const snap = await usersCol().limit(1).get();
+  return !snap.empty;
 }
 
 export async function createUser(
   name: string,
   email: string,
-  password: string
+  password: string,
+  familyId?: string
 ): Promise<User | null> {
-  if (users.some((u) => u.email === email)) {
-    return null;
-  }
+  const existing = await usersCol().where("email", "==", email).limit(1).get();
+  if (!existing.empty) return null;
 
   const passwordHash = await bcrypt.hash(password, SALT_ROUNDS);
-  const user: StoredUser = {
-    id: crypto.randomUUID(),
+  const id = crypto.randomUUID();
+
+  let resolvedFamilyId = familyId;
+  if (!resolvedFamilyId) {
+    const famId = crypto.randomUUID();
+    await familiesCol().doc(famId).set({
+      name: `${name}'s Family`,
+      createdAt: new Date(),
+    });
+    resolvedFamilyId = famId;
+  }
+
+  await usersCol().doc(id).set({
     name,
     email,
     passwordHash,
-  };
-  users.push(user);
-  return { id: user.id, name: user.name, email: user.email };
+    familyId: resolvedFamilyId,
+    createdAt: new Date(),
+  });
+
+  return { id, name, email, familyId: resolvedFamilyId };
 }
 
 export async function authenticateUser(
   email: string,
   password: string
 ): Promise<User | null> {
-  const user = users.find((u) => u.email === email);
-  if (!user) return null;
+  const snap = await usersCol().where("email", "==", email).limit(1).get();
+  if (snap.empty) return null;
 
-  const valid = await bcrypt.compare(password, user.passwordHash);
+  const doc = snap.docs[0];
+  const data = doc.data();
+  const valid = await bcrypt.compare(password, data.passwordHash);
   if (!valid) return null;
 
-  return { id: user.id, name: user.name, email: user.email };
+  return { id: doc.id, name: data.name, email: data.email, familyId: data.familyId };
 }

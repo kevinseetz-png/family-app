@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { User, AuthState } from "@/types/auth";
+import { signInWithCustomToken } from "firebase/auth";
+import { firebaseAuth } from "@/lib/firebase";
 
 interface MeResponse {
   user?: User;
@@ -13,6 +15,17 @@ interface AuthSuccessResponse {
 
 interface AuthErrorResponse {
   message?: string;
+}
+
+async function signIntoFirebase() {
+  try {
+    const res = await fetch("/api/auth/firebase-token");
+    if (!res.ok) return;
+    const { token } = await res.json();
+    await signInWithCustomToken(firebaseAuth, token);
+  } catch {
+    // Firebase sign-in is best-effort for real-time features
+  }
 }
 
 export function useAuth(): AuthState & {
@@ -27,11 +40,12 @@ export function useAuth(): AuthState & {
     fetch("/api/auth/me")
       .then((res) => (res.ok ? (res.json() as Promise<MeResponse>) : null))
       .then((data) => {
-        if (data?.user) setUser(data.user);
+        if (data?.user) {
+          setUser(data.user);
+          signIntoFirebase();
+        }
       })
-      .catch(() => {
-        // cookie invalid or network error — nothing to clean up
-      })
+      .catch(() => {})
       .finally(() => setIsLoading(false));
   }, []);
 
@@ -49,6 +63,7 @@ export function useAuth(): AuthState & {
 
     const data: AuthSuccessResponse = await res.json();
     setUser(data.user);
+    await signIntoFirebase();
     return null;
   }, []);
 
@@ -66,11 +81,13 @@ export function useAuth(): AuthState & {
 
     const data: AuthSuccessResponse = await res.json();
     setUser(data.user);
+    await signIntoFirebase();
     return null;
   }, []);
 
   const logout = useCallback(async () => {
     await fetch("/api/auth/logout", { method: "POST" });
+    await firebaseAuth.signOut();
     setUser(null);
   }, []);
 

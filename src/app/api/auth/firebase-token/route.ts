@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
-import { createInvite } from "@/lib/invites";
+import { adminAuth } from "@/lib/firebase-admin";
 
-export async function POST(request: NextRequest): Promise<NextResponse> {
+export async function GET(request: NextRequest): Promise<NextResponse> {
   const token = request.cookies.get("auth_token")?.value;
   if (!token) {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
@@ -13,6 +13,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     return NextResponse.json({ message: "Unauthorized" }, { status: 401 });
   }
 
-  const invite = await createInvite(user.id, user.familyId);
-  return NextResponse.json({ code: invite.code }, { status: 201 });
+  const firebaseToken = await adminAuth.createCustomToken(user.id, {
+    familyId: user.familyId,
+  });
+
+  return NextResponse.json({ token: firebaseToken });
 }

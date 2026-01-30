@@ -1,18 +1,38 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
-/**
- * Tests for the "first user bypasses invite code" feature.
- *
- * When the user store is empty, registration should succeed without an invite code.
- * When at least one user exists, the invite code is required as before.
- */
+// Mock firebase-admin
+vi.mock("@/lib/firebase-admin", () => ({
+  adminDb: {
+    collection: vi.fn(() => ({
+      doc: vi.fn(() => ({
+        set: vi.fn().mockResolvedValue(undefined),
+        get: vi.fn().mockResolvedValue({ exists: false }),
+        update: vi.fn().mockResolvedValue(undefined),
+      })),
+      where: vi.fn().mockReturnValue({
+        limit: vi.fn().mockReturnValue({
+          get: vi.fn().mockResolvedValue({ empty: true }),
+        }),
+      }),
+      limit: vi.fn().mockReturnValue({
+        get: vi.fn().mockResolvedValue({ empty: true }),
+      }),
+    })),
+  },
+}));
 
 // Mock users module to control hasUsers
 vi.mock("@/lib/users", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/users")>();
   return {
     ...actual,
-    hasUsers: vi.fn(() => false),
+    hasUsers: vi.fn().mockResolvedValue(false),
+    createUser: vi.fn().mockResolvedValue({
+      id: "u1",
+      name: "Test User",
+      email: "test@example.com",
+      familyId: "fam-1",
+    }),
   };
 });
 
@@ -21,7 +41,7 @@ vi.mock("@/lib/invites", async (importOriginal) => {
   const actual = await importOriginal<typeof import("@/lib/invites")>();
   return {
     ...actual,
-    redeemInvite: vi.fn(() => true),
+    redeemInvite: vi.fn().mockResolvedValue("fam-1"),
   };
 });
 
@@ -34,12 +54,8 @@ describe("First-user invite bypass (registration route logic)", () => {
     const { hasUsers } = await import("@/lib/users");
     const { redeemInvite } = await import("@/lib/invites");
 
-    // Simulate: no users exist
-    vi.mocked(hasUsers).mockReturnValue(false);
+    vi.mocked(hasUsers).mockResolvedValue(false);
 
-    // The register route should NOT call redeemInvite when no users exist.
-    // We test this by importing the route and calling it.
-    // Since the route currently ALWAYS calls redeemInvite, this test will fail.
     const { POST } = await import("@/app/api/auth/register/route");
 
     const request = new Request("http://localhost/api/auth/register", {
@@ -49,12 +65,10 @@ describe("First-user invite bypass (registration route logic)", () => {
         name: "First User",
         email: "first@example.com",
         password: "securepassword",
-        // No inviteCode provided
       }),
     });
 
     const response = await POST(request as never);
-    // First user should be created successfully without invite code
     expect(response.status).toBe(201);
     expect(redeemInvite).not.toHaveBeenCalled();
   });
@@ -63,9 +77,8 @@ describe("First-user invite bypass (registration route logic)", () => {
     const { hasUsers } = await import("@/lib/users");
     const { redeemInvite } = await import("@/lib/invites");
 
-    // Simulate: users already exist
-    vi.mocked(hasUsers).mockReturnValue(true);
-    vi.mocked(redeemInvite).mockReturnValue(false);
+    vi.mocked(hasUsers).mockResolvedValue(true);
+    vi.mocked(redeemInvite).mockResolvedValue(null);
 
     const { POST } = await import("@/app/api/auth/register/route");
 
@@ -89,8 +102,8 @@ describe("First-user invite bypass (registration route logic)", () => {
     const { hasUsers } = await import("@/lib/users");
     const { redeemInvite } = await import("@/lib/invites");
 
-    vi.mocked(hasUsers).mockReturnValue(true);
-    vi.mocked(redeemInvite).mockReturnValue(true);
+    vi.mocked(hasUsers).mockResolvedValue(true);
+    vi.mocked(redeemInvite).mockResolvedValue("fam-1");
 
     const { POST } = await import("@/app/api/auth/register/route");
 
@@ -111,11 +124,8 @@ describe("First-user invite bypass (registration route logic)", () => {
   });
 
   it("should not require inviteCode field in schema when no users exist", async () => {
-    // The validation schema should make inviteCode optional when no users exist.
-    // Currently registerSchema requires inviteCode, so submitting without it
-    // returns 400. This test expects 201 for the first user without inviteCode.
     const { hasUsers } = await import("@/lib/users");
-    vi.mocked(hasUsers).mockReturnValue(false);
+    vi.mocked(hasUsers).mockResolvedValue(false);
 
     const { POST } = await import("@/app/api/auth/register/route");
 
@@ -126,12 +136,10 @@ describe("First-user invite bypass (registration route logic)", () => {
         name: "First User",
         email: "first@example.com",
         password: "securepassword",
-        // No inviteCode
       }),
     });
 
     const response = await POST(request as never);
-    // Should not fail validation for missing inviteCode
     expect(response.status).not.toBe(400);
   });
 });
