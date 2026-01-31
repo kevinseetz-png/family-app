@@ -28,6 +28,9 @@ export default function AdminDashboard(): ReactElement {
   const [users, setUsers] = useState<User[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedFamilies, setSelectedFamilies] = useState<Record<string, string>>({});
+  const [newFamilyName, setNewFamilyName] = useState("");
+  const [creatingFamily, setCreatingFamily] = useState(false);
+  const [inviteLinks, setInviteLinks] = useState<Record<string, string>>({});
 
   useEffect(() => {
     if (!isLoading && (!user || user.role !== "admin")) {
@@ -84,6 +87,50 @@ export default function AdminDashboard(): ReactElement {
     }
   }
 
+  async function createFamily(e: React.FormEvent) {
+    e.preventDefault();
+    if (!newFamilyName.trim() || creatingFamily) return;
+    setCreatingFamily(true);
+    try {
+      const res = await fetch("/api/admin/families", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name: newFamilyName.trim() }),
+      });
+      if (res.ok) {
+        setNewFamilyName("");
+        await fetchData();
+      }
+    } catch (error) {
+      console.error("Error creating family:", error);
+    } finally {
+      setCreatingFamily(false);
+    }
+  }
+
+  async function generateInvite(familyId: string) {
+    try {
+      const res = await fetch("/api/admin/invite", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ familyId }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setInviteLinks((prev) => ({ ...prev, [familyId]: data.inviteUrl }));
+      }
+    } catch (error) {
+      console.error("Error generating invite:", error);
+    }
+  }
+
+  function copyInviteLink(familyId: string) {
+    const link = inviteLinks[familyId];
+    if (link) {
+      navigator.clipboard.writeText(link);
+    }
+  }
+
   async function deleteUser(userId: string) {
     if (!window.confirm("Weet je zeker dat je deze gebruiker wilt verwijderen?")) {
       return;
@@ -124,6 +171,26 @@ export default function AdminDashboard(): ReactElement {
 
       <section className="mb-8">
         <h2 className="text-2xl font-semibold mb-4">Families</h2>
+
+        <form onSubmit={createFamily} className="flex gap-2 mb-4">
+          <label htmlFor="new-family-name" className="sr-only">Nieuwe familienaam</label>
+          <input
+            id="new-family-name"
+            type="text"
+            value={newFamilyName}
+            onChange={(e) => setNewFamilyName(e.target.value)}
+            placeholder="Nieuwe familie"
+            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+          />
+          <button
+            type="submit"
+            disabled={creatingFamily || !newFamilyName.trim()}
+            className="px-4 py-2 bg-indigo-600 text-white text-sm rounded-md hover:bg-indigo-700 disabled:opacity-50"
+          >
+            Aanmaken
+          </button>
+        </form>
+
         <div className="bg-white shadow rounded-lg overflow-hidden">
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-gray-50">
@@ -134,6 +201,9 @@ export default function AdminDashboard(): ReactElement {
                 <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                   Leden
                 </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Uitnodigen
+                </th>
               </tr>
             </thead>
             <tbody className="bg-white divide-y divide-gray-200">
@@ -142,6 +212,25 @@ export default function AdminDashboard(): ReactElement {
                   <td className="px-4 py-3 whitespace-nowrap text-sm">{family.name}</td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm">
                     {family.memberCount}
+                  </td>
+                  <td className="px-4 py-3 whitespace-nowrap text-sm">
+                    {inviteLinks[family.id] ? (
+                      <button
+                        onClick={() => copyInviteLink(family.id)}
+                        aria-label={`Kopieer uitnodigingslink voor ${family.name}`}
+                        className="px-3 py-1 bg-green-600 text-white text-xs rounded-md hover:bg-green-700"
+                      >
+                        Kopieer link
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => generateInvite(family.id)}
+                        aria-label={`Genereer uitnodiging voor ${family.name}`}
+                        className="px-3 py-1 bg-indigo-600 text-white text-xs rounded-md hover:bg-indigo-700"
+                      >
+                        Uitnodigen
+                      </button>
+                    )}
                   </td>
                 </tr>
               ))}
