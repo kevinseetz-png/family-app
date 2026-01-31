@@ -55,14 +55,14 @@ describe("GET /api/feedings/history", () => {
   });
 
   it("should return empty history when no feedings exist", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1" } as any);
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
     mockCollection.mockReturnValue({
       where: vi.fn().mockReturnValue({
         limit: vi.fn().mockReturnValue({
           get: vi.fn().mockResolvedValue({ docs: [] }),
         }),
       }),
-    } as any);
+    } as unknown as ReturnType<typeof adminDb.collection>);
 
     const res = await GET(makeRequest("valid-token"));
     const data = await res.json();
@@ -71,7 +71,7 @@ describe("GET /api/feedings/history", () => {
   });
 
   it("should filter out feedings older than 30 days", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1" } as any);
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
 
     const today = new Date();
     const fiveDaysAgo = new Date(today);
@@ -90,7 +90,7 @@ describe("GET /api/feedings/history", () => {
           }),
         }),
       }),
-    } as any);
+    } as unknown as ReturnType<typeof adminDb.collection>);
 
     const res = await GET(makeRequest("valid-token"));
     const data = await res.json();
@@ -100,11 +100,7 @@ describe("GET /api/feedings/history", () => {
   });
 
   it("should aggregate feedings by day", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1" } as any);
-
-    const day1 = new Date("2025-01-15T10:00:00Z");
-    const day1b = new Date("2025-01-15T14:00:00Z");
-    const day2 = new Date("2025-01-16T09:00:00Z");
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
 
     // Make these dates recent enough to be within 30 days
     const now = new Date();
@@ -130,7 +126,7 @@ describe("GET /api/feedings/history", () => {
           }),
         }),
       }),
-    } as any);
+    } as unknown as ReturnType<typeof adminDb.collection>);
 
     const res = await GET(makeRequest("valid-token"));
     const data = await res.json();
@@ -145,7 +141,7 @@ describe("GET /api/feedings/history", () => {
   });
 
   it("should return sorted history descending by date", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1" } as any);
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
 
     const now = new Date();
     const day1 = new Date(now);
@@ -164,7 +160,7 @@ describe("GET /api/feedings/history", () => {
           }),
         }),
       }),
-    } as any);
+    } as unknown as ReturnType<typeof adminDb.collection>);
 
     const res = await GET(makeRequest("valid-token"));
     const data = await res.json();
@@ -172,14 +168,14 @@ describe("GET /api/feedings/history", () => {
   });
 
   it("should return 500 on database error", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1" } as any);
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
     mockCollection.mockReturnValue({
       where: vi.fn().mockReturnValue({
         limit: vi.fn().mockReturnValue({
           get: vi.fn().mockRejectedValue(new Error("DB error")),
         }),
       }),
-    } as any);
+    } as unknown as ReturnType<typeof adminDb.collection>);
 
     const res = await GET(makeRequest("valid-token"));
     const data = await res.json();
