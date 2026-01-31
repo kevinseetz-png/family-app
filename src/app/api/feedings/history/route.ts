@@ -22,7 +22,6 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const snapshot = await adminDb
       .collection("feedings")
       .where("familyId", "==", user.familyId)
-      .where("timestamp", ">=", thirtyDaysAgo)
       .get();
 
     const dailyMap = new Map<string, { totalMl: number; count: number }>();
@@ -30,6 +29,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     for (const doc of snapshot.docs) {
       const data = doc.data();
       const ts: Date = data.timestamp.toDate();
+      if (ts < thirtyDaysAgo) continue;
       const dateKey = ts.toISOString().slice(0, 10);
 
       const entry = dailyMap.get(dateKey) ?? { totalMl: 0, count: 0 };
