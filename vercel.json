@@ -1,12 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/feeding-reminder",
-      "schedule": "*/30 * * * *"
-    },
-    {
       "path": "/api/cron/vitamin-reminder",
-      "schedule": "0 10 * * *"
+      "schedule": "0 9 * * *"
     }
   ]
 }

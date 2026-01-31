@@ -20,12 +20,41 @@ export default function SettingsPage() {
 
   const defaultTabs = TOGGLEABLE_TABS.map((t) => t.href);
   const [localTabs, setLocalTabs] = useState<string[]>(visibleTabs ?? defaultTabs);
+  const [vitaminHour, setVitaminHour] = useState<number>(10);
+  const [vitaminSaving, setVitaminSaving] = useState(false);
 
   useEffect(() => {
     if (visibleTabs) {
       setLocalTabs(visibleTabs);
     }
   }, [visibleTabs]);
+
+  useEffect(() => {
+    fetch("/api/settings/vitamin-time")
+      .then((r) => r.json())
+      .then((data) => {
+        if (typeof data.vitaminReminderHour === "number") {
+          setVitaminHour(data.vitaminReminderHour);
+        }
+      })
+      .catch(() => {});
+  }, []);
+
+  const saveVitaminHour = async (hour: number) => {
+    setVitaminHour(hour);
+    setVitaminSaving(true);
+    try {
+      await fetch("/api/settings/vitamin-time", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ vitaminReminderHour: hour }),
+      });
+    } catch {
+      // ignore
+    } finally {
+      setVitaminSaving(false);
+    }
+  };
 
   const handleToggle = async (href: string, enabled: boolean) => {
     const next = enabled
@@ -67,6 +96,29 @@ export default function SettingsPage() {
         ) : (
           <p className="text-sm text-gray-500">Push meldingen worden niet ondersteund in deze browser.</p>
         )}
+      </section>
+
+      <section className="mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">Vitamine herinnering</h2>
+        <label className="flex items-center gap-3 text-sm text-gray-700">
+          <span>Herinneringstijd</span>
+          <select
+            value={vitaminHour}
+            onChange={(e) => saveVitaminHour(Number(e.target.value))}
+            disabled={vitaminSaving}
+            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+          >
+            {Array.from({ length: 24 }, (_, h) => (
+              <option key={h} value={h}>
+                {String(h).padStart(2, "0")}:00
+              </option>
+            ))}
+          </select>
+          {vitaminSaving && <span className="text-xs text-gray-400">Opslaan…</span>}
+        </label>
+        <p className="text-xs text-gray-400 mt-1">
+          Momenteel krijgt iedereen de herinnering om 10:00. Je voorkeur wordt bewaard voor toekomstig gebruik.
+        </p>
       </section>
 
       <section className="mb-6">
