@@ -12,7 +12,6 @@ import { EditFeedingModal } from "@/components/EditFeedingModal";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import Link from "next/link";
 import type { Feeding } from "@/types/feeding";
 
 export default function FeedingPage() {
@@ -38,16 +37,8 @@ export default function FeedingPage() {
   if (!user) return null;
 
   return (
-    <main id="main-content" className="min-h-screen p-4 max-w-lg mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-emerald-600">Food Tracker</h1>
-        <Link
-          href="/"
-          className="text-sm text-emerald-600 hover:text-emerald-500 font-medium"
-        >
-          Home
-        </Link>
-      </div>
+    <main id="main-content" className="p-4 max-w-lg mx-auto">
+      <h1 className="text-2xl font-bold text-emerald-600 mb-6">Food Tracker</h1>
 
       <FeedingSummary
         feedingCount={feedingCount}

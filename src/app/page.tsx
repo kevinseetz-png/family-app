@@ -31,24 +31,6 @@ export default function Home() {
 
       <nav className="flex flex-col gap-3 w-full max-w-xs mb-8">
         <Link
-          href="/feeding"
-          className="rounded-lg bg-emerald-600 px-4 py-3 text-center text-white font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none"
-        >
-          Food Tracker
-        </Link>
-        <Link
-          href="/notes"
-          className="rounded-lg bg-emerald-600 px-4 py-3 text-center text-white font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none"
-        >
-          Noties
-        </Link>
-        <Link
-          href="/weekmenu"
-          className="rounded-lg bg-emerald-600 px-4 py-3 text-center text-white font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none"
-        >
-          Weekmenu
-        </Link>
-        <Link
           href="/invite"
           className="rounded-lg border border-gray-300 px-4 py-3 text-center text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none"
         >

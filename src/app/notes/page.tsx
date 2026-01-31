@@ -9,7 +9,6 @@ import { EditNoteModal } from "@/components/EditNoteModal";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
-import Link from "next/link";
 import type { Note } from "@/types/note";
 
 export default function NotesPage() {
@@ -32,15 +31,7 @@ export default function NotesPage() {
 
   return (
     <main id="main-content" className="min-h-screen p-4 max-w-lg mx-auto">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-emerald-600">Noties</h1>
-        <Link
-          href="/"
-          className="text-sm text-emerald-600 hover:text-emerald-500 font-medium"
-        >
-          Home
-        </Link>
-      </div>
+      <h1 className="text-2xl font-bold text-emerald-600 mb-6">Noties</h1>
 
       <div className="mt-6">
         <h2 className="text-lg font-semibold text-gray-900 mb-3">New note</h2>
