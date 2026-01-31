@@ -8,7 +8,7 @@ const ALL_TABS = [
   { href: "/feeding", label: "Eten" },
   { href: "/notes", label: "Noties" },
   { href: "/weekmenu", label: "Menu" },
-  { href: "/boodschappen", label: "Boodschapje" },
+  { href: "/boodschappen", label: "Boodschap" },
   { href: "/community", label: "Community" },
 ] as const;
 
@@ -36,7 +36,7 @@ export function TabBar() {
             <li key={href} className="flex-1">
               <Link
                 href={href}
-                className={`block py-3 text-center text-sm font-medium transition-colors ${
+                className={`block py-3 text-center text-xs sm:text-sm font-medium truncate px-1 transition-colors ${
                   isActive
                     ? "text-emerald-600 border-b-2 border-emerald-600"
                     : "text-gray-500 hover:text-gray-700"
