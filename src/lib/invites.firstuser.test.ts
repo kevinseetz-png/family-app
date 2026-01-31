@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { describe, it, expect, vi, beforeEach } from "vitest";
 
 // Mock firebase-admin
@@ -64,7 +65,7 @@ describe("First-user invite bypass (registration route logic)", () => {
       body: JSON.stringify({
         name: "First User",
         email: "first@example.com",
-        password: "securepassword",
+        password: "SecurePass123",
       }),
     });
 
@@ -88,7 +89,7 @@ describe("First-user invite bypass (registration route logic)", () => {
       body: JSON.stringify({
         name: "Second User",
         email: "second@example.com",
-        password: "securepassword",
+        password: "SecurePass123",
         inviteCode: "INVALID",
       }),
     });
@@ -113,7 +114,7 @@ describe("First-user invite bypass (registration route logic)", () => {
       body: JSON.stringify({
         name: "Second User",
         email: "second@example.com",
-        password: "securepassword",
+        password: "SecurePass123",
         inviteCode: "VALIDCODE123",
       }),
     });
@@ -135,7 +136,7 @@ describe("First-user invite bypass (registration route logic)", () => {
       body: JSON.stringify({
         name: "First User",
         email: "first@example.com",
-        password: "securepassword",
+        password: "SecurePass123",
       }),
     });
 

@@ -44,7 +44,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({ history });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to fetch feeding history";
-    return NextResponse.json({ message, history: [] }, { status: 500 });
+    console.error("Failed to fetch feeding history:", err);
+    return NextResponse.json({ message: "Failed to fetch feeding history", history: [] }, { status: 500 });
   }
 }

@@ -40,8 +40,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       },
     });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to fetch week menu";
-    return NextResponse.json({ message }, { status: 500 });
+    console.error("Failed to fetch week menu:", err);
+    return NextResponse.json({ message: "Failed to fetch week menu" }, { status: 500 });
   }
 }
 
@@ -99,7 +99,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({ message: "Saved" });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to save week menu";
-    return NextResponse.json({ message }, { status: 500 });
+    console.error("Failed to save week menu:", err);
+    return NextResponse.json({ message: "Failed to save week menu" }, { status: 500 });
   }
 }

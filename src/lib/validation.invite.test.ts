@@ -5,7 +5,7 @@ describe("registerSchema with inviteCode", () => {
     const result = registerSchema.safeParse({
       name: "Alice",
       email: "alice@example.com",
-      password: "password123",
+      password: "Password1234",
       inviteCode: "ABC123",
     });
     expect(result.success).toBe(true);
@@ -15,7 +15,7 @@ describe("registerSchema with inviteCode", () => {
     const result = registerSchema.safeParse({
       name: "Alice",
       email: "alice@example.com",
-      password: "password123",
+      password: "Password1234",
     });
     expect(result.success).toBe(false);
   });
@@ -24,7 +24,7 @@ describe("registerSchema with inviteCode", () => {
     const result = registerSchema.safeParse({
       name: "Alice",
       email: "alice@example.com",
-      password: "password123",
+      password: "Password1234",
       inviteCode: "",
     });
     expect(result.success).toBe(false);

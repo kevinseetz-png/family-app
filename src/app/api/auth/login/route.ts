@@ -3,7 +3,6 @@ import { loginSchema } from "@/lib/validation";
 import { authenticateUser } from "@/lib/users";
 import { createToken } from "@/lib/auth";
 
-// TODO: VULN-003 — Add rate limiting (infra-level concern)
 export async function POST(request: NextRequest): Promise<NextResponse> {
   let body: unknown;
   try {
@@ -34,7 +33,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "strict",
-    maxAge: 7 * 24 * 60 * 60,
+    maxAge: 24 * 60 * 60,
     path: "/",
   });
   return response;

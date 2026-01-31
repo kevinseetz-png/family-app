@@ -40,8 +40,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
     return NextResponse.json({ notes });
   } catch (err) {
-    const message = err instanceof Error ? err.message : "Failed to fetch notes";
-    return NextResponse.json({ message, notes: [] }, { status: 500 });
+    console.error("Failed to fetch notes:", err);
+    return NextResponse.json({ message: "Failed to fetch notes", notes: [] }, { status: 500 });
   }
 }
 
