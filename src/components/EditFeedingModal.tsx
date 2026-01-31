@@ -63,13 +63,13 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
   return createPortal(
     <div className="fixed inset-0 z-50 bg-black/50" onClick={onClose}>
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-xl shadow-xl p-6 max-h-[90vh] overflow-y-auto"
+        className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-xl shadow-xl p-4 max-h-[85vh] overflow-y-auto"
         role="dialog"
         aria-label="Edit feeding"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Edit Feeding</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">Edit Feeding</h2>
+        <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label htmlFor="edit-food-type" className="block text-sm font-medium text-gray-700 mb-1">
               Food type
@@ -131,7 +131,7 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
             />
           </div>
           {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
-          <div className="flex gap-3 pt-2">
+          <div className="flex gap-3 pt-1">
             <button
               type="button"
               onClick={onClose}
