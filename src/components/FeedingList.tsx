@@ -10,12 +10,12 @@ interface FeedingListProps {
 }
 
 function formatTime(date: Date): string {
-  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  return date.toLocaleTimeString("nl-NL", { hour: "2-digit", minute: "2-digit" });
 }
 
 export function FeedingList({ feedings, onDelete, onEdit }: FeedingListProps) {
   if (feedings.length === 0) {
-    return <p className="text-gray-500 text-center py-4">No feedings logged today</p>;
+    return <p className="text-gray-500 text-center py-4">Nog geen voedingen vandaag</p>;
   }
 
   return (
@@ -24,7 +24,7 @@ export function FeedingList({ feedings, onDelete, onEdit }: FeedingListProps) {
         <li key={f.id} className="py-3 flex justify-between items-center">
           <div>
             <span className="font-medium text-gray-900">{FOOD_TYPE_LABELS[f.foodType]}</span>
-            <span className="text-gray-500 text-sm ml-2">by {f.loggedByName}</span>
+            <span className="text-gray-500 text-sm ml-2">door {f.loggedByName}</span>
           </div>
           <div className="flex items-center gap-2">
             <span className="font-semibold text-emerald-600">
@@ -34,7 +34,7 @@ export function FeedingList({ feedings, onDelete, onEdit }: FeedingListProps) {
             {onEdit && (
               <button
                 onClick={() => onEdit(f)}
-                aria-label={`Edit feeding`}
+                aria-label={`Voeding bewerken`}
                 className="ml-1 rounded p-1 text-gray-400 hover:text-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4" aria-hidden="true">
@@ -45,11 +45,11 @@ export function FeedingList({ feedings, onDelete, onEdit }: FeedingListProps) {
             {onDelete && (
               <button
                 onClick={() => {
-                  if (window.confirm("Delete this feeding?")) {
+                  if (window.confirm("Deze voeding verwijderen?")) {
                     onDelete(f.id);
                   }
                 }}
-                aria-label={`Delete feeding`}
+                aria-label={`Voeding verwijderen`}
                 className="rounded p-1 text-gray-400 hover:text-red-600 focus:ring-2 focus:ring-red-500 focus:outline-none"
               >
                 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4" aria-hidden="true">

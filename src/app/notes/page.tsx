@@ -34,12 +34,12 @@ export default function NotesPage() {
       <h1 className="text-2xl font-bold text-emerald-600 mb-6">Noties</h1>
 
       <div className="mt-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">New note</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">Nieuwe notitie</h2>
         <NoteForm onSuccess={refetch} />
       </div>
 
       <div className="mt-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">All notes</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">Alle notities</h2>
         {error && (
           <p role="alert" className="text-sm text-red-600 mb-3">{error}</p>
         )}

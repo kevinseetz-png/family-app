@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { verifyToken } from "@/lib/auth";
 import { feedingSchema, feedingUpdateSchema } from "@/lib/validation";
 import { adminDb } from "@/lib/firebase-admin";
+import { sendNotificationToFamily } from "@/lib/push";
 
 function startOfDay(date: Date): Date {
   const d = new Date(date);
@@ -118,6 +119,17 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   };
 
   const docRef = await adminDb.collection("feedings").add(feeding);
+
+  sendNotificationToFamily(
+    user.familyId,
+    {
+      title: "Nieuwe voeding",
+      body: `${user.name} heeft een voeding gelogd`,
+      url: "/feeding",
+      type: "family_activity",
+    },
+    user.id
+  ).catch(() => {});
 
   return NextResponse.json({ id: docRef.id, ...feeding }, { status: 201 });
 }

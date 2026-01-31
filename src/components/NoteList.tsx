@@ -9,12 +9,12 @@ interface NoteListProps {
 }
 
 function formatDate(date: Date): string {
-  return date.toLocaleDateString([], { day: "numeric", month: "short", year: "numeric" });
+  return date.toLocaleDateString("nl-NL", { day: "numeric", month: "short", year: "numeric" });
 }
 
 export function NoteList({ notes, onDelete, onEdit }: NoteListProps) {
   if (notes.length === 0) {
-    return <p className="text-gray-500 text-center py-4">No notes yet</p>;
+    return <p className="text-gray-500 text-center py-4">Nog geen notities</p>;
   }
 
   return (
@@ -33,7 +33,7 @@ export function NoteList({ notes, onDelete, onEdit }: NoteListProps) {
               {onEdit && (
                 <button
                   onClick={() => onEdit(n)}
-                  aria-label="Edit note"
+                  aria-label="Notitie bewerken"
                   className="rounded p-1 text-gray-400 hover:text-emerald-600 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4" aria-hidden="true">
@@ -44,11 +44,11 @@ export function NoteList({ notes, onDelete, onEdit }: NoteListProps) {
               {onDelete && (
                 <button
                   onClick={() => {
-                    if (window.confirm("Delete this note?")) {
+                    if (window.confirm("Deze notitie verwijderen?")) {
                       onDelete(n.id);
                     }
                   }}
-                  aria-label="Delete note"
+                  aria-label="Notitie verwijderen"
                   className="rounded p-1 text-gray-400 hover:text-red-600 focus:ring-2 focus:ring-red-500 focus:outline-none"
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4" aria-hidden="true">

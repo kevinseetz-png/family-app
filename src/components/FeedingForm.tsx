@@ -35,14 +35,14 @@ export function FeedingForm({ onSuccess }: FeedingFormProps) {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.message || "Failed to log feeding");
+        setError(data.message || "Kon voeding niet opslaan");
         return;
       }
 
       setAmount("");
       onSuccess();
     } catch {
-      setError("Network error");
+      setError("Netwerkfout");
     } finally {
       setIsSubmitting(false);
     }
@@ -52,7 +52,7 @@ export function FeedingForm({ onSuccess }: FeedingFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="food-type" className="block text-sm font-medium text-gray-700 mb-1">
-          Food type
+          Soort voeding
         </label>
         <select
           id="food-type"
@@ -70,7 +70,7 @@ export function FeedingForm({ onSuccess }: FeedingFormProps) {
       <div className="flex gap-3">
         <div className="flex-1">
           <label htmlFor="amount" className="block text-sm font-medium text-gray-700 mb-1">
-            Amount
+            Hoeveelheid
           </label>
           <input
             id="amount"
@@ -86,7 +86,7 @@ export function FeedingForm({ onSuccess }: FeedingFormProps) {
         </div>
         <div className="w-24">
           <label htmlFor="unit" className="block text-sm font-medium text-gray-700 mb-1">
-            Unit
+            Eenheid
           </label>
           <select
             id="unit"
@@ -109,7 +109,7 @@ export function FeedingForm({ onSuccess }: FeedingFormProps) {
         disabled={isSubmitting}
         className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-white font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isSubmitting ? "Logging..." : "Log feeding"}
+        {isSubmitting ? "Opslaan..." : "Voeding opslaan"}
       </button>
     </form>
   );

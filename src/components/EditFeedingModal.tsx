@@ -65,14 +65,14 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
       <div
         className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-xl shadow-xl p-4 max-h-[85vh] overflow-y-auto"
         role="dialog"
-        aria-label="Edit feeding"
+        aria-label="Voeding bewerken"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Edit Feeding</h2>
+        <h2 className="text-lg font-semibold text-gray-900 mb-3">Voeding bewerken</h2>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
             <label htmlFor="edit-food-type" className="block text-sm font-medium text-gray-700 mb-1">
-              Food type
+              Soort voeding
             </label>
             <select
               id="edit-food-type"
@@ -89,7 +89,7 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
           <div className="flex gap-3">
             <div className="flex-1">
               <label htmlFor="edit-amount" className="block text-sm font-medium text-gray-700 mb-1">
-                Amount
+                Hoeveelheid
               </label>
               <input
                 id="edit-amount"
@@ -104,7 +104,7 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
             </div>
             <div className="w-24">
               <label htmlFor="edit-unit" className="block text-sm font-medium text-gray-700 mb-1">
-                Unit
+                Eenheid
               </label>
               <select
                 id="edit-unit"
@@ -119,7 +119,7 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
           </div>
           <div>
             <label htmlFor="edit-timestamp" className="block text-sm font-medium text-gray-700 mb-1">
-              Time
+              Tijd
             </label>
             <input
               id="edit-timestamp"
@@ -137,14 +137,14 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
               onClick={onClose}
               className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             >
-              Cancel
+              Annuleren
             </button>
             <button
               type="submit"
               disabled={isSaving}
               className="flex-1 rounded-lg bg-emerald-600 px-4 py-2 text-sm font-medium text-white hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none disabled:opacity-50"
             >
-              {isSaving ? "Saving..." : "Save"}
+              {isSaving ? "Opslaan..." : "Opslaan"}
             </button>
           </div>
         </form>

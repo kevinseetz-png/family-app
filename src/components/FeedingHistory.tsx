@@ -21,7 +21,7 @@ interface FeedingHistoryProps {
 
 function formatDate(dateStr: string): string {
   const date = new Date(dateStr + "T00:00:00");
-  return date.toLocaleDateString(undefined, {
+  return date.toLocaleDateString("nl-NL", {
     weekday: "short",
     month: "short",
     day: "numeric",
@@ -38,7 +38,7 @@ export function FeedingHistory({
   dayFeedingsLoading,
 }: FeedingHistoryProps) {
   if (isLoading) {
-    return <p className="text-gray-500 text-center py-4">Loading history...</p>;
+    return <p className="text-gray-500 text-center py-4">Geschiedenis laden...</p>;
   }
 
   if (error) {
@@ -46,7 +46,7 @@ export function FeedingHistory({
   }
 
   if (history.length === 0) {
-    return <p className="text-gray-500 text-center py-4">No feeding history</p>;
+    return <p className="text-gray-500 text-center py-4">Geen voedingsgeschiedenis</p>;
   }
 
   return (
@@ -61,7 +61,7 @@ export function FeedingHistory({
             <div className="flex items-center gap-4">
               <span className="font-semibold text-emerald-600">{day.totalMl} ml</span>
               <span className="text-sm text-gray-400">
-                {day.count} {day.count === 1 ? "feeding" : "feedings"}
+                {day.count} {day.count === 1 ? "voeding" : "voedingen"}
               </span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -77,7 +77,7 @@ export function FeedingHistory({
           {selectedDate === day.date && (
             <div className="pb-3 pl-4">
               {dayFeedingsLoading ? (
-                <p className="text-gray-500 text-sm py-2">Loading feedings...</p>
+                <p className="text-gray-500 text-sm py-2">Voedingen laden...</p>
               ) : (
                 <FeedingList feedings={dayFeedings} />
               )}

@@ -26,7 +26,7 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
 
       if (!res.ok) {
         const data = await res.json();
-        setError(data.message || "Failed to create note");
+        setError(data.message || "Kon notitie niet aanmaken");
         return;
       }
 
@@ -34,7 +34,7 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
       setContent("");
       onSuccess();
     } catch {
-      setError("Network error");
+      setError("Netwerkfout");
     } finally {
       setIsSubmitting(false);
     }
@@ -44,7 +44,7 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
         <label htmlFor="note-title" className="block text-sm font-medium text-gray-700 mb-1">
-          Title
+          Titel
         </label>
         <input
           id="note-title"
@@ -53,13 +53,13 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
           value={title}
           onChange={(e) => setTitle(e.target.value)}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-          placeholder="Note title"
+          placeholder="Titel van notitie"
         />
       </div>
 
       <div>
         <label htmlFor="note-content" className="block text-sm font-medium text-gray-700 mb-1">
-          Content
+          Inhoud
         </label>
         <textarea
           id="note-content"
@@ -68,7 +68,7 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
           onChange={(e) => setContent(e.target.value)}
           rows={4}
           className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-          placeholder="Write your note..."
+          placeholder="Schrijf je notitie..."
         />
       </div>
 
@@ -81,7 +81,7 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
         disabled={isSubmitting}
         className="w-full rounded-lg bg-emerald-600 px-4 py-2 text-white font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:ring-offset-2 focus:outline-none disabled:opacity-50 disabled:cursor-not-allowed"
       >
-        {isSubmitting ? "Saving..." : "Add note"}
+        {isSubmitting ? "Opslaan..." : "Notitie toevoegen"}
       </button>
     </form>
   );

@@ -14,9 +14,9 @@ export interface Feeding {
 }
 
 export const FOOD_TYPE_LABELS: Record<FoodType, string> = {
-  breast_milk: "Breast milk",
-  formula: "Formula",
+  breast_milk: "Moedermelk",
+  formula: "Flesvoeding",
   puree: "Puree",
-  solid: "Solid",
+  solid: "Vast voedsel",
   snack: "Snack",
 };
