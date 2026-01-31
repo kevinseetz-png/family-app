@@ -19,6 +19,7 @@ export function useFeedings(familyId: string | undefined) {
   const [feedings, setFeedings] = useState<Feeding[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastFeedingTimestamp, setLastFeedingTimestamp] = useState<Date | null>(null);
 
   const fetchFeedings = useCallback(async () => {
     if (!familyId) return;
@@ -43,6 +44,9 @@ export function useFeedings(familyId: string | undefined) {
         createdAt: new Date(f.createdAt),
       }));
       setFeedings(results);
+      if (data.lastFeedingTimestamp) {
+        setLastFeedingTimestamp(new Date(data.lastFeedingTimestamp));
+      }
       setError(null);
     } catch {
       setError("Network error loading feedings");
@@ -58,9 +62,6 @@ export function useFeedings(familyId: string | undefined) {
   const feedingCount = feedings.length;
 
   const lastFeeding = feedings.length > 0 ? feedings[0] : null;
-  const timeSinceLastFeeding = lastFeeding
-    ? Math.round((Date.now() - lastFeeding.timestamp.getTime()) / 60000)
-    : null;
 
   const deleteFeeding = useCallback(async (id: string) => {
     const res = await fetch("/api/feedings", {
@@ -94,5 +95,5 @@ export function useFeedings(familyId: string | undefined) {
     await fetchFeedings();
   }, [fetchFeedings]);
 
-  return { feedings, isLoading, error, feedingCount, lastFeeding, timeSinceLastFeeding, refetch: fetchFeedings, deleteFeeding, updateFeeding };
+  return { feedings, isLoading, error, feedingCount, lastFeeding, lastFeedingTimestamp, refetch: fetchFeedings, deleteFeeding, updateFeeding };
 }

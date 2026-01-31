@@ -25,7 +25,7 @@ export default function FeedingPage() {
     }
   }, [authLoading, user, router]);
 
-  const { feedings, isLoading, error, feedingCount, timeSinceLastFeeding, refetch, deleteFeeding, updateFeeding } = useFeedings(
+  const { feedings, isLoading, error, feedingCount, lastFeedingTimestamp, refetch, deleteFeeding, updateFeeding } = useFeedings(
     user?.familyId
   );
 
@@ -42,7 +42,7 @@ export default function FeedingPage() {
 
       <FeedingSummary
         feedingCount={feedingCount}
-        timeSinceLastFeeding={timeSinceLastFeeding}
+        lastFeedingTimestamp={lastFeedingTimestamp}
       />
 
       <div className="mt-6">

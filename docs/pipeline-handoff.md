@@ -544,3 +544,138 @@ Task: Replace babyName with foodType + unit, rename Milk Tracker to Food Tracker
 - Build: success
 
 ### Verdict: PASS
+
+---
+
+# Pipeline Handoff — Live Timer & Cross-Day Last Feeding
+
+Task: Show time since last feeding as a live timer that persists across day boundaries
+
+---
+
+## Stage 1: Test Writer
+- Files created:
+  - `src/components/FeedingSummary.test.tsx`
+  - `src/app/api/feedings/route.test.ts`
+- Test count: 11 tests across 2 describe blocks
+- Coverage:
+  - **FeedingSummary**: dash when no timestamp, feeding count singular/plural, minutes ago display, hours+minutes display, cross-midnight display, live timer update every 60s, interval cleanup on unmount (8 tests)
+  - **GET /api/feedings**: lastFeedingTimestamp from most recent across all days, lastFeedingTimestamp when no today feedings, null when no feedings exist (3 tests)
+
+## Stage 2: Implementer
+- Files modified:
+  - `src/app/api/feedings/route.ts` — GET returns `lastFeedingTimestamp` from most recent feeding across all days
+  - `src/hooks/useFeedings.ts` — stores `lastFeedingTimestamp` from API, replaces static `timeSinceLastFeeding`
+  - `src/components/FeedingSummary.tsx` — accepts `lastFeedingTimestamp` Date prop, runs live `setInterval` every 60s
+  - `src/app/feeding/page.tsx` — passes `lastFeedingTimestamp` instead of `timeSinceLastFeeding`
+- Test results: 11 new tests passing, 102 total passing
+
+## Stage 3: Performance Review
+### Critical (must fix)
+- None
+
+### Warnings (should fix)
+- Fetches up to 1000 feedings for single timestamp: `src/app/api/feedings/route.ts:25-48` — Could use separate `.orderBy("timestamp", "desc").limit(1)` query for lastFeedingTimestamp. Acceptable for now given family-scale data.
+
+### Suggestions
+- None
+
+**Total: 0 critical, 1 warning, 0 suggestions**
+
+## Stage 4: Security Review
+### Critical (must fix before merge)
+- None
+
+### High
+- None (auth check present, familyId scoped from token, no user input in timestamp)
+
+### Medium
+- NaN guard on timestamp: `src/hooks/useFeedings.ts:47` — If API returns malformed timestamp, `new Date()` could produce Invalid Date. Low risk since server controls the value.
+
+### Low
+- Timer error handling: `src/components/FeedingSummary.tsx:27` — No guard against NaN from invalid Date.
+
+**Total: 0 critical, 0 high, 1 medium**
+
+## Stage 5: Code Quality Review
+### Must Fix
+- None
+
+### Should Fix
+- Magic number: `src/components/FeedingSummary.tsx:31` — `60_000` should be a named constant.
+
+### Nitpicks
+- `_ts` intermediate field pattern could use a comment.
+
+**Total: 0 must-fix, 1 should-fix, 1 nitpick**
+
+## Stage 6: Accessibility Review
+### Critical (WCAG A — must fix)
+- None
+
+### Important (WCAG AA — should fix)
+- Live region missing: `src/components/FeedingSummary.tsx:37-39` — WCAG 4.1.3 — Timer updates not announced to screen readers. Add `role="status"` and `aria-live="polite"`.
+- Null state unclear: `src/components/FeedingSummary.tsx:39` — Dash "—" has no accessible label. Add `aria-label="No feeding recorded"`.
+
+### Best Practice
+- Consider `<section>` with `aria-label` for stat cards.
+
+**Total: 0 critical, 2 important, 1 best-practice**
+
+## Stage 7: Type Safety Review
+### Must Fix
+- None (pre-existing `as FeedingResponse[]` cast not introduced by this feature)
+
+### Should Fix
+- Missing explicit return type on `useFeedings` (pre-existing)
+
+### Suggestions
+- Extract `FeedingResponse` to shared types file (pre-existing)
+
+**Total: 0 must-fix, 0 should-fix (new), 1 suggestion**
+
+## Stage 8: Feedback Processor
+
+### Applied Fixes
+| # | Source | Severity | File | Issue | Fix Applied |
+|---|--------|----------|------|-------|-------------|
+| 1 | A11y | P0 | FeedingSummary.tsx | Timer updates not announced | Added `role="status"` and `aria-live="polite"` to timer container |
+| 2 | A11y | P0 | FeedingSummary.tsx | Dash has no accessible label | Added `aria-label="No feeding recorded"` to dash span |
+| 3 | Code Quality | P1 | FeedingSummary.tsx | Magic number 60_000 | Extracted to `TIMER_INTERVAL_MS` constant |
+| 4 | Security | P1 | FeedingSummary.tsx | No NaN guard on timestamp | Added `isNaN(elapsed)` check in update function |
+
+### Skipped (with justification)
+- `as FeedingResponse[]` unsafe cast — pre-existing, not introduced by this feature
+- Missing return type on `useFeedings` — pre-existing
+- Untyped `res.json()` — pre-existing
+- Separate query for lastFeedingTimestamp — acceptable for family-scale data
+- `<section>` semantic HTML — best practice only, no WCAG A/AA requirement
+
+### Verification
+- Vitest: 113 passed, 0 failed
+- Type check: clean (pre-existing EditFeedingModal.test.tsx errors only)
+
+## Stage 9: Final Tester
+
+### Results
+| Check | Status | Details |
+|-------|--------|---------|
+| Vitest | PASS | 113 passed, 0 failed |
+| ESLint | PASS | 0 new issues (pre-existing `any` in history test) |
+| TypeScript | PASS | 0 new errors (pre-existing EditFeedingModal.test.tsx errors only) |
+| Build | PASS | compiled successfully |
+
+### Pipeline Summary (Live Timer & Cross-Day Last Feeding)
+| Stage | Status | Findings |
+|-------|--------|----------|
+| 1. Test Writer | Done | 11 tests created across 2 files |
+| 2. Implementer | Done | 4 files modified |
+| 3. Performance | Done | 0 critical, 1 warning |
+| 4. Security | Done | 0 critical, 0 high, 1 medium |
+| 5. Code Quality | Done | 0 must-fix, 1 should-fix |
+| 6. Accessibility | Done | 0 critical, 2 important |
+| 7. Type Safety | Done | 0 must-fix (new), 0 should-fix (new) |
+| 8. Feedback | Done | 4 fixes applied |
+| 9. Final Tests | PASS | All checks green |
+
+### Verdict: PASS

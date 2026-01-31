@@ -28,7 +28,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .limit(1000)
       .get();
 
-    const feedings = snapshot.docs
+    const allMapped = snapshot.docs
       .map((doc) => {
         const data = doc.data();
         const ts = data.timestamp.toDate();
@@ -45,11 +45,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           _ts: ts.getTime(),
         };
       })
+      .sort((a, b) => b._ts - a._ts);
+
+    const lastFeedingTimestamp = allMapped.length > 0 ? allMapped[0].timestamp : null;
+
+    const feedings = allMapped
       .filter((f) => f._ts >= today.getTime())
-      .sort((a, b) => b._ts - a._ts)
       .map(({ _ts, ...f }) => f);
 
-    return NextResponse.json({ feedings });
+    return NextResponse.json({ feedings, lastFeedingTimestamp });
   } catch (err) {
     console.error("Failed to fetch feedings:", err);
     return NextResponse.json({ message: "Failed to fetch feedings", feedings: [] }, { status: 500 });
