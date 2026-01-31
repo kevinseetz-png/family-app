@@ -25,6 +25,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const snapshot = await adminDb
       .collection("feedings")
       .where("familyId", "==", user.familyId)
+      .limit(1000)
       .get();
 
     const feedings = snapshot.docs
@@ -118,8 +119,8 @@ export async function DELETE(request: NextRequest): Promise<NextResponse> {
   }
 
   const { id } = body as { id?: string };
-  if (!id) {
-    return NextResponse.json({ message: "Feeding ID is required" }, { status: 400 });
+  if (!id || id.length > 128 || id.includes("/")) {
+    return NextResponse.json({ message: "Invalid request" }, { status: 400 });
   }
 
   const docRef = adminDb.collection("feedings").doc(id);
@@ -164,6 +165,10 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
   }
 
   const { id, foodType, amount, unit, timestamp } = result.data;
+
+  if (id.length > 128 || id.includes("/")) {
+    return NextResponse.json({ message: "Invalid request" }, { status: 400 });
+  }
 
   const docRef = adminDb.collection("feedings").doc(id);
   const doc = await docRef.get();

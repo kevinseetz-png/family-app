@@ -30,7 +30,7 @@ export const feedingSchema = z.object({
 });
 
 export const feedingUpdateSchema = z.object({
-  id: z.string().min(1, "Feeding ID is required"),
+  id: z.string().min(1, "Invalid request"),
   foodType: z.enum(["breast_milk", "formula", "puree", "solid", "snack"], {
     message: "Food type is required",
   }),
@@ -45,7 +45,7 @@ export const noteSchema = z.object({
 });
 
 export const noteUpdateSchema = z.object({
-  id: z.string().min(1, "Note ID is required"),
+  id: z.string().min(1, "Invalid request"),
   title: z.string().min(1, "Title is required").max(200, "Title is too long"),
   content: z.string().min(1, "Content is required").max(5000, "Content is too long"),
 });

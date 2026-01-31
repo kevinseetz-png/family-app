@@ -58,7 +58,9 @@ describe("GET /api/feedings/history", () => {
     mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1" } as any);
     mockCollection.mockReturnValue({
       where: vi.fn().mockReturnValue({
-        get: vi.fn().mockResolvedValue({ docs: [] }),
+        limit: vi.fn().mockReturnValue({
+          get: vi.fn().mockResolvedValue({ docs: [] }),
+        }),
       }),
     } as any);
 
@@ -79,11 +81,13 @@ describe("GET /api/feedings/history", () => {
 
     mockCollection.mockReturnValue({
       where: vi.fn().mockReturnValue({
-        get: vi.fn().mockResolvedValue({
-          docs: [
-            makeDoc(fiveDaysAgo, 100),
-            makeDoc(sixtyDaysAgo, 200),
-          ],
+        limit: vi.fn().mockReturnValue({
+          get: vi.fn().mockResolvedValue({
+            docs: [
+              makeDoc(fiveDaysAgo, 100),
+              makeDoc(sixtyDaysAgo, 200),
+            ],
+          }),
         }),
       }),
     } as any);
@@ -116,12 +120,14 @@ describe("GET /api/feedings/history", () => {
 
     mockCollection.mockReturnValue({
       where: vi.fn().mockReturnValue({
-        get: vi.fn().mockResolvedValue({
-          docs: [
-            makeDoc(recent1, 100),
-            makeDoc(recent1b, 50),
-            makeDoc(recent2, 200),
-          ],
+        limit: vi.fn().mockReturnValue({
+          get: vi.fn().mockResolvedValue({
+            docs: [
+              makeDoc(recent1, 100),
+              makeDoc(recent1b, 50),
+              makeDoc(recent2, 200),
+            ],
+          }),
         }),
       }),
     } as any);
@@ -149,11 +155,13 @@ describe("GET /api/feedings/history", () => {
 
     mockCollection.mockReturnValue({
       where: vi.fn().mockReturnValue({
-        get: vi.fn().mockResolvedValue({
-          docs: [
-            makeDoc(day1, 100),
-            makeDoc(day2, 200),
-          ],
+        limit: vi.fn().mockReturnValue({
+          get: vi.fn().mockResolvedValue({
+            docs: [
+              makeDoc(day1, 100),
+              makeDoc(day2, 200),
+            ],
+          }),
         }),
       }),
     } as any);
@@ -167,7 +175,9 @@ describe("GET /api/feedings/history", () => {
     mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1" } as any);
     mockCollection.mockReturnValue({
       where: vi.fn().mockReturnValue({
-        get: vi.fn().mockRejectedValue(new Error("DB error")),
+        limit: vi.fn().mockReturnValue({
+          get: vi.fn().mockRejectedValue(new Error("DB error")),
+        }),
       }),
     } as any);
 

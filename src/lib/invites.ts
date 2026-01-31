@@ -24,10 +24,18 @@ export async function validateInvite(code: string): Promise<boolean> {
 }
 
 export async function redeemInvite(code: string): Promise<string | null> {
-  const doc = await invitesCol().doc(code).get();
-  if (!doc.exists) return null;
-  const data = doc.data()!;
-  if (data.used) return null;
-  await invitesCol().doc(code).update({ used: true });
-  return data.familyId;
+  return adminDb.runTransaction(async (tx) => {
+    const ref = invitesCol().doc(code);
+    const doc = await tx.get(ref);
+    if (!doc.exists) return null;
+    const data = doc.data()!;
+    if (data.used) return null;
+
+    const createdAt = data.createdAt instanceof Date ? data.createdAt : data.createdAt.toDate();
+    const ageMs = Date.now() - createdAt.getTime();
+    if (ageMs > 24 * 60 * 60 * 1000) return null;
+
+    tx.update(ref, { used: true });
+    return data.familyId;
+  });
 }

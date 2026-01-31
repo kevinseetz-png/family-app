@@ -6,11 +6,14 @@ const { mockSet, mockUpdate, mockGet } = vi.hoisted(() => ({
   mockGet: vi.fn(),
 }));
 
+const mockRunTransaction = vi.hoisted(() => vi.fn());
+
 vi.mock("@/lib/firebase-admin", () => ({
   adminDb: {
     collection: () => ({
       doc: () => ({ set: mockSet, update: mockUpdate, get: mockGet }),
     }),
+    runTransaction: mockRunTransaction,
   },
 }));
 
@@ -60,18 +63,48 @@ describe("redeemInvite", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("marks the invite as used and returns familyId", async () => {
-    mockGet.mockResolvedValue({ exists: true, data: () => ({ used: false, familyId: "fam-1" }) });
+    mockRunTransaction.mockImplementation(async (fn: (tx: { get: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> }) => Promise<string | null>) => {
+      const tx = {
+        get: vi.fn().mockResolvedValue({ exists: true, data: () => ({ used: false, familyId: "fam-1", createdAt: new Date() }) }),
+        update: mockUpdate,
+      };
+      return fn(tx);
+    });
     expect(await redeemInvite("CODE123")).toBe("fam-1");
-    expect(mockUpdate).toHaveBeenCalledWith({ used: true });
+    expect(mockUpdate).toHaveBeenCalledWith(expect.anything(), { used: true });
   });
 
   it("returns null for an invalid code", async () => {
-    mockGet.mockResolvedValue({ exists: false });
+    mockRunTransaction.mockImplementation(async (fn: (tx: { get: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> }) => Promise<string | null>) => {
+      const tx = {
+        get: vi.fn().mockResolvedValue({ exists: false }),
+        update: mockUpdate,
+      };
+      return fn(tx);
+    });
     expect(await redeemInvite("bogus")).toBeNull();
   });
 
   it("returns null if code was already redeemed", async () => {
-    mockGet.mockResolvedValue({ exists: true, data: () => ({ used: true, familyId: "fam-1" }) });
+    mockRunTransaction.mockImplementation(async (fn: (tx: { get: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> }) => Promise<string | null>) => {
+      const tx = {
+        get: vi.fn().mockResolvedValue({ exists: true, data: () => ({ used: true, familyId: "fam-1", createdAt: new Date() }) }),
+        update: mockUpdate,
+      };
+      return fn(tx);
+    });
     expect(await redeemInvite("USED")).toBeNull();
+  });
+
+  it("returns null if invite is expired (>24h)", async () => {
+    const oldDate = new Date(Date.now() - 25 * 60 * 60 * 1000);
+    mockRunTransaction.mockImplementation(async (fn: (tx: { get: ReturnType<typeof vi.fn>; update: ReturnType<typeof vi.fn> }) => Promise<string | null>) => {
+      const tx = {
+        get: vi.fn().mockResolvedValue({ exists: true, data: () => ({ used: false, familyId: "fam-1", createdAt: oldDate }) }),
+        update: mockUpdate,
+      };
+      return fn(tx);
+    });
+    expect(await redeemInvite("EXPIRED")).toBeNull();
   });
 });

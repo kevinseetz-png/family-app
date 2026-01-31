@@ -22,6 +22,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
     const snapshot = await adminDb
       .collection("feedings")
       .where("familyId", "==", user.familyId)
+      .limit(1000)
       .get();
 
     const dailyMap = new Map<string, { totalMl: number; count: number }>();
