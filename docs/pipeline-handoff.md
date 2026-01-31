@@ -679,3 +679,25 @@ Task: Show time since last feeding as a live timer that persists across day boun
 | 9. Final Tests | PASS | All checks green |
 
 ### Verdict: PASS
+
+---
+
+# Pipeline Handoff — Click Day in History to See Feedings
+
+Task: Make days in "Past 30 days" clickable to expand inline and show that day's individual feedings (read-only)
+
+## Stage 1: Test Writer
+- Files created: `src/app/api/feedings/route.date.test.ts` (4 tests), `src/hooks/useDayFeedings.test.ts` (5 tests), `src/components/FeedingHistory.test.tsx` (6 tests)
+
+## Stage 2: Implementer
+- Files created: `src/hooks/useDayFeedings.ts`
+- Files modified: `src/app/api/feedings/route.ts`, `src/components/FeedingHistory.tsx`, `src/app/feeding/page.tsx`
+- Test results: 129 passed, 0 failed
+
+## Stages 3-8: Reviews & Feedback
+- No actionable issues. Date param validated, auth unchanged, read-only, fully typed, accessible buttons.
+
+## Stage 9: Final Tester
+- Vitest: 129 passed | TypeScript: 0 new errors | Build: pre-existing lint errors only
+
+### Verdict: PASS (Click Day History)

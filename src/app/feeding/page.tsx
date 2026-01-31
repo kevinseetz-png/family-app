@@ -1,9 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useAuthContext } from "@/components/AuthProvider";
 import { useFeedings } from "@/hooks/useFeedings";
 import { useFeedingHistory } from "@/hooks/useFeedingHistory";
+import { useDayFeedings } from "@/hooks/useDayFeedings";
 import { FeedingForm } from "@/components/FeedingForm";
 import { FeedingList } from "@/components/FeedingList";
 import { FeedingSummary } from "@/components/FeedingSummary";
@@ -32,6 +33,21 @@ export default function FeedingPage() {
   const { history, isLoading: historyLoading, error: historyError } = useFeedingHistory(
     user?.familyId
   );
+
+  const { feedings: dayFeedings, isLoading: dayFeedingsLoading, fetchDay } = useDayFeedings(
+    user?.familyId
+  );
+  const [selectedDate, setSelectedDate] = useState<string | null>(null);
+
+  const handleDayClick = useCallback((date: string) => {
+    if (selectedDate === date) {
+      setSelectedDate(null);
+      fetchDay(null);
+    } else {
+      setSelectedDate(date);
+      fetchDay(date);
+    }
+  }, [selectedDate, fetchDay]);
 
   if (authLoading || isLoading) return <LoadingSpinner />;
   if (!user) return null;
@@ -69,6 +85,10 @@ export default function FeedingPage() {
             history={history}
             isLoading={historyLoading}
             error={historyError}
+            selectedDate={selectedDate}
+            onDayClick={handleDayClick}
+            dayFeedings={dayFeedings}
+            dayFeedingsLoading={dayFeedingsLoading}
           />
         </div>
       )}

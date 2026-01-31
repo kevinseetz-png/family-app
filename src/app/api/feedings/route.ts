@@ -21,7 +21,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const today = startOfDay(new Date());
+    const dateParam = request.nextUrl.searchParams.get("date");
+
+    if (dateParam && !/^\d{4}-\d{2}-\d{2}$/.test(dateParam)) {
+      return NextResponse.json({ message: "Invalid date format" }, { status: 400 });
+    }
+
     const snapshot = await adminDb
       .collection("feedings")
       .where("familyId", "==", user.familyId)
@@ -47,6 +52,19 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       })
       .sort((a, b) => b._ts - a._ts);
 
+    if (dateParam) {
+      const dayStart = new Date(dateParam + "T00:00:00");
+      const dayEnd = new Date(dateParam + "T00:00:00");
+      dayEnd.setDate(dayEnd.getDate() + 1);
+
+      const feedings = allMapped
+        .filter((f) => f._ts >= dayStart.getTime() && f._ts < dayEnd.getTime())
+        .map(({ _ts, ...f }) => f);
+
+      return NextResponse.json({ feedings });
+    }
+
+    const today = startOfDay(new Date());
     const lastFeedingTimestamp = allMapped.length > 0 ? allMapped[0].timestamp : null;
 
     const feedings = allMapped
