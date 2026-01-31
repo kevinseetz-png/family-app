@@ -8,7 +8,7 @@ vi.mock("next/navigation", () => ({
 }));
 
 vi.mock("@/components/AuthProvider", () => ({
-  useAuthContext: () => ({ user: mockUser }),
+  useAuthContext: () => ({ user: mockUser, visibleTabs: null }),
 }));
 
 import { TabBar } from "./TabBar";
@@ -19,25 +19,28 @@ describe("TabBar", () => {
     mockUser = { name: "Test" };
   });
 
-  it("renders 3 tabs", () => {
+  it("renders all tabs including settings", () => {
     render(<TabBar />);
-    expect(screen.getByText("Food")).toBeInTheDocument();
+    expect(screen.getByText("Eten")).toBeInTheDocument();
     expect(screen.getByText("Noties")).toBeInTheDocument();
     expect(screen.getByText("Menu")).toBeInTheDocument();
+    expect(screen.getByText("Boodschapje")).toBeInTheDocument();
+    expect(screen.getByText("⚙️")).toBeInTheDocument();
   });
 
   it("marks the active tab based on pathname", () => {
     mockPathname = "/notes";
     render(<TabBar />);
     expect(screen.getByText("Noties")).toHaveAttribute("aria-current", "page");
-    expect(screen.getByText("Food")).not.toHaveAttribute("aria-current");
+    expect(screen.getByText("Eten")).not.toHaveAttribute("aria-current");
   });
 
   it("links to correct routes", () => {
     render(<TabBar />);
-    expect(screen.getByText("Food").closest("a")).toHaveAttribute("href", "/feeding");
+    expect(screen.getByText("Eten").closest("a")).toHaveAttribute("href", "/feeding");
     expect(screen.getByText("Noties").closest("a")).toHaveAttribute("href", "/notes");
     expect(screen.getByText("Menu").closest("a")).toHaveAttribute("href", "/weekmenu");
+    expect(screen.getByText("⚙️").closest("a")).toHaveAttribute("href", "/instellingen");
   });
 
   it("renders nothing when user is not logged in", () => {

@@ -3,6 +3,8 @@ export interface User {
   name: string;
   email: string;
   familyId: string;
+  role: "admin" | "member";
+  visibleTabs?: string[];
 }
 
 export interface AuthState {

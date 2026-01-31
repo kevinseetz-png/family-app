@@ -17,6 +17,7 @@ export async function createToken(user: User): Promise<string> {
     name: user.name,
     email: user.email,
     familyId: user.familyId,
+    role: user.role,
   })
     .setProtectedHeader({ alg: "HS256" })
     .setExpirationTime(`${TOKEN_EXPIRY_SECONDS}s`)
@@ -38,7 +39,8 @@ export async function verifyToken(token: string): Promise<User | null> {
     ) {
       return null;
     }
-    return { id, name, email, familyId };
+    const role = payload.role === "admin" ? "admin" as const : "member" as const;
+    return { id, name, email, familyId, role };
   } catch {
     return null;
   }

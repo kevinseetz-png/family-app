@@ -4,13 +4,15 @@
 
 ## Pipeline Enforcement
 
-Every code task MUST go through the pipeline. Use the complexity gate to determine which stages:
+Every code task MUST go through the **full pipeline (1→2→3→4→5→6→7→8→9)** unless the user explicitly says to skip stages.
 
 | Task Type | Stages |
 |-----------|--------|
-| **Small** (typo, config, copy) | Skip pipeline, just do it |
-| **Medium** (single component, bug fix) | 1 → 2 → 9 |
-| **Large** (feature, auth, data model, multi-file) | 1 → 2 → 3 → 4 → 5 → 6 → 7 → 8 → 9 |
+| **Small** (typo, config, copy) | Full pipeline unless user says otherwise |
+| **Medium** (single component, bug fix) | Full pipeline unless user says otherwise |
+| **Large** (feature, auth, data model, multi-file) | Full pipeline — NO exceptions |
+
+**IMPORTANT**: Never skip stages 3-8 on your own. Only the user can waive stages by explicitly saying so (e.g. "skip reviews", "just implement it"). When in doubt, run all stages.
 
 ## Pipeline Stages
 

@@ -35,11 +35,13 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     familyId = redeemedFamilyId;
   }
 
+  const role = usersExist ? "member" as const : "admin" as const;
   const user = await createUser(
     result.data.name,
     result.data.email,
     result.data.password,
-    familyId
+    familyId,
+    role
   );
 
   if (!user) {

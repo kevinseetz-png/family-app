@@ -5,6 +5,7 @@ const LOGIN_LIMIT = { maxAttempts: 5, windowMs: 15 * 60 * 1000 }; // 5 per 15min
 const REGISTER_LIMIT = { maxAttempts: 3, windowMs: 60 * 60 * 1000 }; // 3 per hour
 const DATA_MUTATION_LIMIT = { maxAttempts: 30, windowMs: 60 * 1000 }; // 30 per min
 const INVITE_LIMIT = { maxAttempts: 3, windowMs: 60 * 60 * 1000 }; // 3 per hour
+const ADMIN_LIMIT = { maxAttempts: 20, windowMs: 60 * 1000 }; // 20 per min
 
 function getClientIp(request: NextRequest): string {
   return (
@@ -57,7 +58,7 @@ export function middleware(request: NextRequest) {
     }
   }
 
-  const dataMutationPaths = ["/api/feedings", "/api/notes", "/api/weekmenu"];
+  const dataMutationPaths = ["/api/feedings", "/api/notes", "/api/weekmenu", "/api/notifications", "/api/community"];
   if (
     dataMutationPaths.some((p) => pathname.startsWith(p)) &&
     ["POST", "PUT", "DELETE"].includes(request.method)
@@ -66,6 +67,19 @@ export function middleware(request: NextRequest) {
     if (!allowed) {
       return NextResponse.json(
         { message: "Too many requests. Please try again later." },
+        {
+          status: 429,
+          headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) },
+        }
+      );
+    }
+  }
+
+  if (pathname.startsWith("/api/admin")) {
+    const { allowed, retryAfterMs } = checkRateLimit(`admin:${ip}`, ADMIN_LIMIT);
+    if (!allowed) {
+      return NextResponse.json(
+        { message: "Too many admin requests. Please try again later." },
         {
           status: 429,
           headers: { "Retry-After": String(Math.ceil(retryAfterMs / 1000)) },

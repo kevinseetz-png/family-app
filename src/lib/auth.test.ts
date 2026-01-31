@@ -3,7 +3,7 @@ import { createToken, verifyToken } from "./auth";
 import type { User } from "@/types/auth";
 
 describe("createToken", () => {
-  const user: User = { id: "u1", name: "Alice", email: "alice@example.com", familyId: "f1" };
+  const user: User = { id: "u1", name: "Alice", email: "alice@example.com", familyId: "f1", role: "member" };
 
   it("returns a JWT string", async () => {
     const token = await createToken(user);
@@ -13,7 +13,7 @@ describe("createToken", () => {
 });
 
 describe("verifyToken", () => {
-  const user: User = { id: "u1", name: "Alice", email: "alice@example.com", familyId: "f1" };
+  const user: User = { id: "u1", name: "Alice", email: "alice@example.com", familyId: "f1", role: "member" };
 
   it("returns user data for a valid token", async () => {
     const token = await createToken(user);

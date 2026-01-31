@@ -62,7 +62,7 @@ describe("GET /api/feedings?date=", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("should return feedings for a specific date when date param is provided", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com", role: "member" });
 
     const targetDate = new Date("2025-03-15T10:00:00Z");
     const otherDate = new Date("2025-03-14T10:00:00Z");
@@ -80,7 +80,7 @@ describe("GET /api/feedings?date=", () => {
   });
 
   it("should return empty feedings array for date with no feedings", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com", role: "member" });
 
     const otherDate = new Date("2025-03-14T10:00:00Z");
     mockDbWith([makeDoc("f1", otherDate)]);
@@ -92,7 +92,7 @@ describe("GET /api/feedings?date=", () => {
   });
 
   it("should return 400 for invalid date format", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com", role: "member" });
 
     const res = await GET(makeRequest("valid-token", "not-a-date"));
     expect(res.status).toBe(400);
@@ -101,7 +101,7 @@ describe("GET /api/feedings?date=", () => {
   });
 
   it("should not return lastFeedingTimestamp when date param is provided", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com", role: "member" });
 
     const targetDate = new Date("2025-03-15T10:00:00Z");
     mockDbWith([makeDoc("f1", targetDate)]);

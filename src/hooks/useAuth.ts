@@ -32,17 +32,31 @@ export function useAuth(): AuthState & {
   login: (email: string, password: string) => Promise<string | null>;
   register: (name: string, email: string, password: string, inviteCode: string) => Promise<string | null>;
   logout: () => void;
+  visibleTabs: string[] | null;
+  updateVisibleTabs: (tabs: string[]) => Promise<void>;
 } {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [visibleTabs, setVisibleTabs] = useState<string[] | null>(null);
 
   useEffect(() => {
     fetch("/api/auth/me")
       .then((res) => (res.ok ? (res.json() as Promise<MeResponse>) : null))
-      .then((data) => {
+      .then(async (data) => {
         if (data?.user) {
           setUser(data.user);
           signIntoFirebase();
+          try {
+            const prefRes = await fetch("/api/user/preferences");
+            if (prefRes.ok) {
+              const prefData: { visibleTabs: string[] | null } = await prefRes.json();
+              if (prefData.visibleTabs) {
+                setVisibleTabs(prefData.visibleTabs);
+              }
+            }
+          } catch {
+            // Preferences fetch is best-effort
+          }
         }
       })
       .catch(() => {})
@@ -91,5 +105,16 @@ export function useAuth(): AuthState & {
     setUser(null);
   }, []);
 
-  return { user, isLoading, login, register, logout };
+  const updateVisibleTabs = useCallback(async (tabs: string[]) => {
+    const res = await fetch("/api/user/preferences", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ visibleTabs: tabs }),
+    });
+    if (res.ok) {
+      setVisibleTabs(tabs);
+    }
+  }, []);
+
+  return { user, isLoading, login, register, logout, visibleTabs, updateVisibleTabs };
 }

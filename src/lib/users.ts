@@ -15,7 +15,8 @@ export async function createUser(
   name: string,
   email: string,
   password: string,
-  familyId?: string
+  familyId?: string,
+  role: "admin" | "member" = "member"
 ): Promise<User | null> {
   const existing = await usersCol().where("email", "==", email).limit(1).get();
   if (!existing.empty) return null;
@@ -38,10 +39,11 @@ export async function createUser(
     email,
     passwordHash,
     familyId: resolvedFamilyId,
+    role,
     createdAt: new Date(),
   });
 
-  return { id, name, email, familyId: resolvedFamilyId };
+  return { id, name, email, familyId: resolvedFamilyId, role };
 }
 
 export async function authenticateUser(
@@ -56,5 +58,6 @@ export async function authenticateUser(
   const valid = await bcrypt.compare(password, data.passwordHash);
   if (!valid) return null;
 
-  return { id: doc.id, name: data.name, email: data.email, familyId: data.familyId };
+  const role = data.role === "admin" ? "admin" as const : "member" as const;
+  return { id: doc.id, name: data.name, email: data.email, familyId: data.familyId, role };
 }

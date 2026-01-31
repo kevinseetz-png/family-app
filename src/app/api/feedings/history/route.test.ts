@@ -55,7 +55,7 @@ describe("GET /api/feedings/history", () => {
   });
 
   it("should return empty history when no feedings exist", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com", role: "member" });
     mockCollection.mockReturnValue({
       where: vi.fn().mockReturnValue({
         limit: vi.fn().mockReturnValue({
@@ -71,7 +71,7 @@ describe("GET /api/feedings/history", () => {
   });
 
   it("should filter out feedings older than 30 days", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com", role: "member" });
 
     const today = new Date();
     const fiveDaysAgo = new Date(today);
@@ -100,7 +100,7 @@ describe("GET /api/feedings/history", () => {
   });
 
   it("should aggregate feedings by day", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com", role: "member" });
 
     // Make these dates recent enough to be within 30 days
     const now = new Date();
@@ -141,7 +141,7 @@ describe("GET /api/feedings/history", () => {
   });
 
   it("should return sorted history descending by date", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com", role: "member" });
 
     const now = new Date();
     const day1 = new Date(now);
@@ -168,7 +168,7 @@ describe("GET /api/feedings/history", () => {
   });
 
   it("should return 500 on database error", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com", role: "member" });
     mockCollection.mockReturnValue({
       where: vi.fn().mockReturnValue({
         limit: vi.fn().mockReturnValue({

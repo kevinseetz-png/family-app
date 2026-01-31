@@ -49,7 +49,7 @@ describe("GET /api/feedings", () => {
   beforeEach(() => vi.clearAllMocks());
 
   it("should return lastFeedingTimestamp from most recent feeding across all days", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com", role: "member" });
 
     const yesterday = new Date();
     yesterday.setDate(yesterday.getDate() - 1);
@@ -78,7 +78,7 @@ describe("GET /api/feedings", () => {
   });
 
   it("should return lastFeedingTimestamp even when no feedings are from today", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com", role: "member" });
 
     const twoDaysAgo = new Date();
     twoDaysAgo.setDate(twoDaysAgo.getDate() - 2);
@@ -101,7 +101,7 @@ describe("GET /api/feedings", () => {
   });
 
   it("should return null lastFeedingTimestamp when no feedings exist", async () => {
-    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com" });
+    mockVerifyToken.mockResolvedValue({ id: "u1", name: "Test", familyId: "fam1", email: "t@t.com", role: "member" });
 
     mockCollection.mockReturnValue({
       where: vi.fn().mockReturnValue({

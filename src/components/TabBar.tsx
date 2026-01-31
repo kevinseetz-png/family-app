@@ -4,20 +4,31 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuthContext } from "@/components/AuthProvider";
 
-const tabs = [
-  { href: "/feeding", label: "Food" },
+const ALL_TABS = [
+  { href: "/feeding", label: "Eten" },
   { href: "/notes", label: "Noties" },
   { href: "/weekmenu", label: "Menu" },
+  { href: "/boodschappen", label: "Boodschapje" },
+  { href: "/community", label: "Community" },
 ] as const;
 
 export function TabBar() {
   const pathname = usePathname();
-  const { user } = useAuthContext();
+  const { user, visibleTabs } = useAuthContext();
 
   if (!user) return null;
 
+  const filteredTabs = visibleTabs
+    ? ALL_TABS.filter((tab) => visibleTabs.includes(tab.href))
+    : ALL_TABS;
+
+  const tabs = [
+    ...filteredTabs,
+    { href: "/instellingen" as const, label: "⚙️" },
+  ];
+
   return (
-    <nav aria-label="Main navigation" className="sticky top-0 z-40 bg-white border-b border-gray-200">
+    <nav aria-label="Hoofdnavigatie" className="sticky top-0 z-40 bg-white border-b border-gray-200">
       <ul className="flex">
         {tabs.map(({ href, label }) => {
           const isActive = pathname.startsWith(href);

@@ -10,6 +10,8 @@ interface AuthContextValue {
   login: (email: string, password: string) => Promise<string | null>;
   register: (name: string, email: string, password: string, inviteCode: string) => Promise<string | null>;
   logout: () => void;
+  visibleTabs: string[] | null;
+  updateVisibleTabs: (tabs: string[]) => Promise<void>;
 }
 
 // TODO: Consider moving auth checks to Next.js middleware to avoid forcing full client tree
