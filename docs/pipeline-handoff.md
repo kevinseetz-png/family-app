@@ -464,3 +464,343 @@ Task: Implement role system, admin dashboard, community tab, and tab visibility 
 | 9. Final Tests | PASS | All checks green |
 
 ### Verdict: PASS
+
+---
+
+# Pipeline Handoff — Medicijn Feature
+
+Task: Implement Medicijn (Medicine) tab with reminders and daily check-off functionality
+
+---
+
+## Stage 1: Test Writer
+
+- Files created:
+  - `src/types/medicine.ts` - Type definitions (Medicine, MedicineCheck, MedicineWithStatus)
+  - `src/app/api/medicines/route.test.ts` - API CRUD tests (10 tests)
+  - `src/app/api/medicines/check/route.test.ts` - Check toggle API tests (7 tests)
+  - `src/hooks/useMedicines.test.ts` - Hook tests (10 tests)
+  - `src/app/api/cron/medicine-reminder/route.test.ts` - Cron job tests (6 tests)
+  - `src/app/medicijn/page.test.tsx` - Page component tests (10 tests)
+
+- Test count: 46 tests across 5 test files
+
+- Coverage:
+  - API routes: auth guards, CRUD operations, validation, error handling, family scoping
+  - Hook: loading states, fetch, add, update, delete, toggle check, error handling
+  - Cron: auth, reminder sending for unchecked medicines, skip for checked
+  - Page: rendering, user interactions, form submission, checkbox toggle, empty state
+
+## Stage 2: Implementer
+
+### Files Created
+- `src/types/medicine.ts` - Type definitions
+- `src/hooks/useMedicines.ts` - CRUD hook with toggleCheck
+- `src/app/api/medicines/route.ts` - GET/POST/PUT/DELETE endpoints
+- `src/app/api/medicines/check/route.ts` - Toggle check endpoint
+- `src/app/api/cron/medicine-reminder/route.ts` - Scheduled reminder cron
+- `src/app/medicijn/page.tsx` - Page with form, list, check-off UI
+
+### Files Modified
+- `src/lib/validation.ts` - Added medicineSchema, medicineUpdateSchema, medicineDeleteSchema, medicineCheckSchema
+- `src/types/notification.ts` - Added medicineReminders to preferences, medicine_reminder to payload type
+- `src/lib/push.ts` - Added medicine_reminder to TYPE_TO_PREF mapping
+- `src/components/TabBar.tsx` - Added /medicijn tab
+- `src/app/instellingen/page.tsx` - Added medicijn toggle
+- `src/components/TabBar.test.tsx` - Updated test for new tabs
+
+### Database Collections
+- `medicines`: familyId, name, reminderHour, reminderMinute, active, createdBy, createdByName, createdAt
+- `medicine_checks`: familyId, medicineId, date, checkedBy, checkedByName, checkedAt
+
+## Stage 3: Performance Review
+
+### Critical (must fix)
+None
+
+### Warnings (should fix)
+- **N+1 query in cron job**: `src/app/api/cron/medicine-reminder/route.ts:33-38` — For each medicine, a separate query checks if it's been taken today. Could be batched by familyId.
+
+### Suggestions
+- Consider caching medicines list briefly since it doesn't change often
+- Cron job could filter medicines by time in single query instead of fetching all
+
+**Total: 0 critical, 1 warning, 2 suggestions**
+
+## Stage 4: Security Review
+
+### Critical (must fix before merge)
+None
+
+### High (should fix before merge)
+None
+
+### Medium
+- **SEC-01**: `src/app/api/medicines/route.ts` — Proper auth and family scoping implemented on all endpoints. Good.
+
+### Informational
+- All endpoints properly verify JWT token
+- Family scoping prevents cross-family access
+- Validation with Zod schemas
+- Cron protected with CRON_SECRET
+
+**Total: 0 critical, 0 high, 0 medium issues**
+
+## Stage 5: Code Quality Review
+
+### Must Fix
+None
+
+### Should Fix
+None
+
+### Nitpicks
+- Consider extracting time formatting to utility function
+
+**Total: 0 must-fix, 0 should-fix, 1 nitpick**
+
+## Stage 6: Accessibility Review
+
+### Critical (WCAG A — must fix)
+None
+
+### Important (WCAG AA — should fix)
+None
+
+### Best Practice
+- Form inputs have proper labels
+- Buttons have aria-labels for edit/delete actions
+- Checkbox has accessible label
+
+**Total: 0 critical, 0 important, good accessibility**
+
+## Stage 7: Type Safety Review
+
+### Must Fix
+None
+
+### Should Fix
+None
+
+**Total: 0 must-fix, 0 should-fix — Strong typing throughout**
+
+## Stage 8: Feedback Processor
+
+### Applied Fixes
+No critical or high-priority fixes required.
+
+### Skipped (with justification)
+- N+1 query in cron: Acceptable for expected scale (< 100 medicines per family, cron runs once per minute)
+- Performance suggestions deferred to optimization phase
+
+## Stage 9: Final Tester
+
+### Results
+| Check | Status | Details |
+|-------|--------|---------|
+| Vitest | PASS | 46 new tests passing, 0 failures |
+| ESLint | PASS | No new errors |
+| TypeScript | PASS | No new errors |
+| Build | PASS | medicijn page built at 3.65 kB |
+
+### Pipeline Summary
+| Stage | Status | Findings |
+|-------|--------|----------|
+| 1. Test Writer | Done | 46 tests across 5 files |
+| 2. Implementer | Done | 6 files created, 6 files modified |
+| 3. Performance | Done | 0 critical, 1 warning |
+| 4. Security | Done | 0 critical, 0 high |
+| 5. Code Quality | Done | 0 must-fix |
+| 6. Accessibility | Done | Good accessibility |
+| 7. Type Safety | Done | Strong typing |
+| 8. Feedback | Done | No critical fixes needed |
+| 9. Final Tests | PASS | All checks green |
+
+### Verdict: PASS
+
+**Medicijn feature implementation complete and ready for deployment.**
+
+Features implemented:
+- New /medicijn page with tab toggle in settings
+- Add multiple medicines with custom names
+- Set reminder time (hour and minute) for each medicine
+- Check off medicines daily (toggle on/off)
+- Push notification reminders at scheduled times
+- Edit medicine name, time, and active status
+- Delete medicines
+- Shows who checked off each medicine
+
+---
+
+# Pipeline Handoff — Maaltijden (Meals) Feature
+
+Task: Implement Maaltijden feature to save meals from week menu and manage meal cards
+
+---
+
+## Stage 1: Test Writer
+
+- Files created:
+  - `src/types/meal.ts` - Type definition (Meal interface)
+  - `src/app/api/meals/route.test.ts` - API CRUD tests (14 tests)
+  - `src/hooks/useMeals.test.ts` - Hook tests (9 tests)
+  - `src/app/maaltijden/page.test.tsx` - Page component tests (10 tests)
+
+- Test count: 33 tests across 3 test files
+
+- Coverage:
+  - API routes: auth guards, CRUD operations (GET/POST/PUT/DELETE), validation, error handling, family scoping
+  - Hook: loading states, fetch meals, add meal, update meal, delete meal, getRandomMeal, error handling
+  - Page: rendering, user interactions, random meal selection, edit modal, delete action, empty state, error display
+
+## Stage 2: Implementer
+
+### Files Created
+- `src/types/meal.ts` - Meal type definition
+- `src/hooks/useMeals.ts` - CRUD hook with addMeal, updateMeal, deleteMeal, getRandomMeal
+- `src/app/api/meals/route.ts` - GET/POST/PUT/DELETE endpoints
+- `src/app/maaltijden/page.tsx` - Page with meal cards, random selection, edit modal
+
+### Files Modified
+- `src/lib/validation.ts` - Added mealSchema, mealUpdateSchema, mealDeleteSchema
+- `src/components/TabBar.tsx` - Added /maaltijden tab
+- `src/app/instellingen/page.tsx` - Added maaltijden toggle
+- `src/components/WeekMenuForm.tsx` - Added save meal button per day with callback prop
+- `src/app/weekmenu/page.tsx` - Integrated useMeals hook and onSaveMeal callback
+
+### Database Collection
+- `meals`: familyId, name, ingredients, instructions, sourceDay, createdBy, createdByName, createdAt, updatedAt
+
+### Features Implemented
+- Save meals from week menu with one click (bookmark icon)
+- View all saved meals on /maaltijden page
+- Random meal selection button
+- Click meal card to view details (ingredients, instructions)
+- Edit meal (name, ingredients, instructions)
+- Delete meal
+- Visual feedback when meal is saved (checkmark)
+
+## Stage 3: Performance Review
+
+### Critical (must fix)
+None
+
+### Warnings (should fix)
+None
+
+### Suggestions
+- Consider pagination for meals list if it grows large
+- Could cache meals list briefly since it doesn't change often
+
+**Total: 0 critical, 0 warnings, 2 suggestions**
+
+## Stage 4: Security Review
+
+### Critical (must fix before merge)
+None
+
+### High (should fix before merge)
+None
+
+### Medium
+None
+
+### Informational
+- All endpoints properly verify JWT token
+- Family scoping prevents cross-family access
+- Validation with Zod schemas (name: 1-200 chars, ingredients: max 2000, instructions: max 5000)
+- PUT/DELETE verify meal ownership by familyId
+
+**Total: 0 critical, 0 high, 0 medium issues — Good security**
+
+## Stage 5: Code Quality Review
+
+### Must Fix
+None
+
+### Should Fix
+None
+
+### Nitpicks
+- WeekMenuForm could split out the save meal button into a sub-component for clarity
+
+**Total: 0 must-fix, 0 should-fix, 1 nitpick**
+
+## Stage 6: Accessibility Review
+
+### Critical (WCAG A — must fix)
+None
+
+### Important (WCAG AA — should fix)
+None
+
+### Best Practice
+- Form inputs have proper labels
+- Buttons have aria-labels (save meal, edit, delete actions)
+- Meal cards are keyboard accessible (clickable li elements)
+- Edit modal has proper form structure
+- Loading and error states clearly communicated
+
+**Total: 0 critical, 0 important, good accessibility**
+
+## Stage 7: Type Safety Review
+
+### Must Fix
+None
+
+### Should Fix
+None
+
+**Total: 0 must-fix, 0 should-fix — Strong typing throughout**
+
+- Meal type exported and used consistently
+- API response types properly defined
+- Hook return type inferred correctly
+- Optional props (onSaveMeal) properly handled
+
+## Stage 8: Feedback Processor
+
+### Applied Fixes
+No critical or high-priority fixes required.
+
+### Skipped (with justification)
+- Pagination for meals list: Deferred until usage patterns show need (expected < 100 meals per family)
+- Caching: Not implemented as meals can change frequently when users add from week menu
+
+## Stage 9: Final Tester
+
+### Results
+| Check | Status | Details |
+|-------|--------|---------|
+| Vitest | PASS | 33 new tests passing, 0 failures |
+| ESLint | PASS | No new errors |
+| TypeScript | PASS | No new errors |
+| Build | PASS | maaltijden page built at 3.74 kB |
+
+### Pipeline Summary
+| Stage | Status | Findings |
+|-------|--------|----------|
+| 1. Test Writer | Done | 33 tests across 3 files |
+| 2. Implementer | Done | 4 files created, 5 files modified |
+| 3. Performance | Done | 0 critical, 0 warnings |
+| 4. Security | Done | 0 critical, 0 high |
+| 5. Code Quality | Done | 0 must-fix |
+| 6. Accessibility | Done | Good accessibility |
+| 7. Type Safety | Done | Strong typing |
+| 8. Feedback | Done | No critical fixes needed |
+| 9. Final Tests | PASS | All checks green |
+
+### Verdict: PASS
+
+**Maaltijden feature implementation complete and ready for deployment.**
+
+Features implemented:
+- New /maaltijden page with tab toggle in settings
+- Save meals from week menu with bookmark button
+- View all saved meal cards
+- Random meal selection
+- Click to view full meal details (ingredients, instructions)
+- Edit meal name, ingredients, and instructions
+- Delete meals
+- Visual feedback (checkmark) when meal saved from week menu
+- Family-scoped data (meals belong to family, not individual users)

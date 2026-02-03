@@ -105,3 +105,46 @@ export const communityPostSchema = z.object({
 export const tabPreferencesSchema = z.object({
   visibleTabs: z.array(z.string().min(1)).min(1, "Selecteer ten minste één tab"),
 });
+
+// Medicine schemas
+export const medicineSchema = z.object({
+  name: z.string().min(1, "Naam is verplicht").max(200, "Naam is te lang"),
+  reminderHour: z.number().int().min(0).max(23),
+  reminderMinute: z.number().int().min(0).max(59),
+});
+
+export const medicineUpdateSchema = z.object({
+  id: z.string().min(1, "Invalid request"),
+  name: z.string().min(1, "Naam is verplicht").max(200, "Naam is te lang").optional(),
+  reminderHour: z.number().int().min(0).max(23).optional(),
+  reminderMinute: z.number().int().min(0).max(59).optional(),
+  active: z.boolean().optional(),
+});
+
+export const medicineDeleteSchema = z.object({
+  id: z.string().min(1, "Invalid request"),
+});
+
+export const medicineCheckSchema = z.object({
+  medicineId: z.string().min(1, "Medicine ID is required"),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Invalid date format"),
+});
+
+// Meal schemas
+export const mealSchema = z.object({
+  name: z.string().min(1, "Naam is verplicht").max(200, "Naam is te lang"),
+  ingredients: z.string().max(2000, "Ingrediënten zijn te lang").optional().default(""),
+  instructions: z.string().max(5000, "Instructies zijn te lang").optional().default(""),
+  sourceDay: z.string().optional(),
+});
+
+export const mealUpdateSchema = z.object({
+  id: z.string().min(1, "Invalid request"),
+  name: z.string().min(1, "Naam is verplicht").max(200, "Naam is te lang").optional(),
+  ingredients: z.string().max(2000, "Ingrediënten zijn te lang").optional(),
+  instructions: z.string().max(5000, "Instructies zijn te lang").optional(),
+});
+
+export const mealDeleteSchema = z.object({
+  id: z.string().min(1, "Invalid request"),
+});

@@ -8,7 +8,9 @@ const ALL_TABS = [
   { href: "/feeding", label: "Eten" },
   { href: "/notes", label: "Noties" },
   { href: "/weekmenu", label: "Menu" },
+  { href: "/maaltijden", label: "Maaltijd" },
   { href: "/boodschappen", label: "Boodschap" },
+  { href: "/medicijn", label: "Medicijn" },
   { href: "/community", label: "Community" },
 ] as const;
 

@@ -25,11 +25,12 @@ export interface NotificationPreferences {
   feedingReminders: boolean;
   vitaminReminders: boolean;
   familyActivity: boolean;
+  medicineReminders: boolean;
 }
 
 export interface NotificationPayload {
   title: string;
   body: string;
   url?: string;
-  type: "feeding_reminder" | "vitamin_reminder" | "family_activity";
+  type: "feeding_reminder" | "vitamin_reminder" | "family_activity" | "medicine_reminder";
 }

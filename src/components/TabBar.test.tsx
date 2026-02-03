@@ -24,7 +24,9 @@ describe("TabBar", () => {
     expect(screen.getByText("Eten")).toBeInTheDocument();
     expect(screen.getByText("Noties")).toBeInTheDocument();
     expect(screen.getByText("Menu")).toBeInTheDocument();
-    expect(screen.getByText("Boodschapje")).toBeInTheDocument();
+    expect(screen.getByText("Boodschap")).toBeInTheDocument();
+    expect(screen.getByText("Medicijn")).toBeInTheDocument();
+    expect(screen.getByText("Community")).toBeInTheDocument();
     expect(screen.getByText("⚙️")).toBeInTheDocument();
   });
 

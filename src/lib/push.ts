@@ -11,6 +11,7 @@ const TYPE_TO_PREF: Record<NotificationPayload["type"], string> = {
   feeding_reminder: "feedingReminders",
   vitamin_reminder: "vitaminReminders",
   family_activity: "familyActivity",
+  medicine_reminder: "medicineReminders",
 };
 
 export async function sendNotificationToFamily(
