@@ -73,9 +73,7 @@ describe("GET /api/meals", () => {
 
     mockCollection.mockReturnValue({
       where: vi.fn().mockReturnValue({
-        orderBy: vi.fn().mockReturnValue({
-          get: vi.fn().mockResolvedValue({ docs: mockMeals }),
-        }),
+        get: vi.fn().mockResolvedValue({ docs: mockMeals }),
       }),
     } as never);
 

@@ -33,7 +33,10 @@ export function useMedicines(familyId: string | undefined): UseMedicinesReturn {
   const [error, setError] = useState<string | null>(null);
 
   const fetchMedicines = useCallback(async () => {
-    if (!familyId) return;
+    if (!familyId) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/medicines");

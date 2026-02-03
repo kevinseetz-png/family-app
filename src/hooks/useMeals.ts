@@ -28,7 +28,10 @@ export function useMeals(familyId: string | undefined): UseMealsReturn {
   const [error, setError] = useState<string | null>(null);
 
   const fetchMeals = useCallback(async () => {
-    if (!familyId) return;
+    if (!familyId) {
+      setIsLoading(false);
+      return;
+    }
 
     try {
       const res = await fetch("/api/meals");

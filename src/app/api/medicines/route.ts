@@ -18,10 +18,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
 
   try {
     // Get all medicines for this family
+    // Query without orderBy to avoid composite index requirement
     const medicinesSnapshot = await adminDb
       .collection("medicines")
       .where("familyId", "==", user.familyId)
-      .orderBy("createdAt", "desc")
       .get();
 
     // Get today's checks for this family
@@ -37,23 +37,25 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       checksMap.set(data.medicineId, data.checkedByName);
     });
 
-    const medicines = medicinesSnapshot.docs.map((doc) => {
-      const data = doc.data();
-      const checkedByName = checksMap.get(doc.id);
-      return {
-        id: doc.id,
-        familyId: data.familyId,
-        name: data.name,
-        reminderHour: data.reminderHour,
-        reminderMinute: data.reminderMinute,
-        active: data.active,
-        createdBy: data.createdBy,
-        createdByName: data.createdByName,
-        createdAt: data.createdAt.toDate().toISOString(),
-        checkedToday: !!checkedByName,
-        checkedByName,
-      };
-    });
+    const medicines = medicinesSnapshot.docs
+      .map((doc) => {
+        const data = doc.data();
+        const checkedByName = checksMap.get(doc.id);
+        return {
+          id: doc.id,
+          familyId: data.familyId,
+          name: data.name,
+          reminderHour: data.reminderHour,
+          reminderMinute: data.reminderMinute,
+          active: data.active,
+          createdBy: data.createdBy,
+          createdByName: data.createdByName,
+          createdAt: data.createdAt.toDate().toISOString(),
+          checkedToday: !!checkedByName,
+          checkedByName,
+        };
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return NextResponse.json({ medicines });
   } catch (err) {

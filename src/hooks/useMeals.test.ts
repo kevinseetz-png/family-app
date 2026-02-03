@@ -33,7 +33,8 @@ describe("useMeals", () => {
     await new Promise((r) => setTimeout(r, 50));
 
     expect(fetchMock).not.toHaveBeenCalled();
-    expect(result.current.isLoading).toBe(true);
+    // isLoading should be false when familyId is undefined to prevent infinite loading
+    expect(result.current.isLoading).toBe(false);
   });
 
   it("should fetch meals from /api/meals", async () => {

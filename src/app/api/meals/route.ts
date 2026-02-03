@@ -15,27 +15,30 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
+    // Query without orderBy to avoid composite index requirement
+    // Sort in JavaScript instead
     const snapshot = await adminDb
       .collection("meals")
       .where("familyId", "==", user.familyId)
-      .orderBy("createdAt", "desc")
       .get();
 
-    const meals = snapshot.docs.map((doc) => {
-      const data = doc.data();
-      return {
-        id: doc.id,
-        familyId: data.familyId,
-        name: data.name,
-        ingredients: data.ingredients || "",
-        instructions: data.instructions || "",
-        sourceDay: data.sourceDay,
-        createdBy: data.createdBy,
-        createdByName: data.createdByName,
-        createdAt: data.createdAt.toDate().toISOString(),
-        updatedAt: data.updatedAt?.toDate().toISOString(),
-      };
-    });
+    const meals = snapshot.docs
+      .map((doc) => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          familyId: data.familyId,
+          name: data.name,
+          ingredients: data.ingredients || "",
+          instructions: data.instructions || "",
+          sourceDay: data.sourceDay,
+          createdBy: data.createdBy,
+          createdByName: data.createdByName,
+          createdAt: data.createdAt.toDate().toISOString(),
+          updatedAt: data.updatedAt?.toDate().toISOString(),
+        };
+      })
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 
     return NextResponse.json({ meals });
   } catch (err) {

@@ -86,9 +86,7 @@ describe("GET /api/medicines", () => {
       if (name === "medicines") {
         return {
           where: vi.fn().mockReturnValue({
-            orderBy: vi.fn().mockReturnValue({
-              get: vi.fn().mockResolvedValue({ docs: mockMedicines }),
-            }),
+            get: vi.fn().mockResolvedValue({ docs: mockMedicines }),
           }),
         } as never;
       }
