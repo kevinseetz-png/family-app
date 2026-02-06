@@ -162,3 +162,33 @@ export const klusjesUpdateSchema = z.object({
 export const klusjesDeleteSchema = z.object({
   id: z.string().min(1, "Invalid request"),
 });
+
+// Agenda schemas
+export const agendaEventSchema = z.object({
+  title: z.string().min(1, "Titel is verplicht").max(200, "Titel is te lang"),
+  description: z.string().max(2000, "Beschrijving is te lang").optional().default(""),
+  category: z.enum(["familie", "werk", "school", "gezondheid", "sport", "verjaardag", "afspraak", "overig"]),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat"),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/, "Ongeldig tijdformaat").nullable(),
+  endTime: z.string().regex(/^\d{2}:\d{2}$/, "Ongeldig tijdformaat").nullable(),
+  allDay: z.boolean(),
+  recurrence: z.enum(["none", "daily", "weekly", "monthly", "yearly"]).default("none"),
+  assignedTo: z.string().max(100).nullable().default(null),
+});
+
+export const agendaEventUpdateSchema = z.object({
+  id: z.string().min(1, "Invalid request"),
+  title: z.string().min(1, "Titel is verplicht").max(200, "Titel is te lang").optional(),
+  description: z.string().max(2000, "Beschrijving is te lang").optional(),
+  category: z.enum(["familie", "werk", "school", "gezondheid", "sport", "verjaardag", "afspraak", "overig"]).optional(),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat").optional(),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/, "Ongeldig tijdformaat").nullable().optional(),
+  endTime: z.string().regex(/^\d{2}:\d{2}$/, "Ongeldig tijdformaat").nullable().optional(),
+  allDay: z.boolean().optional(),
+  recurrence: z.enum(["none", "daily", "weekly", "monthly", "yearly"]).optional(),
+  assignedTo: z.string().max(100).nullable().optional(),
+});
+
+export const agendaEventDeleteSchema = z.object({
+  id: z.string().min(1, "Invalid request"),
+});

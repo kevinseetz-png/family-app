@@ -9,3 +9,194 @@
 .scrollbar-hide::-webkit-scrollbar {
   display: none;  /* Chrome, Safari and Opera */
 }
+
+/* ─── Agenda Animations ──────────────────────────────────── */
+
+/* Slide-up modal entry (iOS-style bottom sheet) */
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Fade-in backdrop */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Fade-in-up for event cards (staggered) */
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Scale-in for FAB menu items */
+@keyframes scaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.5) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+/* Slide direction transitions for day content */
+@keyframes slideInRight {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Gentle calendar expand */
+@keyframes expandDown {
+  from {
+    opacity: 0;
+    transform: scaleY(0.95);
+    transform-origin: top;
+  }
+  to {
+    opacity: 1;
+    transform: scaleY(1);
+    transform-origin: top;
+  }
+}
+
+/* Pulse for current time indicator */
+@keyframes timePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.3); }
+}
+
+/* Float animation for empty state illustration */
+@keyframes gentleFloat {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-8px); }
+}
+
+/* Rotate for FAB close */
+@keyframes rotateFab {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(45deg); }
+}
+
+@keyframes rotateFabBack {
+  from { transform: rotate(45deg); }
+  to { transform: rotate(0deg); }
+}
+
+.animate-slideUp {
+  animation: slideUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.25s ease-out forwards;
+}
+
+.animate-fadeInUp {
+  animation: fadeInUp 0.35s ease-out forwards;
+}
+
+.animate-scaleIn {
+  animation: scaleIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.animate-slideInRight {
+  animation: slideInRight 0.3s ease-out forwards;
+}
+
+.animate-slideInLeft {
+  animation: slideInLeft 0.3s ease-out forwards;
+}
+
+.animate-expandDown {
+  animation: expandDown 0.25s ease-out forwards;
+}
+
+.animate-timePulse {
+  animation: timePulse 2s ease-in-out infinite;
+}
+
+.animate-gentleFloat {
+  animation: gentleFloat 3s ease-in-out infinite;
+}
+
+.animate-rotateFab {
+  animation: rotateFab 0.25s ease-out forwards;
+}
+
+.animate-rotateFabBack {
+  animation: rotateFabBack 0.25s ease-out forwards;
+}
+
+/* Collapse/expand for week overview days */
+@keyframes collapseUp {
+  from {
+    max-height: 500px;
+    opacity: 1;
+  }
+  to {
+    max-height: 0;
+    opacity: 0;
+  }
+}
+
+.animate-collapseUp {
+  animation: collapseUp 0.25s ease-out forwards;
+  overflow: hidden;
+}
+
+/* Confirm delete slide-in */
+@keyframes confirmSlide {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-confirmSlide {
+  animation: confirmSlide 0.2s ease-out forwards;
+}
+
+/* Conflict warning pulse */
+@keyframes conflictPulse {
+  0%, 100% { opacity: 0.8; }
+  50% { opacity: 1; }
+}
+
+.animate-conflictPulse {
+  animation: conflictPulse 2s ease-in-out infinite;
+}

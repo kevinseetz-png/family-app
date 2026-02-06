@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useAuthContext } from "@/components/AuthProvider";
 
 const ALL_TABS = [
+  { href: "/agenda", label: "Agenda" },
   { href: "/feeding", label: "Eten" },
   { href: "/notes", label: "Noties" },
   { href: "/weekmenu", label: "Menu" },
