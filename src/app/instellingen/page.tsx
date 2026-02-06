@@ -7,6 +7,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { NotificationToggle } from "@/components/NotificationToggle";
 
 const TOGGLEABLE_TABS = [
+  { href: "/agenda", label: "Agenda" },
   { href: "/feeding", label: "Eten" },
   { href: "/notes", label: "Noties" },
   { href: "/weekmenu", label: "Menu" },

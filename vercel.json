@@ -3,6 +3,10 @@
     {
       "path": "/api/cron/vitamin-reminder",
       "schedule": "0 9 * * *"
+    },
+    {
+      "path": "/api/cron/medicine-reminder",
+      "schedule": "*/10 * * * *"
     }
   ]
 }

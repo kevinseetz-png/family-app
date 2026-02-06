@@ -12,9 +12,21 @@ export async function processMedicineReminders(
   vapid: VapidConfig
 ): Promise<number> {
   const now = new Date();
-  const currentHour = now.getUTCHours();
-  const currentMinute = now.getUTCMinutes();
-  const today = now.toISOString().split("T")[0];
+  // Use Netherlands timezone since users enter times in local time
+  const parts = new Intl.DateTimeFormat("en-US", {
+    timeZone: "Europe/Amsterdam",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(now);
+
+  const get = (type: string) => parts.find(p => p.type === type)!.value;
+  const currentHour = Number(get("hour"));
+  const currentMinute = Number(get("minute"));
+  const today = `${get("year")}-${get("month")}-${get("day")}`;
 
   // Calculate the 10-minute window: e.g. minute 23 → window [20, 21, ..., 29]
   const windowStart = Math.floor(currentMinute / 10) * 10;
