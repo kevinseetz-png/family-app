@@ -49,6 +49,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     keys,
     feedingReminders: true,
     vitaminReminders: true,
+    medicineReminders: true,
     familyActivity: true,
     createdAt: new Date(),
   };

@@ -23,6 +23,15 @@
         { "fieldPath": "familyId", "order": "ASCENDING" },
         { "fieldPath": "date", "order": "ASCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "medicines",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "active", "order": "ASCENDING" },
+        { "fieldPath": "reminderHour", "order": "ASCENDING" },
+        { "fieldPath": "reminderMinute", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

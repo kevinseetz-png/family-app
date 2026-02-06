@@ -3,3 +3,5 @@ node_modules
 out
 .env*.local
 .vercel
+functions/dist
+functions/node_modules
