@@ -5,6 +5,7 @@ import { ServiceWorkerRegister } from "@/components/ServiceWorkerRegister";
 import { RouteAnnouncer } from "@/components/RouteAnnouncer";
 import { InstallBanner } from "@/components/InstallBanner";
 import { TabBar } from "@/components/TabBar";
+import { MedicineReminder } from "@/components/MedicineReminder";
 
 export const metadata: Metadata = {
   title: "Family App",
@@ -35,6 +36,7 @@ export default function RootLayout({
         <AuthProvider>
           <RouteAnnouncer />
           <TabBar />
+          <MedicineReminder />
           {children}
           <InstallBanner />
         </AuthProvider>
