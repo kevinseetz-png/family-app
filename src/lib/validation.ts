@@ -148,3 +148,17 @@ export const mealUpdateSchema = z.object({
 export const mealDeleteSchema = z.object({
   id: z.string().min(1, "Invalid request"),
 });
+
+// Klusjes schemas
+export const klusjesSchema = z.object({
+  name: z.string().min(1, "Name is required").max(200, "Name is too long"),
+});
+
+export const klusjesUpdateSchema = z.object({
+  id: z.string().min(1, "Invalid request"),
+  checked: z.boolean(),
+});
+
+export const klusjesDeleteSchema = z.object({
+  id: z.string().min(1, "Invalid request"),
+});

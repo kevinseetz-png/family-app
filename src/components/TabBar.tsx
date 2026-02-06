@@ -10,6 +10,7 @@ const ALL_TABS = [
   { href: "/weekmenu", label: "Menu" },
   { href: "/maaltijden", label: "Maaltijd" },
   { href: "/boodschappen", label: "Boodschap" },
+  { href: "/klusjes", label: "Klusjes" },
   { href: "/medicijn", label: "Medicijn" },
   { href: "/community", label: "Community" },
 ] as const;
@@ -31,14 +32,14 @@ export function TabBar() {
 
   return (
     <nav aria-label="Hoofdnavigatie" className="sticky top-0 z-40 bg-white border-b border-gray-200">
-      <ul className="flex">
+      <ul className="flex overflow-x-auto scrollbar-hide">
         {tabs.map(({ href, label }) => {
           const isActive = pathname.startsWith(href);
           return (
-            <li key={href} className="flex-1">
+            <li key={href} className="flex-shrink-0">
               <Link
                 href={href}
-                className={`block py-3 text-center text-xs sm:text-sm font-medium truncate px-1 transition-colors ${
+                className={`block py-3 text-center text-xs sm:text-sm font-medium whitespace-nowrap px-3 transition-colors ${
                   isActive
                     ? "text-emerald-600 border-b-2 border-emerald-600"
                     : "text-gray-500 hover:text-gray-700"

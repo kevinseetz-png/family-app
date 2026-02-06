@@ -12,6 +12,7 @@ const TOGGLEABLE_TABS = [
   { href: "/weekmenu", label: "Menu" },
   { href: "/maaltijden", label: "Maaltijd" },
   { href: "/boodschappen", label: "Boodschap" },
+  { href: "/klusjes", label: "Klusjes" },
   { href: "/medicijn", label: "Medicijn" },
   { href: "/community", label: "Community" },
 ];
