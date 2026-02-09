@@ -152,11 +152,16 @@ export const mealDeleteSchema = z.object({
 // Klusjes schemas
 export const klusjesSchema = z.object({
   name: z.string().min(1, "Name is required").max(200, "Name is too long"),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat").nullable().optional().default(null),
+  recurrence: z.enum(["none", "daily", "weekly", "monthly"]).optional().default("none"),
 });
 
 export const klusjesUpdateSchema = z.object({
   id: z.string().min(1, "Invalid request"),
-  checked: z.boolean(),
+  status: z.enum(["todo", "bezig", "klaar"]),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat").nullable().optional(),
+  recurrence: z.enum(["none", "daily", "weekly", "monthly"]).optional(),
+  completionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat").optional(),
 });
 
 export const klusjesDeleteSchema = z.object({

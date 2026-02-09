@@ -1009,3 +1009,167 @@ Features implemented:
 - Push notification when new klusje is added
 - Horizontally scrollable tab bar (overflow-x-auto, scrollbar-hide)
 - Family-scoped data (klusjes belong to family, not individual users)
+
+---
+
+# Klusjes Upgrade: Status, Herhalingen & Weekoverzicht
+
+## Stage 1: Test Writer
+- Files updated: 7 test files
+  - `src/lib/validation.klusjes.test.ts` (25 tests)
+  - `src/app/api/klusjes/route.test.ts` (26 tests)
+  - `src/hooks/useKlusjes.test.ts` (13 tests)
+  - `src/components/KlusjesForm.test.tsx` (15 tests)
+  - `src/components/KlusjesList.test.tsx` (13 tests)
+  - `src/components/KlusjesWeekView.test.tsx` (7 tests, NEW)
+  - `src/app/klusjes/page.test.tsx` (13 tests)
+- Test count: 112 tests across 7 files
+- Coverage: status cycling, date/recurrence fields, backward compat migration, recurring expansion, week view, view toggle
+
+## Stage 2: Implementer
+- Files modified:
+  - `src/types/klusjes.ts` — New KlusjesStatus, KlusjesRecurrence types, STATUS_CONFIG, RECURRENCE_LABELS
+  - `src/lib/validation.ts` — Updated klusjesSchema (date, recurrence), klusjesUpdateSchema (status enum, completionDate)
+  - `src/app/api/klusjes/route.ts` — Read-time migration (checked→status), new POST/PUT fields, dot-notation completions
+  - `src/hooks/useKlusjes.ts` — New updateStatus, getItemsForDate, expandRecurringKlusjes
+  - `src/components/KlusjesList.tsx` — Status-cycle button, date/recurrence badges
+  - `src/components/KlusjesForm.tsx` — Expandable form with date picker and recurrence dropdown
+  - `src/components/KlusjesWeekView.tsx` — NEW: 7-day week view with navigation
+  - `src/app/klusjes/page.tsx` — Lijst/Week view toggle
+
+## Stage 3: Performance Reviewer
+- No critical issues
+- Suggestions: optimistic updates, server-side sorting (low priority)
+
+## Stage 4: Security Reviewer
+- Fixed: Added explicit date format re-validation before Firestore dot-notation update
+- No other critical issues
+
+## Stage 5: Code Quality Reviewer
+- Noted: status button duplication across KlusjesList/KlusjesWeekView (acceptable for now)
+- Auth pattern duplication in route handlers (pre-existing pattern)
+
+## Stage 6: Accessibility Reviewer
+- Fixed: Improved status button aria-labels with instructions ("klik voor...")
+- Fixed: Added aria-hidden to decorative status icons
+- Fixed: Added aria-expanded and aria-controls to options toggle
+
+## Stage 7: Type Safety Reviewer
+- Fixed: Replaced unsafe `as KlusjesRecurrence` cast with runtime validation
+
+## Stage 8: Feedback Processor
+- Applied 4 fixes from reviews (security, accessibility x2, type safety)
+
+## Stage 9: Final Tester
+- `npx vitest run` (klusjes files): 112 tests, 7 files — ALL PASS
+- `npx next build`: SUCCESS
+- Pre-existing failures in unrelated files (feeding, admin-auth, offline) not affected
+
+### Verdict: PASS
+
+**Klusjes upgrade complete and ready for deployment.**
+
+Features implemented:
+- Status system: todo → bezig → klaar (replaces checkbox)
+- Date assignment: optional date per klusje
+- Recurrence: none/daily/weekly/monthly
+- Week overview with 7-day navigation
+- "Zonder datum" section for unscheduled items
+- Lijst/Week view toggle
+- Backward-compatible migration (existing checked:boolean → status)
+- Recurring item completions tracked independently per date
+
+---
+
+# Pipeline Handoff — Klusjes (Chores) Feature — Stage 3: Performance Review
+
+Task: Review klusjes feature implementation for performance issues
+
+---
+
+## Stage 3: Performance Review
+
+### Critical (must fix)
+None
+
+### Warnings (should fix)
+
+**1. Full list refetch after mutations**: `src/hooks/useKlusjes.ts:147-178` — After adding, updating, or deleting an item, the hook calls `fetchItems()` to refetch the entire klusjes list. This causes unnecessary API calls and renders. Consider optimistic updates.
+- **Severity**: MEDIUM
+- **Impact**: Network traffic, render cycles on every user action
+- **Suggested fix**: Optimistically update local state immediately, only refetch on error or implement delta updates
+- **Frequency**: Occurs on every addItem, updateStatus, deleteItem call
+
+**2. N+1 pattern in API response mapping**: `src/app/api/klusjes/route.ts:27-57` — For each klusje document, createdAt.toDate() is called and then converted again with .toISOString() and .getTime(). This creates redundant conversions and temporary objects.
+- **Severity**: LOW-MEDIUM
+- **Impact**: Minor CPU overhead, especially with many klusjes
+- **Suggested fix**: Single conversion to timestamp, format on client if needed
+
+**3. Sorting on every fetch**: `src/app/api/klusjes/route.ts:56` — The API fetches items and then sorts them client-side by createdAt. Firestore query already supports orderBy, so sorting should happen at query time.
+- **Severity**: LOW
+- **Impact**: CPU cycles for large lists, sorting entire array even for pagination
+- **Suggested fix**: Add `.orderBy("createdAt", "asc")` to Firestore query instead of post-fetch sort
+
+### Suggestions
+
+**1. Missing pagination**: `src/app/api/klusjes/route.ts:24` — API fetches up to 1000 items without pagination. While 1000 is high, for a family app this could eventually become an issue. Consider cursor-based pagination if list grows large.
+
+**2. Consider memoization in KlusjesList**: `src/components/KlusjesList.tsx:24-26` — The filtering and sorting logic (notDone/done) runs on every render. Could be memoized with `useMemo` to avoid recalculating when items haven't changed.
+
+**3. Weekly view item expansion**: `src/hooks/useKlusjes.ts:43-94` — The `expandRecurringKlusjes()` function iterates through items and dates to find matching recurring items. For 7 days + many recurring items, this could be expensive. Could be optimized with date indexing or caching.
+
+**4. Consider caching recurring klusjes expansion**: `src/app/klusjes/page.tsx:25-27` — getItemsForDate is called for each day in week view. For the same item set, recalculating is wasteful. Could cache results per date.
+
+**Total: 0 critical, 3 warnings, 4 suggestions**
+
+### Analysis Details
+
+**Full Refetch Pattern:**
+```typescript
+// Current pattern in useKlusjes.ts
+const addItem = useCallback(async (data: AddItemData) => {
+  const res = await fetch("/api/klusjes", { method: "POST", ... });
+  if (!res.ok) throw new Error(...);
+  await fetchItems();  // Refetch everything
+}, [fetchItems]);
+```
+This causes 2 API calls per action: 1 to POST, 1 to GET everything. With many items, this is wasteful.
+
+**Date Conversion Overhead:**
+```typescript
+// Current in route.ts
+const createdAt = data.createdAt.toDate();  // Timestamp → Date
+// ...later...
+createdAt.toISOString();  // Date → String
+createdAt.getTime();      // Date → Number
+```
+The createdAt is converted 3 times instead of storing the raw timestamp.
+
+**Sorting Client-Side:**
+```typescript
+const snapshot = await adminDb.collection("klusjes").limit(1000).get();
+// ...then...
+.sort((a, b) => a._ts - b._ts)
+```
+With `.orderBy("createdAt", "asc")` in the query, Firestore handles sorting and items arrive pre-sorted.
+
+**Recurring Item Expansion:**
+The `expandRecurringKlusjes()` function uses a while loop that increments through dates day-by-day:
+```typescript
+while (current <= target && !matched) {
+  const dateStr = toDateStr(current);
+  if (dateStr === targetDate) { /* match */ }
+  // Increment by 1, 7, or 30 days
+  switch (item.recurrence) { ... }
+}
+```
+For daily recurring items over many months, this loop could run 100+ iterations per item.
+
+### Recommendations (Priority Order)
+
+1. **[MEDIUM]** Implement optimistic updates for add/update/delete to reduce API calls
+2. **[LOW-MEDIUM]** Fix redundant date conversions to single timestamp storage
+3. **[LOW]** Move sorting to Firestore query with `.orderBy()`
+4. **[NICE-TO-HAVE]** Add memoization to KlusjesList filtering logic
+5. **[NICE-TO-HAVE]** Optimize recurring item expansion for week view (cache or index-based lookup)
+6. **[FUTURE]** Add pagination when list grows beyond reasonable size

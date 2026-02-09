@@ -1,16 +1,25 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { KlusjesItem } from "@/types/klusjes";
+import type { KlusjesItem, KlusjesStatus, KlusjesRecurrence } from "@/types/klusjes";
 
 interface KlusjesResponse {
   id: string;
   familyId: string;
   name: string;
-  checked: boolean;
+  status: KlusjesStatus;
+  date: string | null;
+  recurrence: KlusjesRecurrence;
+  completions: Record<string, { status: KlusjesStatus }>;
   createdBy: string;
   createdByName: string;
   createdAt: string;
+}
+
+interface AddItemData {
+  name: string;
+  date: string | null;
+  recurrence: KlusjesRecurrence;
 }
 
 interface UseKlusjesReturn {
@@ -18,9 +27,70 @@ interface UseKlusjesReturn {
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
-  addItem: (name: string) => Promise<void>;
-  toggleItem: (id: string, checked: boolean) => Promise<void>;
+  addItem: (data: AddItemData) => Promise<void>;
+  updateStatus: (id: string, status: KlusjesStatus, completionDate?: string) => Promise<void>;
   deleteItem: (id: string) => Promise<void>;
+  getItemsForDate: (date: string) => KlusjesItem[];
+}
+
+function toDateStr(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function expandRecurringKlusjes(items: KlusjesItem[], targetDate: string): KlusjesItem[] {
+  const expanded: KlusjesItem[] = [];
+  const target = new Date(targetDate + "T00:00:00");
+
+  for (const item of items) {
+    if (!item.date) continue;
+    if (item.recurrence === "none") {
+      if (item.date === targetDate) {
+        expanded.push(item);
+      }
+      continue;
+    }
+
+    const itemDate = new Date(item.date + "T00:00:00");
+    if (itemDate > target) continue;
+
+    const current = new Date(itemDate);
+    let matched = false;
+    while (current <= target && !matched) {
+      const dateStr = toDateStr(current);
+      if (dateStr === targetDate) {
+        // Check if there's a completion for this date
+        const completion = item.completions[dateStr];
+        if (dateStr === item.date) {
+          expanded.push(item);
+        } else {
+          expanded.push({
+            ...item,
+            id: `${item.id}_${dateStr}`,
+            date: dateStr,
+            status: completion?.status ?? item.status,
+          });
+        }
+        matched = true;
+      }
+
+      switch (item.recurrence) {
+        case "daily":
+          current.setDate(current.getDate() + 1);
+          break;
+        case "weekly":
+          current.setDate(current.getDate() + 7);
+          break;
+        case "monthly":
+          current.setMonth(current.getMonth() + 1);
+          break;
+      }
+    }
+  }
+
+  return expanded;
 }
 
 export function useKlusjes(familyId: string | undefined): UseKlusjesReturn {
@@ -43,7 +113,10 @@ export function useKlusjes(familyId: string | undefined): UseKlusjesReturn {
         id: item.id,
         familyId: item.familyId,
         name: item.name,
-        checked: item.checked,
+        status: item.status,
+        date: item.date,
+        recurrence: item.recurrence,
+        completions: item.completions ?? {},
         createdBy: item.createdBy,
         createdByName: item.createdByName,
         createdAt: new Date(item.createdAt),
@@ -61,11 +134,11 @@ export function useKlusjes(familyId: string | undefined): UseKlusjesReturn {
     fetchItems();
   }, [fetchItems]);
 
-  const addItem = useCallback(async (name: string) => {
+  const addItem = useCallback(async (data: AddItemData) => {
     const res = await fetch("/api/klusjes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify(data),
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -74,11 +147,15 @@ export function useKlusjes(familyId: string | undefined): UseKlusjesReturn {
     await fetchItems();
   }, [fetchItems]);
 
-  const toggleItem = useCallback(async (id: string, checked: boolean) => {
+  const updateStatus = useCallback(async (id: string, status: KlusjesStatus, completionDate?: string) => {
+    const payload: Record<string, unknown> = { id, status };
+    if (completionDate) {
+      payload.completionDate = completionDate;
+    }
     const res = await fetch("/api/klusjes", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id, checked }),
+      body: JSON.stringify(payload),
     });
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
@@ -100,5 +177,9 @@ export function useKlusjes(familyId: string | undefined): UseKlusjesReturn {
     await fetchItems();
   }, [fetchItems]);
 
-  return { items, isLoading, error, refetch: fetchItems, addItem, toggleItem, deleteItem };
+  const getItemsForDate = useCallback((date: string) => {
+    return expandRecurringKlusjes(items, date);
+  }, [items]);
+
+  return { items, isLoading, error, refetch: fetchItems, addItem, updateStatus, deleteItem, getItemsForDate };
 }

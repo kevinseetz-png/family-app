@@ -28,11 +28,25 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .map((doc) => {
         const data = doc.data();
         const createdAt = data.createdAt.toDate();
+
+        // Read-time migration: checked boolean → status string
+        let status: string;
+        if (data.status) {
+          status = data.status;
+        } else if (data.checked === true) {
+          status = "klaar";
+        } else {
+          status = "todo";
+        }
+
         return {
           id: doc.id,
           familyId: data.familyId,
           name: data.name,
-          checked: data.checked,
+          status,
+          date: data.date ?? null,
+          recurrence: data.recurrence ?? "none",
+          completions: data.completions ?? {},
           createdBy: data.createdBy,
           createdByName: data.createdByName,
           createdAt: createdAt.toISOString(),
@@ -75,13 +89,16 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { name } = result.data;
+  const { name, date, recurrence } = result.data;
 
   try {
     const item = {
       familyId: user.familyId,
       name,
-      checked: false,
+      status: "todo",
+      date: date ?? null,
+      recurrence: recurrence ?? "none",
+      completions: {},
       createdBy: user.id,
       createdByName: user.name,
       createdAt: new Date(),
@@ -133,7 +150,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { id, checked } = result.data;
+  const { id, status, completionDate, date, recurrence } = result.data;
 
   if (id.length > 128 || id.includes("/")) {
     return NextResponse.json({ message: "Invalid request" }, { status: 400 });
@@ -151,7 +168,23 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ message: "Unauthorized" }, { status: 403 });
     }
 
-    await docRef.update({ checked });
+    if (completionDate) {
+      // Double-validate date format before dot-notation to prevent injection
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(completionDate)) {
+        return NextResponse.json({ message: "Invalid date format" }, { status: 400 });
+      }
+      // Recurring item: update completions map with dot-notation
+      await docRef.update({
+        [`completions.${completionDate}`]: { status },
+      });
+    } else {
+      // Normal update
+      const updateData: Record<string, unknown> = { status };
+      if (date !== undefined) updateData.date = date;
+      if (recurrence !== undefined) updateData.recurrence = recurrence;
+      await docRef.update(updateData);
+    }
+
     return NextResponse.json({ message: "Updated" });
   } catch (err) {
     console.error("Failed to update klusje:", err);

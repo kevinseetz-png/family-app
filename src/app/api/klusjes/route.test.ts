@@ -52,7 +52,7 @@ describe("GET /api/klusjes", () => {
     expect(res.status).toBe(401);
   });
 
-  it("should return klusjes list", async () => {
+  it("should return klusjes list with new fields", async () => {
     mockVerifyToken.mockResolvedValue({
       id: "user1",
       name: "Test User",
@@ -66,7 +66,10 @@ describe("GET /api/klusjes", () => {
         id: "klusje1",
         data: () => ({
           name: "Stofzuigen",
-          checked: false,
+          status: "todo",
+          date: null,
+          recurrence: "none",
+          completions: {},
           createdBy: "user1",
           createdByName: "Test User",
           createdAt: { toDate: () => new Date("2026-01-01") },
@@ -87,6 +90,85 @@ describe("GET /api/klusjes", () => {
     const data = await res.json();
     expect(data.items).toHaveLength(1);
     expect(data.items[0].name).toBe("Stofzuigen");
+    expect(data.items[0].status).toBe("todo");
+    expect(data.items[0].date).toBeNull();
+    expect(data.items[0].recurrence).toBe("none");
+    expect(data.items[0].completions).toEqual({});
+  });
+
+  it("should migrate old checked:true to status:klaar", async () => {
+    mockVerifyToken.mockResolvedValue({
+      id: "user1",
+      name: "Test User",
+      email: "test@example.com",
+      familyId: "fam1",
+      role: "member",
+    });
+
+    const mockItems = [
+      {
+        id: "klusje1",
+        data: () => ({
+          name: "Old item",
+          checked: true,
+          createdBy: "user1",
+          createdByName: "Test User",
+          createdAt: { toDate: () => new Date("2026-01-01") },
+        }),
+      },
+    ];
+
+    mockCollection.mockReturnValue({
+      where: vi.fn().mockReturnValue({
+        limit: vi.fn().mockReturnValue({
+          get: vi.fn().mockResolvedValue({ docs: mockItems }),
+        }),
+      }),
+    } as never);
+
+    const res = await GET(makeRequest("GET"));
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.items[0].status).toBe("klaar");
+    expect(data.items[0].date).toBeNull();
+    expect(data.items[0].recurrence).toBe("none");
+    expect(data.items[0].completions).toEqual({});
+  });
+
+  it("should migrate old checked:false to status:todo", async () => {
+    mockVerifyToken.mockResolvedValue({
+      id: "user1",
+      name: "Test User",
+      email: "test@example.com",
+      familyId: "fam1",
+      role: "member",
+    });
+
+    const mockItems = [
+      {
+        id: "klusje1",
+        data: () => ({
+          name: "Old item",
+          checked: false,
+          createdBy: "user1",
+          createdByName: "Test User",
+          createdAt: { toDate: () => new Date("2026-01-01") },
+        }),
+      },
+    ];
+
+    mockCollection.mockReturnValue({
+      where: vi.fn().mockReturnValue({
+        limit: vi.fn().mockReturnValue({
+          get: vi.fn().mockResolvedValue({ docs: mockItems }),
+        }),
+      }),
+    } as never);
+
+    const res = await GET(makeRequest("GET"));
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.items[0].status).toBe("todo");
   });
 
   it("should handle fetch error", async () => {
@@ -158,7 +240,7 @@ describe("POST /api/klusjes", () => {
     expect(res.status).toBe(400);
   });
 
-  it("should create a new klusje", async () => {
+  it("should create a new klusje with status todo", async () => {
     mockVerifyToken.mockResolvedValue({
       id: "user1",
       name: "Test User",
@@ -175,7 +257,33 @@ describe("POST /api/klusjes", () => {
     expect(res.status).toBe(201);
     const data = await res.json();
     expect(data.name).toBe("Stofzuigen");
-    expect(data.checked).toBe(false);
+    expect(data.status).toBe("todo");
+    expect(data.date).toBeNull();
+    expect(data.recurrence).toBe("none");
+  });
+
+  it("should create klusje with date and recurrence", async () => {
+    mockVerifyToken.mockResolvedValue({
+      id: "user1",
+      name: "Test User",
+      email: "test@example.com",
+      familyId: "fam1",
+      role: "member",
+    });
+
+    const mockAdd = vi.fn().mockResolvedValue({ id: "klusje1" });
+    mockCollection.mockReturnValue({ add: mockAdd } as never);
+
+    const res = await POST(makeRequest("POST", {
+      name: "Stofzuigen",
+      date: "2026-02-10",
+      recurrence: "weekly",
+    }));
+
+    expect(res.status).toBe(201);
+    const data = await res.json();
+    expect(data.date).toBe("2026-02-10");
+    expect(data.recurrence).toBe("weekly");
   });
 
   it("should return 400 with invalid JSON", async () => {
@@ -208,7 +316,7 @@ describe("PUT /api/klusjes", () => {
 
   it("should return 401 without auth", async () => {
     mockVerifyToken.mockResolvedValue(null);
-    const res = await PUT(makeRequest("PUT", { id: "klusje1", checked: true }));
+    const res = await PUT(makeRequest("PUT", { id: "klusje1", status: "klaar" }));
     expect(res.status).toBe(401);
   });
 
@@ -220,11 +328,11 @@ describe("PUT /api/klusjes", () => {
       familyId: "fam1",
       role: "member",
     });
-    const res = await PUT(makeRequest("PUT", { checked: true }));
+    const res = await PUT(makeRequest("PUT", { status: "klaar" }));
     expect(res.status).toBe(400);
   });
 
-  it("should return 400 with missing checked", async () => {
+  it("should return 400 with missing status", async () => {
     mockVerifyToken.mockResolvedValue({
       id: "user1",
       name: "Test User",
@@ -251,7 +359,7 @@ describe("PUT /api/klusjes", () => {
       }),
     } as never);
 
-    const res = await PUT(makeRequest("PUT", { id: "klusje1", checked: true }));
+    const res = await PUT(makeRequest("PUT", { id: "klusje1", status: "klaar" }));
     expect(res.status).toBe(404);
   });
 
@@ -273,11 +381,11 @@ describe("PUT /api/klusjes", () => {
       }),
     } as never);
 
-    const res = await PUT(makeRequest("PUT", { id: "klusje1", checked: true }));
+    const res = await PUT(makeRequest("PUT", { id: "klusje1", status: "klaar" }));
     expect(res.status).toBe(403);
   });
 
-  it("should update klusje", async () => {
+  it("should update klusje status", async () => {
     mockVerifyToken.mockResolvedValue({
       id: "user1",
       name: "Test User",
@@ -297,10 +405,42 @@ describe("PUT /api/klusjes", () => {
       }),
     } as never);
 
-    const res = await PUT(makeRequest("PUT", { id: "klusje1", checked: true }));
+    const res = await PUT(makeRequest("PUT", { id: "klusje1", status: "klaar" }));
 
     expect(res.status).toBe(200);
-    expect(mockUpdate).toHaveBeenCalledWith({ checked: true });
+    expect(mockUpdate).toHaveBeenCalledWith({ status: "klaar" });
+  });
+
+  it("should update completion for recurring item with completionDate", async () => {
+    mockVerifyToken.mockResolvedValue({
+      id: "user1",
+      name: "Test User",
+      email: "test@example.com",
+      familyId: "fam1",
+      role: "member",
+    });
+
+    const mockUpdate = vi.fn().mockResolvedValue(undefined);
+    mockCollection.mockReturnValue({
+      doc: vi.fn().mockReturnValue({
+        get: vi.fn().mockResolvedValue({
+          exists: true,
+          data: () => ({ familyId: "fam1" }),
+        }),
+        update: mockUpdate,
+      }),
+    } as never);
+
+    const res = await PUT(makeRequest("PUT", {
+      id: "klusje1",
+      status: "klaar",
+      completionDate: "2026-02-10",
+    }));
+
+    expect(res.status).toBe(200);
+    expect(mockUpdate).toHaveBeenCalledWith({
+      "completions.2026-02-10": { status: "klaar" },
+    });
   });
 
   it("should return 400 with invalid id format", async () => {
@@ -313,7 +453,7 @@ describe("PUT /api/klusjes", () => {
     });
 
     const res = await PUT(
-      makeRequest("PUT", { id: "invalid/id", checked: true })
+      makeRequest("PUT", { id: "invalid/id", status: "klaar" })
     );
     expect(res.status).toBe(400);
   });

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 
 let mockUser: { name: string; familyId: string } | null = {
   name: "Test User",
@@ -29,8 +30,9 @@ vi.mock("@/hooks/useKlusjes", () => ({
     isLoading: mockIsLoading,
     error: mockError,
     addItem: vi.fn(),
-    toggleItem: vi.fn(),
+    updateStatus: vi.fn(),
     deleteItem: vi.fn(),
+    getItemsForDate: vi.fn().mockReturnValue([]),
   }),
 }));
 
@@ -44,6 +46,10 @@ vi.mock("@/components/KlusjesForm", () => ({
 
 vi.mock("@/components/KlusjesList", () => ({
   KlusjesList: () => <div data-testid="klusjes-list">List</div>,
+}));
+
+vi.mock("@/components/KlusjesWeekView", () => ({
+  KlusjesWeekView: () => <div data-testid="klusjes-weekview">WeekView</div>,
 }));
 
 import KlusjesPage from "./page";
@@ -72,7 +78,7 @@ describe("KlusjesPage", () => {
     expect(screen.getByTestId("klusjes-form")).toBeInTheDocument();
   });
 
-  it("should render the KlusjesList component", () => {
+  it("should render the KlusjesList component by default", () => {
     render(<KlusjesPage />);
     expect(screen.getByTestId("klusjes-list")).toBeInTheDocument();
   });
@@ -103,7 +109,6 @@ describe("KlusjesPage", () => {
     mockAuthLoading = false;
     const { container } = render(<KlusjesPage />);
 
-    // After redirect logic runs, should return null
     expect(container.querySelector("main")).toBeNull();
   });
 
@@ -123,5 +128,32 @@ describe("KlusjesPage", () => {
     mockError = "Failed to load klusjes";
     render(<KlusjesPage />);
     expect(screen.getByRole("alert")).toHaveTextContent("Failed to load klusjes");
+  });
+
+  it("should show view toggle buttons (Lijst/Week)", () => {
+    render(<KlusjesPage />);
+    expect(screen.getByRole("button", { name: /lijst/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /week/i })).toBeInTheDocument();
+  });
+
+  it("should switch to week view when Week button is clicked", async () => {
+    const user = userEvent.setup();
+    render(<KlusjesPage />);
+
+    await user.click(screen.getByRole("button", { name: /week/i }));
+
+    expect(screen.getByTestId("klusjes-weekview")).toBeInTheDocument();
+    expect(screen.queryByTestId("klusjes-list")).not.toBeInTheDocument();
+  });
+
+  it("should switch back to list view when Lijst button is clicked", async () => {
+    const user = userEvent.setup();
+    render(<KlusjesPage />);
+
+    await user.click(screen.getByRole("button", { name: /week/i }));
+    await user.click(screen.getByRole("button", { name: /lijst/i }));
+
+    expect(screen.getByTestId("klusjes-list")).toBeInTheDocument();
+    expect(screen.queryByTestId("klusjes-weekview")).not.toBeInTheDocument();
   });
 });

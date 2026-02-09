@@ -6,9 +6,58 @@ import {
 } from "./validation";
 
 describe("klusjesSchema", () => {
-  it("accepts valid klusje with name", () => {
+  it("accepts valid klusje with name only", () => {
     const result = klusjesSchema.safeParse({ name: "Stofzuigen" });
     expect(result.success).toBe(true);
+  });
+
+  it("accepts klusje with date and recurrence", () => {
+    const result = klusjesSchema.safeParse({
+      name: "Stofzuigen",
+      date: "2026-02-10",
+      recurrence: "weekly",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts klusje with null date", () => {
+    const result = klusjesSchema.safeParse({
+      name: "Stofzuigen",
+      date: null,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid date format", () => {
+    const result = klusjesSchema.safeParse({
+      name: "Stofzuigen",
+      date: "10-02-2026",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects invalid recurrence value", () => {
+    const result = klusjesSchema.safeParse({
+      name: "Stofzuigen",
+      recurrence: "yearly",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("defaults recurrence to none when omitted", () => {
+    const result = klusjesSchema.safeParse({ name: "Stofzuigen" });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.recurrence).toBe("none");
+    }
+  });
+
+  it("defaults date to null when omitted", () => {
+    const result = klusjesSchema.safeParse({ name: "Stofzuigen" });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.date).toBeNull();
+    }
   });
 
   it("rejects empty name", () => {
@@ -44,44 +93,79 @@ describe("klusjesSchema", () => {
 });
 
 describe("klusjesUpdateSchema", () => {
-  it("accepts valid update with id and checked", () => {
+  it("accepts valid update with id and status", () => {
     const result = klusjesUpdateSchema.safeParse({
       id: "klusje123",
-      checked: true,
+      status: "klaar",
     });
     expect(result.success).toBe(true);
   });
 
-  it("rejects missing id", () => {
-    const result = klusjesUpdateSchema.safeParse({ checked: true });
+  it("accepts all valid status values", () => {
+    for (const status of ["todo", "bezig", "klaar"]) {
+      const result = klusjesUpdateSchema.safeParse({ id: "klusje123", status });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("rejects invalid status value", () => {
+    const result = klusjesUpdateSchema.safeParse({
+      id: "klusje123",
+      status: "done",
+    });
     expect(result.success).toBe(false);
   });
 
-  it("rejects missing checked", () => {
+  it("rejects missing id", () => {
+    const result = klusjesUpdateSchema.safeParse({ status: "klaar" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects missing status", () => {
     const result = klusjesUpdateSchema.safeParse({ id: "klusje123" });
     expect(result.success).toBe(false);
   });
 
   it("rejects empty id", () => {
-    const result = klusjesUpdateSchema.safeParse({ id: "", checked: true });
+    const result = klusjesUpdateSchema.safeParse({ id: "", status: "klaar" });
     expect(result.success).toBe(false);
     if (!result.success) {
       expect(result.error.issues[0].message).toBe("Invalid request");
     }
   });
 
-  it("accepts checked as false", () => {
+  it("accepts update with completionDate for recurring items", () => {
     const result = klusjesUpdateSchema.safeParse({
       id: "klusje123",
-      checked: false,
+      status: "klaar",
+      completionDate: "2026-02-10",
     });
     expect(result.success).toBe(true);
   });
 
-  it("rejects non-boolean checked", () => {
+  it("accepts update with optional date field", () => {
     const result = klusjesUpdateSchema.safeParse({
       id: "klusje123",
-      checked: "true",
+      status: "todo",
+      date: "2026-02-15",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts update with optional recurrence field", () => {
+    const result = klusjesUpdateSchema.safeParse({
+      id: "klusje123",
+      status: "todo",
+      recurrence: "weekly",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid completionDate format", () => {
+    const result = klusjesUpdateSchema.safeParse({
+      id: "klusje123",
+      status: "klaar",
+      completionDate: "10/02/2026",
     });
     expect(result.success).toBe(false);
   });
