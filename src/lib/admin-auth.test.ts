@@ -4,8 +4,16 @@ import { NextRequest, NextResponse } from "next/server";
 import { requireAdmin } from "@/lib/admin-auth";
 import type { User } from "@/types/auth";
 
+let mockFirestoreRole = "member";
+
 vi.mock("@/lib/firebase-admin", () => ({
-  adminDb: {},
+  adminDb: {
+    collection: () => ({
+      doc: () => ({
+        get: async () => ({ exists: true, data: () => ({ role: mockFirestoreRole }) }),
+      }),
+    }),
+  },
   adminAuth: {},
 }));
 
@@ -16,6 +24,7 @@ vi.mock("@/lib/auth", () => ({
 describe("requireAdmin", () => {
   beforeEach(() => {
     vi.resetAllMocks();
+    mockFirestoreRole = "member";
   });
 
   it("should return 401 when no auth token cookie is present", async () => {
@@ -75,6 +84,7 @@ describe("requireAdmin", () => {
   });
 
   it("should return User object when user is admin", async () => {
+    mockFirestoreRole = "admin";
     const request = new NextRequest("http://localhost:3000/api/admin/users", {
       headers: { Cookie: "auth_token=valid-admin-token" },
     });

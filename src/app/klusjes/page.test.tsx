@@ -33,6 +33,8 @@ vi.mock("@/hooks/useKlusjes", () => ({
     updateStatus: vi.fn(),
     deleteItem: vi.fn(),
     getItemsForDate: vi.fn().mockReturnValue([]),
+    getOverdueTasks: () => [],
+    rescheduleTask: vi.fn(),
   }),
 }));
 
@@ -50,6 +52,14 @@ vi.mock("@/components/KlusjesList", () => ({
 
 vi.mock("@/components/KlusjesWeekView", () => ({
   KlusjesWeekView: () => <div data-testid="klusjes-weekview">WeekView</div>,
+}));
+
+vi.mock("@/components/OverdueBanner", () => ({
+  OverdueBanner: () => null,
+}));
+
+vi.mock("@/components/OverdueTasksModal", () => ({
+  OverdueTasksModal: () => null,
 }));
 
 import KlusjesPage from "./page";
@@ -70,7 +80,7 @@ describe("KlusjesPage", () => {
 
   it("should render the page title", () => {
     render(<KlusjesPage />);
-    expect(screen.getByRole("heading", { name: "Klusjes" })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: "Taken" })).toBeInTheDocument();
   });
 
   it("should render the KlusjesForm component", () => {
@@ -114,7 +124,7 @@ describe("KlusjesPage", () => {
 
   it("should have correct heading styling", () => {
     render(<KlusjesPage />);
-    const heading = screen.getByRole("heading", { name: "Klusjes" });
+    const heading = screen.getByRole("heading", { name: "Taken" });
     expect(heading).toHaveClass("text-2xl", "font-bold", "text-emerald-600");
   });
 

@@ -4,13 +4,23 @@ import { useState, useEffect, useMemo, useRef, useCallback, memo } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/components/AuthProvider";
 import { useAgenda } from "@/hooks/useAgenda";
+import { useKlusjes } from "@/hooks/useKlusjes";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { TaskCard } from "@/components/TaskCard";
+import { AddTaskModal } from "@/components/AddTaskModal";
+import type { KlusjesItem, KlusjesStatus } from "@/types/klusjes";
 import {
   CATEGORY_CONFIG,
+  BUILT_IN_CATEGORIES,
+  DEFAULT_BIRTHDAY_GROUPS,
+  getCategoryConfig,
+  type BuiltInCategory,
   type AgendaCategory,
   type AgendaEvent,
   type RecurrenceType,
 } from "@/types/agenda";
+import { useCustomCategories } from "@/hooks/useCustomCategories";
+import type { CustomCategory } from "@/types/customCategory";
 
 const DAYS_NL = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"];
 const DAYS_FULL_NL = ["Maandag", "Dinsdag", "Woensdag", "Donderdag", "Vrijdag", "Zaterdag", "Zondag"];
@@ -19,8 +29,7 @@ const MONTHS_NL = [
   "Juli", "Augustus", "September", "Oktober", "November", "December",
 ];
 
-const ALL_CATEGORIES = Object.keys(CATEGORY_CONFIG) as AgendaCategory[];
-const ALL_CATEGORIES_COUNT = ALL_CATEGORIES.length;
+const ALL_BUILT_IN_CATEGORIES: BuiltInCategory[] = BUILT_IN_CATEGORIES;
 
 type ViewMode = "dag" | "week";
 
@@ -352,14 +361,16 @@ const EventCard = memo(function EventCard({
   onDelete,
   index = 0,
   hasConflict = false,
+  customCategories,
 }: {
   event: AgendaEvent;
   onEdit: (event: AgendaEvent) => void;
   onDelete: (id: string) => void;
   index?: number;
   hasConflict?: boolean;
+  customCategories?: CustomCategory[];
 }) {
-  const config = CATEGORY_CONFIG[event.category];
+  const config = getCategoryConfig(event.category, customCategories);
   const [showActions, setShowActions] = useState(false);
   const [confirmingDelete, setConfirmingDelete] = useState(false);
 
@@ -441,6 +452,18 @@ const EventCard = memo(function EventCard({
             </p>
           )}
 
+          {/* Birthday age */}
+          {event.category === "verjaardag" && event.birthYear && /^\d{4}/.test(event.date) && (
+            (() => {
+              const age = parseInt(event.date.slice(0, 4), 10) - event.birthYear;
+              return age > 0 ? (
+                <p className="text-xs text-pink-600 font-medium mt-1 ml-8">
+                  Wordt {age} jaar
+                </p>
+              ) : null;
+            })()
+          )}
+
           {/* Description preview */}
           {event.description && (
             <p className="text-xs text-gray-500 mt-1.5 ml-8 line-clamp-2 leading-relaxed">{event.description}</p>
@@ -448,6 +471,11 @@ const EventCard = memo(function EventCard({
 
           {/* Meta */}
           <div className="flex items-center gap-3 mt-2 ml-8">
+            {event.birthdayGroup && (
+              <span className="inline-flex items-center gap-1 text-[11px] text-pink-500 bg-pink-50 px-1.5 py-0.5 rounded-md">
+                {event.birthdayGroup}
+              </span>
+            )}
             {event.recurrence !== "none" && (
               <span className="inline-flex items-center gap-1 text-[11px] text-gray-400 bg-white/60 px-1.5 py-0.5 rounded-md">
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -602,6 +630,8 @@ function SearchFilterBar({
   onToggleCategory,
   isExpanded,
   onToggleExpand,
+  allCategories,
+  customCategories,
 }: {
   searchQuery: string;
   onSearchChange: (q: string) => void;
@@ -609,8 +639,10 @@ function SearchFilterBar({
   onToggleCategory: (cat: AgendaCategory) => void;
   isExpanded: boolean;
   onToggleExpand: () => void;
+  allCategories: string[];
+  customCategories?: CustomCategory[];
 }) {
-  const hasActiveFilters = searchQuery.length > 0 || activeCategories.size < ALL_CATEGORIES_COUNT;
+  const hasActiveFilters = searchQuery.length > 0 || activeCategories.size < allCategories.length;
 
   return (
     <div className="mb-3">
@@ -661,8 +693,8 @@ function SearchFilterBar({
       {/* Category filter chips */}
       {isExpanded && (
         <div className="flex flex-wrap gap-1.5 mt-2.5 animate-fadeIn">
-          {ALL_CATEGORIES.map((cat) => {
-            const config = CATEGORY_CONFIG[cat];
+          {allCategories.map((cat) => {
+            const config = getCategoryConfig(cat, customCategories);
             const isActive = activeCategories.has(cat);
             return (
               <button
@@ -895,6 +927,8 @@ function EventModal({
   defaultCategory,
   onSave,
   onClose,
+  allCategories,
+  customCategories,
 }: {
   event: AgendaEvent | null;
   selectedDate: string;
@@ -909,8 +943,12 @@ function EventModal({
     allDay: boolean;
     recurrence: RecurrenceType;
     assignedTo: string | null;
+    birthdayGroup: string | null;
+    birthYear: number | null;
   }) => Promise<void>;
   onClose: () => void;
+  allCategories: string[];
+  customCategories?: CustomCategory[];
 }) {
   const smartStart = getSmartDefaultStartTime();
   const smartEnd = getSmartDefaultEndTime(smartStart);
@@ -923,8 +961,22 @@ function EventModal({
   const [endTime, setEndTime] = useState(event?.endTime || smartEnd);
   const [recurrence, setRecurrence] = useState<RecurrenceType>(event?.recurrence || "none");
   const [assignedTo, setAssignedTo] = useState(event?.assignedTo || "");
+  const [birthdayGroup, setBirthdayGroup] = useState(event?.birthdayGroup || "");
+  const [birthYear, setBirthYear] = useState(event?.birthYear?.toString() || "");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
+
+  // Default recurrence to "yearly" when category changes to "verjaardag"
+  // Clear birthday fields when switching away from verjaardag
+  useEffect(() => {
+    if (category === "verjaardag" && !event) {
+      setRecurrence("yearly");
+    }
+    if (category !== "verjaardag") {
+      setBirthdayGroup("");
+      setBirthYear("");
+    }
+  }, [category, event]);
 
   // Close on Escape key and lock body scroll
   useEffect(() => {
@@ -961,6 +1013,8 @@ function EventModal({
         allDay,
         recurrence,
         assignedTo: assignedTo.trim() || null,
+        birthdayGroup: category === "verjaardag" && birthdayGroup.trim() ? birthdayGroup.trim() : null,
+        birthYear: category === "verjaardag" && birthYear ? (Number.isNaN(parseInt(birthYear, 10)) ? null : parseInt(birthYear, 10)) : null,
       });
       onClose();
     } catch (err) {
@@ -1024,8 +1078,8 @@ function EventModal({
               Categorie
             </label>
             <div className="flex flex-wrap gap-2">
-              {ALL_CATEGORIES.map((cat) => {
-                const config = CATEGORY_CONFIG[cat];
+              {allCategories.map((cat) => {
+                const config = getCategoryConfig(cat, customCategories);
                 const isActive = category === cat;
                 return (
                   <button
@@ -1140,6 +1194,44 @@ function EventModal({
             />
           </div>
 
+          {/* Birthday-specific fields */}
+          {category === "verjaardag" && (
+            <>
+              <div>
+                <label htmlFor="birthday-group" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                  Groep
+                </label>
+                <select
+                  id="birthday-group"
+                  value={birthdayGroup}
+                  onChange={(e) => setBirthdayGroup(e.target.value)}
+                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none"
+                >
+                  <option value="">Geen groep</option>
+                  {DEFAULT_BIRTHDAY_GROUPS.map((group) => (
+                    <option key={group} value={group}>{group}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label htmlFor="birth-year" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                  Geboortejaar
+                </label>
+                <input
+                  id="birth-year"
+                  type="number"
+                  value={birthYear}
+                  onChange={(e) => setBirthYear(e.target.value)}
+                  placeholder="bijv. 1990"
+                  min={1900}
+                  max={2100}
+                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+              </div>
+            </>
+          )}
+
           {/* Description */}
           <div>
             <label htmlFor="event-desc" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
@@ -1246,15 +1338,19 @@ function WeekOverview({
   onSelectDate,
   onNavigateWeek,
   getEventsForDate,
+  getTasksForDate,
   onEdit,
   onDelete,
+  onTaskStatusChange,
 }: {
   selectedDate: string;
   onSelectDate: (date: string) => void;
   onNavigateWeek: (date: string) => void;
   getEventsForDate: (date: string) => AgendaEvent[];
+  getTasksForDate?: (date: string) => KlusjesItem[];
   onEdit: (event: AgendaEvent) => void;
   onDelete: (id: string) => void;
+  onTaskStatusChange?: (id: string, status: KlusjesStatus, completionDate?: string) => Promise<void>;
 }) {
   const today = getToday();
   const selected = new Date(selectedDate + "T00:00:00");
@@ -1453,6 +1549,21 @@ function WeekOverview({
                   ) : (
                     <p className="text-xs text-gray-300 ml-12 py-1">Vrije dag!</p>
                   )}
+                  {/* Tasks for this day */}
+                  {getTasksForDate && onTaskStatusChange && (() => {
+                    const dayTasks = getTasksForDate(date);
+                    if (dayTasks.length === 0) return null;
+                    return (
+                      <div className="ml-12 mt-2">
+                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Taken</p>
+                        <div className="space-y-1">
+                          {dayTasks.map((task) => (
+                            <TaskCard key={task.id} item={task} onStatusChange={onTaskStatusChange} />
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })()}
                   {/* Quick "go to this day" link */}
                   <button
                     onClick={(e) => { e.stopPropagation(); onSelectDate(date); }}
@@ -1479,10 +1590,12 @@ const UpcomingEvents = memo(function UpcomingEvents({
   events,
   selectedDate,
   onSelectDate,
+  customCategories,
 }: {
   events: AgendaEvent[];
   selectedDate: string;
   onSelectDate: (date: string) => void;
+  customCategories?: CustomCategory[];
 }) {
   // Get next 5 upcoming events from today
   const today = getToday();
@@ -1506,7 +1619,7 @@ const UpcomingEvents = memo(function UpcomingEvents({
       </h3>
       <div className="space-y-1.5 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         {upcoming.map((event, i) => {
-          const config = CATEGORY_CONFIG[event.category];
+          const config = getCategoryConfig(event.category, customCategories);
           const d = new Date(event.date + "T00:00:00");
           const dateLabel = d.toLocaleDateString("nl-NL", { weekday: "short", day: "numeric", month: "short" });
 
@@ -1541,21 +1654,28 @@ const UpcomingEvents = memo(function UpcomingEvents({
 });
 
 // ─── Quick Add FAB ──────────────────────────────────────────
-const QUICK_ADD_ITEMS: { category: AgendaCategory; label: string }[] = [
-  { category: "afspraak", label: "Afspraak" },
-  { category: "familie", label: "Familie" },
-  { category: "werk", label: "Werk" },
-  { category: "school", label: "School" },
-  { category: "sport", label: "Sport" },
-  { category: "verjaardag", label: "Verjaardag" },
+type QuickAddItem = { category: AgendaCategory; label: string; type: "event" } | { label: string; type: "task" };
+
+const QUICK_ADD_ITEMS: QuickAddItem[] = [
+  { label: "Taak", type: "task" },
+  { category: "afspraak", label: "Afspraak", type: "event" },
+  { category: "familie", label: "Familie", type: "event" },
+  { category: "werk", label: "Werk", type: "event" },
+  { category: "school", label: "School", type: "event" },
+  { category: "sport", label: "Sport", type: "event" },
+  { category: "verjaardag", label: "Verjaardag", type: "event" },
 ];
 
 function QuickAddFAB({
   onQuickAdd,
   onGenericAdd,
+  onAddTask,
+  customCategories,
 }: {
   onQuickAdd: (category: AgendaCategory) => void;
   onGenericAdd: () => void;
+  onAddTask: () => void;
+  customCategories?: CustomCategory[];
 }) {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -1565,7 +1685,28 @@ function QuickAddFAB({
       {isOpen && (
         <div className="mb-3 flex flex-col items-end gap-2">
           {QUICK_ADD_ITEMS.map((item, i) => {
-            const config = CATEGORY_CONFIG[item.category];
+            if (item.type === "task") {
+              return (
+                <button
+                  key="task"
+                  onClick={() => {
+                    onAddTask();
+                    setIsOpen(false);
+                  }}
+                  className="flex items-center gap-2 animate-scaleIn"
+                  style={{ animationDelay: `${(QUICK_ADD_ITEMS.length - 1 - i) * 40}ms`, animationFillMode: "both" }}
+                  aria-label="Nieuwe taak toevoegen"
+                >
+                  <span className="px-3 py-1.5 bg-white rounded-lg shadow-md text-xs font-medium text-gray-700 whitespace-nowrap">
+                    {item.label}
+                  </span>
+                  <span className="w-10 h-10 flex items-center justify-center rounded-full bg-emerald-50 shadow-md text-base">
+                    &#9745;
+                  </span>
+                </button>
+              );
+            }
+            const config = getCategoryConfig(item.category, customCategories);
             return (
               <button
                 key={item.category}
@@ -1664,8 +1805,20 @@ export default function AgendaPage() {
   const { user, isLoading: authLoading } = useAuthContext();
   const router = useRouter();
   const { events, isLoading, error, addEvent, updateEvent, deleteEvent, getEventsForDate, getEventsForMonth } = useAgenda(user?.familyId);
+  const { items: tasks, isLoading: tasksLoading, addItem: addTask, updateStatus: updateTaskStatus, getItemsForDate: getTasksForDate } = useKlusjes(user?.familyId);
+  const { categories: customCategories } = useCustomCategories(user?.familyId);
+
+  const allCategories = useMemo(() => {
+    const labels: string[] = [...ALL_BUILT_IN_CATEGORIES];
+    for (const c of customCategories) {
+      if (!labels.includes(c.label)) labels.push(c.label);
+    }
+    return labels;
+  }, [customCategories]);
+  const allCategoriesCount = allCategories.length;
 
   const [selectedDate, setSelectedDate] = useState(getToday());
+  const [showTaskModal, setShowTaskModal] = useState(false);
   const [viewMonth, setViewMonth] = useState(() => new Date().getMonth());
   const [viewYear, setViewYear] = useState(() => new Date().getFullYear());
   const [showCalendar, setShowCalendar] = useState(false);
@@ -1677,7 +1830,7 @@ export default function AgendaPage() {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchExpanded, setSearchExpanded] = useState(false);
   const [activeCategories, setActiveCategories] = useState<Set<AgendaCategory>>(
-    () => new Set(ALL_CATEGORIES)
+    () => new Set(allCategories)
   );
   const [allDayOrder, setAllDayOrder] = useState<Map<string, string[]>>(new Map());
 
@@ -1702,12 +1855,12 @@ export default function AgendaPage() {
   }, []);
 
   // Check if search/filter is active
-  const isFiltering = searchQuery.length > 0 || activeCategories.size < ALL_CATEGORIES_COUNT;
+  const isFiltering = searchQuery.length > 0 || activeCategories.size < allCategoriesCount;
 
   // Filter helper
   const applyFilters = useCallback((evts: AgendaEvent[]): AgendaEvent[] => {
     let filtered = evts;
-    if (activeCategories.size < ALL_CATEGORIES_COUNT) {
+    if (activeCategories.size < allCategoriesCount) {
       filtered = filtered.filter((e) => activeCategories.has(e.category));
     }
     if (searchQuery.trim()) {
@@ -1878,6 +2031,8 @@ export default function AgendaPage() {
     allDay: boolean;
     recurrence: RecurrenceType;
     assignedTo: string | null;
+    birthdayGroup: string | null;
+    birthYear: number | null;
   }) => {
     if (editingEvent) {
       await updateEvent(editingEvent.id, data);
@@ -2006,6 +2161,8 @@ export default function AgendaPage() {
         onToggleCategory={handleToggleCategory}
         isExpanded={searchExpanded}
         onToggleExpand={() => setSearchExpanded(!searchExpanded)}
+        allCategories={allCategories}
+        customCategories={customCategories}
       />
 
       {/* Week strip */}
@@ -2032,7 +2189,7 @@ export default function AgendaPage() {
           </svg>
           <span className="font-medium">Filter actief</span>
           <button
-            onClick={() => { setSearchQuery(""); setActiveCategories(new Set(ALL_CATEGORIES)); }}
+            onClick={() => { setSearchQuery(""); setActiveCategories(new Set(allCategories)); }}
             className="ml-auto text-gray-400 hover:text-gray-600 transition-colors"
             aria-label="Wis alle filters"
           >
@@ -2065,8 +2222,27 @@ export default function AgendaPage() {
             </div>
           </div>
 
+          {/* Tasks for selected day */}
+          {(() => {
+            const dayTasks = getTasksForDate(selectedDate);
+            if (dayTasks.length === 0) return null;
+            return (
+              <div className="mt-6 mb-4">
+                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                  <span>&#9745;</span>
+                  Taken ({dayTasks.length})
+                </h3>
+                <div className="space-y-1.5">
+                  {dayTasks.map((task) => (
+                    <TaskCard key={task.id} item={task} onStatusChange={updateTaskStatus} />
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
+
           {/* Upcoming events */}
-          <UpcomingEvents events={events} selectedDate={selectedDate} onSelectDate={handleSelectDate} />
+          <UpcomingEvents events={events} selectedDate={selectedDate} onSelectDate={handleSelectDate} customCategories={customCategories} />
         </>
       ) : (
         /* Week overview */
@@ -2078,8 +2254,10 @@ export default function AgendaPage() {
           }}
           onNavigateWeek={handleSelectDate}
           getEventsForDate={getFilteredEventsForDate}
+          getTasksForDate={getTasksForDate}
           onEdit={handleEdit}
           onDelete={handleDelete}
+          onTaskStatusChange={updateTaskStatus}
         />
       )}
 
@@ -2087,6 +2265,8 @@ export default function AgendaPage() {
       <QuickAddFAB
         onQuickAdd={openNewEventWithCategory}
         onGenericAdd={openNewEvent}
+        onAddTask={() => setShowTaskModal(true)}
+        customCategories={customCategories}
       />
 
       {/* Modal */}
@@ -2101,6 +2281,17 @@ export default function AgendaPage() {
             setEditingEvent(null);
             setQuickAddCategory(null);
           }}
+          allCategories={allCategories}
+          customCategories={customCategories}
+        />
+      )}
+
+      {/* Add Task Modal */}
+      {showTaskModal && (
+        <AddTaskModal
+          selectedDate={selectedDate}
+          onSave={addTask}
+          onClose={() => setShowTaskModal(false)}
         />
       )}
     </main>

@@ -22,6 +22,19 @@ vi.mock("@/hooks/useNotifications", () => ({
   }),
 }));
 
+vi.mock("@/hooks/useCustomCategories", () => ({
+  useCustomCategories: vi.fn().mockReturnValue({
+    categories: [],
+    isLoading: false,
+    addCategory: vi.fn(),
+    deleteCategory: vi.fn(),
+  }),
+}));
+
+vi.mock("@/components/CategoryManager", () => ({
+  CategoryManager: () => <div data-testid="category-manager">CategoryManager</div>,
+}));
+
 vi.mock("next/link", () => ({
   default: ({ children, href }: { children: React.ReactNode; href: string }) => (
     <a href={href}>{children}</a>
@@ -39,6 +52,12 @@ describe("Settings page (/instellingen)", () => {
   it("should show notification section", () => {
     render(<SettingsPage />);
     expect(screen.getByRole("heading", { name: /meldingen/i })).toBeInTheDocument();
+  });
+
+  it("should show Taken label in tab settings instead of Klusjes", () => {
+    render(<SettingsPage />);
+    expect(screen.getByText("Taken")).toBeInTheDocument();
+    expect(screen.queryByText("Klusjes")).not.toBeInTheDocument();
   });
 
   it("should show link to invite page", () => {

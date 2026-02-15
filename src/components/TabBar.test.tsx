@@ -25,7 +25,7 @@ describe("TabBar", () => {
     expect(screen.getByText("Noties")).toBeInTheDocument();
     expect(screen.getByText("Menu")).toBeInTheDocument();
     expect(screen.getByText("Boodschap")).toBeInTheDocument();
-    expect(screen.getByText("Klusjes")).toBeInTheDocument();
+    expect(screen.getByText("Taken")).toBeInTheDocument();
     expect(screen.getByText("Medicijn")).toBeInTheDocument();
     expect(screen.getByText("Community")).toBeInTheDocument();
     expect(screen.getByText("⚙️")).toBeInTheDocument();
@@ -43,7 +43,7 @@ describe("TabBar", () => {
     expect(screen.getByText("Eten").closest("a")).toHaveAttribute("href", "/feeding");
     expect(screen.getByText("Noties").closest("a")).toHaveAttribute("href", "/notes");
     expect(screen.getByText("Menu").closest("a")).toHaveAttribute("href", "/weekmenu");
-    expect(screen.getByText("Klusjes").closest("a")).toHaveAttribute("href", "/klusjes");
+    expect(screen.getByText("Taken").closest("a")).toHaveAttribute("href", "/klusjes");
     expect(screen.getByText("⚙️").closest("a")).toHaveAttribute("href", "/instellingen");
   });
 
@@ -56,7 +56,7 @@ describe("TabBar", () => {
   it("marks klusjes tab as active when on klusjes page", () => {
     mockPathname = "/klusjes";
     render(<TabBar />);
-    expect(screen.getByText("Klusjes")).toHaveAttribute("aria-current", "page");
+    expect(screen.getByText("Taken")).toHaveAttribute("aria-current", "page");
   });
 
   it("has horizontal scroll container for tabs", () => {

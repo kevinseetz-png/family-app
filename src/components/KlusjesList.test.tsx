@@ -14,6 +14,7 @@ function makeItem(overrides: Partial<KlusjesItem> = {}): KlusjesItem {
     familyId: "fam1",
     name: "Stofzuigen",
     status: "todo",
+    priority: 2,
     date: null,
     recurrence: "none",
     completions: {},
@@ -37,7 +38,7 @@ describe("KlusjesList", () => {
       <KlusjesList items={[]} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
     );
 
-    expect(screen.getByText("Geen klusjes op de lijst.")).toBeInTheDocument();
+    expect(screen.getByText("Geen taken op de lijst.")).toBeInTheDocument();
   });
 
   it("should display a list of klusjes", () => {
@@ -187,5 +188,53 @@ describe("KlusjesList", () => {
 
     const deleteButton = screen.getByRole("button", { name: /verwijder test klusje/i });
     expect(deleteButton).toHaveAccessibleName();
+  });
+
+  it("should show priority indicator for high priority items", () => {
+    const items = [makeItem({ id: "k1", name: "Urgent", priority: 1 })];
+
+    render(
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+    );
+
+    expect(screen.getByText("Hoog")).toBeInTheDocument();
+  });
+
+  it("should show priority indicator for low priority items", () => {
+    const items = [makeItem({ id: "k1", name: "Later", priority: 3 })];
+
+    render(
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+    );
+
+    expect(screen.getByText("Laag")).toBeInTheDocument();
+  });
+
+  it("should not show priority indicator for normal priority items", () => {
+    const items = [makeItem({ id: "k1", name: "Normal", priority: 2 })];
+
+    render(
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+    );
+
+    expect(screen.queryByText("Hoog")).not.toBeInTheDocument();
+    expect(screen.queryByText("Laag")).not.toBeInTheDocument();
+  });
+
+  it("should sort items by priority (high first, then normal, then low)", () => {
+    const items = [
+      makeItem({ id: "k1", name: "Low Item", priority: 3 }),
+      makeItem({ id: "k2", name: "High Item", priority: 1 }),
+      makeItem({ id: "k3", name: "Normal Item", priority: 2 }),
+    ];
+
+    const { container } = render(
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+    );
+    const listItems = container.querySelectorAll("li");
+
+    expect(listItems[0]).toHaveTextContent("High Item");
+    expect(listItems[1]).toHaveTextContent("Normal Item");
+    expect(listItems[2]).toHaveTextContent("Low Item");
   });
 });

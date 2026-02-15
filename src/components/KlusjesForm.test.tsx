@@ -17,7 +17,7 @@ describe("KlusjesForm", () => {
   it("should render input and submit button", () => {
     render(<KlusjesForm onAdd={mockOnAdd} />);
 
-    expect(screen.getByPlaceholderText("Voeg klusje toe...")).toBeInTheDocument();
+    expect(screen.getByPlaceholderText("Voeg taak toe...")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Toevoegen" })).toBeInTheDocument();
   });
 
@@ -25,7 +25,7 @@ describe("KlusjesForm", () => {
     const user = userEvent.setup();
     render(<KlusjesForm onAdd={mockOnAdd} />);
 
-    const input = screen.getByPlaceholderText("Voeg klusje toe...");
+    const input = screen.getByPlaceholderText("Voeg taak toe...");
     await user.type(input, "Stofzuigen");
 
     expect(input).toHaveValue("Stofzuigen");
@@ -37,7 +37,7 @@ describe("KlusjesForm", () => {
 
     render(<KlusjesForm onAdd={mockOnAdd} />);
 
-    const input = screen.getByPlaceholderText("Voeg klusje toe...");
+    const input = screen.getByPlaceholderText("Voeg taak toe...");
     const submitButton = screen.getByRole("button", { name: "Toevoegen" });
 
     await user.type(input, "Afwassen");
@@ -47,6 +47,7 @@ describe("KlusjesForm", () => {
       name: "Afwassen",
       date: null,
       recurrence: "none",
+      priority: 2,
     });
   });
 
@@ -56,7 +57,7 @@ describe("KlusjesForm", () => {
 
     render(<KlusjesForm onAdd={mockOnAdd} />);
 
-    const input = screen.getByPlaceholderText("Voeg klusje toe...");
+    const input = screen.getByPlaceholderText("Voeg taak toe...");
     await user.type(input, "Test klusje");
     await user.click(screen.getByRole("button", { name: "Toevoegen" }));
 
@@ -75,7 +76,7 @@ describe("KlusjesForm", () => {
 
     render(<KlusjesForm onAdd={mockOnAdd} />);
 
-    const input = screen.getByPlaceholderText("Voeg klusje toe...");
+    const input = screen.getByPlaceholderText("Voeg taak toe...");
     const submitButton = screen.getByRole("button", { name: "Toevoegen" });
 
     await user.type(input, "Test");
@@ -92,16 +93,16 @@ describe("KlusjesForm", () => {
 
   it("should show error message when submission fails", async () => {
     const user = userEvent.setup();
-    mockOnAdd.mockRejectedValue(new Error("Kon klusje niet toevoegen"));
+    mockOnAdd.mockRejectedValue(new Error("Kon taak niet toevoegen"));
 
     render(<KlusjesForm onAdd={mockOnAdd} />);
 
-    const input = screen.getByPlaceholderText("Voeg klusje toe...");
+    const input = screen.getByPlaceholderText("Voeg taak toe...");
     await user.type(input, "Test");
     await user.click(screen.getByRole("button", { name: "Toevoegen" }));
 
     await vi.waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent("Kon klusje niet toevoegen");
+      expect(screen.getByRole("alert")).toHaveTextContent("Kon taak niet toevoegen");
     });
   });
 
@@ -111,12 +112,12 @@ describe("KlusjesForm", () => {
 
     render(<KlusjesForm onAdd={mockOnAdd} />);
 
-    const input = screen.getByPlaceholderText("Voeg klusje toe...");
+    const input = screen.getByPlaceholderText("Voeg taak toe...");
     await user.type(input, "Test");
     await user.click(screen.getByRole("button", { name: "Toevoegen" }));
 
     await vi.waitFor(() => {
-      expect(screen.getByRole("alert")).toHaveTextContent("Kon klusje niet toevoegen");
+      expect(screen.getByRole("alert")).toHaveTextContent("Kon taak niet toevoegen");
     });
   });
 
@@ -136,7 +137,7 @@ describe("KlusjesForm", () => {
 
     render(<KlusjesForm onAdd={mockOnAdd} />);
 
-    const input = screen.getByPlaceholderText("Voeg klusje toe...");
+    const input = screen.getByPlaceholderText("Voeg taak toe...");
     await user.type(input, "  Stofzuigen  ");
     await user.click(screen.getByRole("button", { name: "Toevoegen" }));
 
@@ -144,6 +145,7 @@ describe("KlusjesForm", () => {
       name: "Stofzuigen",
       date: null,
       recurrence: "none",
+      priority: 2,
     });
   });
 
@@ -151,7 +153,7 @@ describe("KlusjesForm", () => {
     const user = userEvent.setup();
     render(<KlusjesForm onAdd={mockOnAdd} />);
 
-    const input = screen.getByPlaceholderText("Voeg klusje toe...");
+    const input = screen.getByPlaceholderText("Voeg taak toe...");
     await user.type(input, "   ");
     await user.click(screen.getByRole("button", { name: "Toevoegen" }));
 
@@ -161,7 +163,7 @@ describe("KlusjesForm", () => {
   it("should have accessible label for input", () => {
     render(<KlusjesForm onAdd={mockOnAdd} />);
 
-    const input = screen.getByPlaceholderText("Voeg klusje toe...");
+    const input = screen.getByPlaceholderText("Voeg taak toe...");
     expect(input).toHaveAccessibleName();
   });
 
@@ -187,7 +189,7 @@ describe("KlusjesForm", () => {
     mockOnAdd.mockResolvedValue(undefined);
     render(<KlusjesForm onAdd={mockOnAdd} />);
 
-    await user.type(screen.getByPlaceholderText("Voeg klusje toe..."), "Stofzuigen");
+    await user.type(screen.getByPlaceholderText("Voeg taak toe..."), "Stofzuigen");
     await user.click(screen.getByText("Meer opties"));
 
     const dateInput = screen.getByLabelText("Datum");
@@ -202,7 +204,34 @@ describe("KlusjesForm", () => {
       name: "Stofzuigen",
       date: "2026-02-10",
       recurrence: "weekly",
+      priority: 2,
     });
+  });
+
+  it("should show priority picker in expanded options", async () => {
+    const user = userEvent.setup();
+    render(<KlusjesForm onAdd={mockOnAdd} />);
+
+    await user.click(screen.getByText("Meer opties"));
+
+    expect(screen.getByRole("button", { name: /hoog/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /normaal/i })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /laag/i })).toBeInTheDocument();
+  });
+
+  it("should submit with selected priority", async () => {
+    const user = userEvent.setup();
+    mockOnAdd.mockResolvedValue(undefined);
+    render(<KlusjesForm onAdd={mockOnAdd} />);
+
+    await user.type(screen.getByPlaceholderText("Voeg taak toe..."), "Urgent task");
+    await user.click(screen.getByText("Meer opties"));
+    await user.click(screen.getByRole("button", { name: /hoog/i }));
+    await user.click(screen.getByRole("button", { name: "Toevoegen" }));
+
+    expect(mockOnAdd).toHaveBeenCalledWith(
+      expect.objectContaining({ priority: 1 })
+    );
   });
 
   it("should reset expanded fields after successful submission", async () => {
@@ -214,11 +243,11 @@ describe("KlusjesForm", () => {
     const dateInput = screen.getByLabelText("Datum");
     await user.type(dateInput, "2026-02-10");
 
-    await user.type(screen.getByPlaceholderText("Voeg klusje toe..."), "Test");
+    await user.type(screen.getByPlaceholderText("Voeg taak toe..."), "Test");
     await user.click(screen.getByRole("button", { name: "Toevoegen" }));
 
     await vi.waitFor(() => {
-      expect(screen.getByPlaceholderText("Voeg klusje toe...")).toHaveValue("");
+      expect(screen.getByPlaceholderText("Voeg taak toe...")).toHaveValue("");
     });
   });
 });

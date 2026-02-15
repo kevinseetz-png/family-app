@@ -4,12 +4,6 @@ import { feedingSchema, feedingUpdateSchema } from "@/lib/validation";
 import { adminDb } from "@/lib/firebase-admin";
 import { sendNotificationToFamily } from "@/lib/push";
 
-function startOfDay(date: Date): Date {
-  const d = new Date(date);
-  d.setHours(0, 0, 0, 0);
-  return d;
-}
-
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const token = request.cookies.get("auth_token")?.value;
   if (!token) {
@@ -53,10 +47,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       })
       .sort((a, b) => b._ts - a._ts);
 
+    // Client sends tzOffset in minutes (e.g., -60 for CET) to filter by local date
+    const tzOffsetParam = request.nextUrl.searchParams.get("tzOffset");
+    const tzOffsetMs = tzOffsetParam ? parseInt(tzOffsetParam, 10) * 60 * 1000 : 0;
+
     if (dateParam) {
-      const dayStart = new Date(dateParam + "T00:00:00");
-      const dayEnd = new Date(dateParam + "T00:00:00");
-      dayEnd.setDate(dayEnd.getDate() + 1);
+      // Build day boundaries in the user's local timezone
+      const dayStart = new Date(dateParam + "T00:00:00Z");
+      dayStart.setTime(dayStart.getTime() + tzOffsetMs);
+      const dayEnd = new Date(dayStart.getTime() + 24 * 60 * 60 * 1000);
 
       const feedings = allMapped
         .filter((f) => f._ts >= dayStart.getTime() && f._ts < dayEnd.getTime())
@@ -65,11 +64,15 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       return NextResponse.json({ feedings });
     }
 
-    const today = startOfDay(new Date());
+    // "Today" in user's local timezone
+    const now = new Date();
+    const localNow = new Date(now.getTime() - tzOffsetMs);
+    const todayStart = new Date(Date.UTC(localNow.getUTCFullYear(), localNow.getUTCMonth(), localNow.getUTCDate()));
+    todayStart.setTime(todayStart.getTime() + tzOffsetMs);
     const lastFeedingTimestamp = allMapped.length > 0 ? allMapped[0].timestamp : null;
 
     const feedings = allMapped
-      .filter((f) => f._ts >= today.getTime())
+      .filter((f) => f._ts >= todayStart.getTime())
       .map(({ _ts, ...f }) => f);
 
     return NextResponse.json({ feedings, lastFeedingTimestamp });

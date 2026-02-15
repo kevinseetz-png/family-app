@@ -1,4 +1,7 @@
-export type AgendaCategory =
+import type { CustomCategory } from "./customCategory";
+import { COLOR_SCHEMES } from "./customCategory";
+
+export type BuiltInCategory =
   | "familie"
   | "werk"
   | "school"
@@ -8,10 +11,22 @@ export type AgendaCategory =
   | "afspraak"
   | "overig";
 
-export const CATEGORY_CONFIG: Record<
-  AgendaCategory,
-  { label: string; color: string; bgColor: string; borderColor: string; emoji: string }
-> = {
+// AgendaCategory is a string to support custom categories
+export type AgendaCategory = string;
+
+export const BUILT_IN_CATEGORIES: BuiltInCategory[] = [
+  "familie", "werk", "school", "gezondheid", "sport", "verjaardag", "afspraak", "overig",
+];
+
+export interface CategoryConfig {
+  label: string;
+  color: string;
+  bgColor: string;
+  borderColor: string;
+  emoji: string;
+}
+
+export const CATEGORY_CONFIG: Record<BuiltInCategory, CategoryConfig> = {
   familie: {
     label: "Familie",
     color: "text-purple-700",
@@ -72,6 +87,8 @@ export const CATEGORY_CONFIG: Record<
 
 export type RecurrenceType = "none" | "daily" | "weekly" | "monthly" | "yearly";
 
+export const DEFAULT_BIRTHDAY_GROUPS = ["Familie", "Vrienden", "Collega", "Buren", "Overig"] as const;
+
 export interface AgendaEvent {
   id: string;
   familyId: string;
@@ -84,8 +101,43 @@ export interface AgendaEvent {
   allDay: boolean;
   recurrence: RecurrenceType;
   assignedTo: string | null; // user name or null for everyone
+  birthdayGroup: string | null; // group label for verjaardag events
+  birthYear: number | null; // birth year for verjaardag events (age calculation)
   createdBy: string;
   createdByName: string;
   createdAt: Date;
   updatedAt?: Date;
+}
+
+const DEFAULT_CONFIG: CategoryConfig = {
+  label: "Overig",
+  color: "text-gray-700",
+  bgColor: "bg-gray-50",
+  borderColor: "border-gray-400",
+  emoji: "\uD83D\uDCCC",
+};
+
+export function getCategoryConfig(
+  category: string,
+  customCategories?: CustomCategory[]
+): CategoryConfig {
+  // Check built-in first
+  if (category in CATEGORY_CONFIG) {
+    return CATEGORY_CONFIG[category as BuiltInCategory];
+  }
+
+  // Check custom categories
+  if (customCategories) {
+    const custom = customCategories.find((c) => c.label === category);
+    if (custom) {
+      const scheme = COLOR_SCHEMES[custom.colorScheme] ?? COLOR_SCHEMES.grijs;
+      return {
+        label: custom.label,
+        emoji: custom.emoji,
+        ...scheme,
+      };
+    }
+  }
+
+  return DEFAULT_CONFIG;
 }

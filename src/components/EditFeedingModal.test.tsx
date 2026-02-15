@@ -27,9 +27,9 @@ describe("EditFeedingModal", () => {
 
   it("should render with the feeding data pre-filled", () => {
     render(<EditFeedingModal feeding={mockFeeding} onSave={onSave} onClose={onClose} />);
-    expect(screen.getByLabelText(/food type/i)).toHaveValue("breast_milk");
-    expect(screen.getByLabelText(/amount/i)).toHaveValue(120);
-    expect(screen.getByLabelText(/unit/i)).toHaveValue("ml");
+    expect(screen.getByLabelText(/soort voeding/i)).toHaveValue("breast_milk");
+    expect(screen.getByLabelText(/hoeveelheid/i)).toHaveValue(120);
+    expect(screen.getByLabelText(/eenheid/i)).toHaveValue("ml");
   });
 
   it("should have compact mobile-friendly padding (p-4)", () => {
@@ -42,7 +42,7 @@ describe("EditFeedingModal", () => {
   it("should call onClose when cancel is clicked", async () => {
     const user = userEvent.setup();
     render(<EditFeedingModal feeding={mockFeeding} onSave={onSave} onClose={onClose} />);
-    await user.click(screen.getByText("Cancel"));
+    await user.click(screen.getByText("Annuleren"));
     expect(onClose).toHaveBeenCalled();
   });
 
@@ -59,11 +59,11 @@ describe("EditFeedingModal", () => {
     const user = userEvent.setup();
     render(<EditFeedingModal feeding={mockFeeding} onSave={onSave} onClose={onClose} />);
 
-    const amountInput = screen.getByLabelText(/amount/i);
+    const amountInput = screen.getByLabelText(/hoeveelheid/i);
     await user.clear(amountInput);
     await user.type(amountInput, "200");
 
-    await user.click(screen.getByText("Save"));
+    await user.click(screen.getByText("Opslaan"));
 
     expect(onSave).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -77,7 +77,7 @@ describe("EditFeedingModal", () => {
     onSave.mockRejectedValue(new Error("Save failed"));
     const user = userEvent.setup();
     render(<EditFeedingModal feeding={mockFeeding} onSave={onSave} onClose={onClose} />);
-    await user.click(screen.getByText("Save"));
+    await user.click(screen.getByText("Opslaan"));
     expect(await screen.findByRole("alert")).toHaveTextContent("Save failed");
   });
 
@@ -86,7 +86,7 @@ describe("EditFeedingModal", () => {
     onSave.mockImplementation(() => new Promise(() => {}));
     const user = userEvent.setup();
     render(<EditFeedingModal feeding={mockFeeding} onSave={onSave} onClose={onClose} />);
-    await user.click(screen.getByText("Save"));
-    expect(screen.getByText("Saving...")).toBeDisabled();
+    await user.click(screen.getByText("Opslaan"));
+    expect(screen.getByText("Opslaan...")).toBeDisabled();
   });
 });

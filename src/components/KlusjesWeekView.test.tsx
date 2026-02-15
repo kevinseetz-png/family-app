@@ -14,6 +14,7 @@ function makeItem(overrides: Partial<KlusjesItem> = {}): KlusjesItem {
     familyId: "fam1",
     name: "Stofzuigen",
     status: "todo",
+    priority: 2,
     date: null,
     recurrence: "none",
     completions: {},
@@ -131,6 +132,36 @@ describe("KlusjesWeekView", () => {
 
     expect(screen.getByText("Zonder datum")).toBeInTheDocument();
     expect(screen.getByText("No date task")).toBeInTheDocument();
+  });
+
+  it("should show 'Geen taken' for empty days instead of 'Geen klusjes'", () => {
+    render(
+      <KlusjesWeekView
+        items={[]}
+        getItemsForDate={mockGetItemsForDate}
+        onStatusChange={mockOnStatusChange}
+        onDelete={mockOnDelete}
+      />
+    );
+
+    const emptyLabels = screen.getAllByText("Geen taken");
+    expect(emptyLabels.length).toBeGreaterThan(0);
+    expect(screen.queryByText("Geen klusjes")).not.toBeInTheDocument();
+  });
+
+  it("should show priority indicator for high priority items in week view", () => {
+    const item = makeItem({ id: "k1", name: "Urgent", date: null, priority: 1 });
+
+    render(
+      <KlusjesWeekView
+        items={[item]}
+        getItemsForDate={mockGetItemsForDate}
+        onStatusChange={mockOnStatusChange}
+        onDelete={mockOnDelete}
+      />
+    );
+
+    expect(screen.getByText("Hoog")).toBeInTheDocument();
   });
 
   it("should call onStatusChange when status button is clicked", async () => {

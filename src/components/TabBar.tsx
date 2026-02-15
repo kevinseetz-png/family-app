@@ -11,7 +11,7 @@ const ALL_TABS = [
   { href: "/weekmenu", label: "Menu" },
   { href: "/maaltijden", label: "Maaltijd" },
   { href: "/boodschappen", label: "Boodschap" },
-  { href: "/klusjes", label: "Klusjes" },
+  { href: "/klusjes", label: "Taken" },
   { href: "/medicijn", label: "Medicijn" },
   { href: "/community", label: "Community" },
 ] as const;

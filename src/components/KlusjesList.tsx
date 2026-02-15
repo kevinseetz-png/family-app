@@ -1,7 +1,7 @@
 "use client";
 
 import type { KlusjesItem, KlusjesStatus } from "@/types/klusjes";
-import { RECURRENCE_LABELS, STATUS_CONFIG } from "@/types/klusjes";
+import { RECURRENCE_LABELS, STATUS_CONFIG, PRIORITY_CONFIG } from "@/types/klusjes";
 
 const NEXT_STATUS: Record<KlusjesStatus, KlusjesStatus> = {
   todo: "bezig",
@@ -20,6 +20,13 @@ function formatDate(dateStr: string): string {
   return date.toLocaleDateString("nl-NL", { day: "numeric", month: "short" });
 }
 
+function isOverdue(item: KlusjesItem): boolean {
+  if (!item.date || item.status === "klaar" || item.recurrence !== "none") return false;
+  const today = new Date();
+  const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+  return item.date < todayStr;
+}
+
 interface KlusjesListProps {
   items: KlusjesItem[];
   onStatusChange: (id: string, status: KlusjesStatus, completionDate?: string) => Promise<void>;
@@ -27,12 +34,14 @@ interface KlusjesListProps {
 }
 
 export function KlusjesList({ items, onStatusChange, onDelete }: KlusjesListProps) {
-  const notDone = items.filter((i) => i.status !== "klaar");
+  const notDone = items
+    .filter((i) => i.status !== "klaar")
+    .sort((a, b) => (a.priority ?? 2) - (b.priority ?? 2));
   const done = items.filter((i) => i.status === "klaar");
   const sorted = [...notDone, ...done];
 
   if (sorted.length === 0) {
-    return <p className="text-sm text-gray-500">Geen klusjes op de lijst.</p>;
+    return <p className="text-sm text-gray-500">Geen taken op de lijst.</p>;
   }
 
   return (
@@ -60,8 +69,15 @@ export function KlusjesList({ items, onStatusChange, onDelete }: KlusjesListProp
               {item.name}
             </span>
             <div className="flex gap-2 mt-1">
+              {item.priority !== undefined && item.priority !== 2 && (
+                <span className={`text-xs ${PRIORITY_CONFIG[item.priority].color} ${PRIORITY_CONFIG[item.priority].bgColor} px-1.5 py-0.5 rounded`}>
+                  {PRIORITY_CONFIG[item.priority].label}
+                </span>
+              )}
               {item.date && (
-                <span className="text-xs text-gray-500 bg-gray-100 px-1.5 py-0.5 rounded">
+                <span className={`text-xs px-1.5 py-0.5 rounded ${
+                  isOverdue(item) ? "text-red-600 bg-red-50" : "text-gray-500 bg-gray-100"
+                }`}>
                   {formatDate(item.date)}
                 </span>
               )}

@@ -31,7 +31,8 @@ export function useDayFeedings(familyId: string | undefined) {
 
       setIsLoading(true);
       try {
-        const res = await fetch(`/api/feedings?date=${date}`);
+        const tzOffset = new Date().getTimezoneOffset();
+        const res = await fetch(`/api/feedings?date=${date}&tzOffset=${tzOffset}`);
         if (!res.ok) {
           setFeedings([]);
           return;

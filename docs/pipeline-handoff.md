@@ -1173,3 +1173,198 @@ For daily recurring items over many months, this loop could run 100+ iterations 
 4. **[NICE-TO-HAVE]** Add memoization to KlusjesList filtering logic
 5. **[NICE-TO-HAVE]** Optimize recurring item expansion for week view (cache or index-based lookup)
 6. **[FUTURE]** Add pagination when list grows beyond reasonable size
+
+---
+
+# Pipeline Handoff — Batch 1: Stories 1, 2, 9 + Timezone Fix
+
+Task: Rename Klusjes→Taken (UI), add priorities, verjaardag default yearly recurrence, fix timezone bug
+
+---
+
+## Stage 1: Test Writer
+- Files modified:
+  - `src/components/KlusjesForm.test.tsx` — updated placeholder "Voeg taak toe...", error msg "Kon taak niet toevoegen", added priority picker tests, submit includes priority
+  - `src/components/KlusjesList.test.tsx` — updated empty state to "Geen taken", added priority indicator tests, priority sorting test
+  - `src/components/KlusjesWeekView.test.tsx` — added "Geen taken" test, priority indicator test
+  - `src/components/TabBar.test.tsx` — "Klusjes" → "Taken" in all assertions
+  - `src/app/klusjes/page.test.tsx` — heading "Klusjes" → "Taken"
+  - `src/app/instellingen/page.test.tsx` — added test: "Taken" label present, "Klusjes" absent
+  - `src/lib/validation.klusjes.test.ts` — added priority validation tests (default, range, update schema)
+  - `src/app/api/klusjes/route.test.ts` — added priority in GET response, read-time migration default, POST with priority
+  - `src/hooks/useKlusjes.test.ts` — added priority in fetch response, addItem includes priority
+- Test count: ~15 new/modified tests across 9 files
+- Coverage: Story 1 rename, Story 2 priority, timezone fix, validation, API, hook, components
+
+## Stage 2: Implementer
+- Files modified:
+  - `src/types/klusjes.ts` — added KlusjesPriority type, priority field on KlusjesItem, PRIORITY_CONFIG
+  - `src/lib/validation.ts` — added priority to klusjesSchema (default 2) and klusjesUpdateSchema
+  - `src/app/api/klusjes/route.ts` — priority in GET migration (??2), POST, PUT; notification "Nieuwe taak"
+  - `src/hooks/useKlusjes.ts` — priority in KlusjesResponse, AddItemData, response mapping
+  - `src/components/TabBar.tsx` — label "Klusjes" → "Taken"
+  - `src/app/instellingen/page.tsx` — label "Klusjes" → "Taken"
+  - `src/app/klusjes/page.tsx` — heading "Klusjes" → "Taken"
+  - `src/components/KlusjesForm.tsx` — placeholder/error text, priority picker in expanded options
+  - `src/components/KlusjesList.tsx` — empty state "Geen taken", priority indicator, sort by priority
+  - `src/components/KlusjesWeekView.tsx` — "Geen taken", priority indicator, timezone fix (formatDateStr)
+  - `src/app/agenda/page.tsx` — verjaardag default yearly recurrence in EventModal
+- Test results: 140 passed, 0 failed
+- Type check: clean (pre-existing EditFeedingModal errors only)
+- Summary: Renamed UI labels, added priority system, fixed timezone bug, added verjaardag default yearly
+
+## Stages 3-8: Reviews
+- Performance: No issues. Priority sort is O(n log n).
+- Security: Priority validated via Zod literal union (1|2|3). No injection vectors.
+- Code Quality: Follows existing patterns. No dead code introduced.
+- Accessibility: Priority buttons have text labels. Indicators use semantic text.
+- Type Safety: KlusjesPriority is strict 1|2|3 union. No `any` used.
+- Feedback: No issues requiring fixes.
+
+## Stage 9: Final Tester
+- `npx vitest run` — 403 passed, 40 failed (all pre-existing), 2 skipped
+- `npx tsc --noEmit` — clean (pre-existing EditFeedingModal errors only)
+- **Verdict: PASS** — All Batch 1 tests pass. No regressions introduced.
+
+---
+
+# Batch 2: Stories 3, 4, 5 — Agenda-Taken Integration
+
+## Stage 1: Test Writer
+- Files created:
+  - `src/components/TaskCard.test.tsx` — 11 tests (render, status cycling, recurring ID, priority, recurrence)
+  - `src/components/AddTaskModal.test.tsx` — 9 tests (render, submit, validation, priority, errors)
+
+## Stage 2: Implementer
+- Files created:
+  - `src/components/TaskCard.tsx` — Task card with status cycling, priority/recurrence badges
+  - `src/components/AddTaskModal.tsx` — Modal for adding tasks from agenda
+- Files modified:
+  - `src/app/agenda/page.tsx`:
+    - Added `useKlusjes` hook integration for tasks data
+    - Added `showTaskModal` state
+    - QuickAddFAB: added `onAddTask` prop and "Taak" option
+    - Day view: tasks section with TaskCard rendering
+    - Week view: tasks section in expanded days via `getTasksForDate` prop
+    - AddTaskModal rendered when `showTaskModal` is true
+    - Imported `KlusjesItem`, `KlusjesStatus` types
+
+## Stages 3-8: Reviews
+- Performance: Week view calls `getTasksForDate` per day (acceptable for typical task counts).
+- Security: ID extraction for recurring tasks uses `split("_")[0]` pattern; server validates all updates.
+- Code Quality: Consistent Dutch UI. Error handling in AddTaskModal via role="alert".
+- Accessibility: aria-pressed on priority buttons, aria-labelledby on priority group, role="dialog" on modal.
+- Type Safety: Strict KlusjesPriority typing. Optional props on WeekOverview for backward compat.
+- Feedback: Added aria-pressed and priority group label per review.
+
+## Stage 9: Final Tester
+- `npx vitest run` — 423 passed, 40 failed (all pre-existing), 2 skipped
+- `npx tsc --noEmit` — clean (pre-existing EditFeedingModal errors only)
+- **Verdict: PASS** — All Batch 2 tests pass. 20 new tests added. No regressions.
+
+---
+
+# Batch 3: Story 6 — Overdue Tasks (Reschedule/Remove Date)
+
+## Stage 1: Test Writer
+- `src/components/OverdueBanner.test.tsx` — 5 tests (renders count, singular/plural, click handler, hidden when 0, aria-label)
+- `src/components/OverdueTasksModal.test.tsx` — 8 tests (renders tasks, reschedule flow, remove date, close on Escape, backdrop click, date input)
+- `src/lib/validation.klusjes.test.ts` — updated: accepts missing status for date-only updates
+- `src/app/api/klusjes/route.test.ts` — updated: accepts update without status (date-only update)
+- `src/app/klusjes/page.test.tsx` — updated: mocks getOverdueTasks/rescheduleTask + OverdueBanner/OverdueTasksModal
+
+## Stage 2: Implementer
+- **New**: `src/components/OverdueBanner.tsx` — amber warning banner showing overdue count
+- **New**: `src/components/OverdueTasksModal.tsx` — modal listing overdue tasks with "Verzetten" + "Datum verwijderen" actions
+- **Modified**: `src/hooks/useKlusjes.ts` — added `getOverdueTasks()` (filters past-dated, non-recurring, non-complete) and `rescheduleTask(id, newDate | null)`
+- **Modified**: `src/lib/validation.ts` — `klusjesUpdateSchema.status` now `.optional()` (for date-only updates)
+- **Modified**: `src/app/api/klusjes/route.ts` — PUT handles optional status, builds updateData conditionally
+- **Modified**: `src/components/KlusjesList.tsx` — `isOverdue()` helper + red date styling for overdue tasks
+- **Modified**: `src/app/klusjes/page.tsx` — integrated OverdueBanner + OverdueTasksModal
+
+## Stages 3-8: Reviews
+- **Performance**: No N+1 issues. `getOverdueTasks` is memoized via useCallback.
+- **Security**: Date format re-validated server-side before Firestore dot-notation. ID validation (length/slash) in PUT route.
+- **Code Quality**: Duplicate `getToday()` pattern noted — kept local for component isolation. Dutch UI consistent.
+- **Accessibility**: Modal has Escape key handler, scroll lock, role="dialog", aria-modal, aria-labelledby. Focus returned to trigger element on close.
+- **Type Safety**: UseKlusjesReturn interface updated with new methods. Optional status properly handled in Zod schema.
+- **Feedback applied**: Added `busy` state to prevent double-click on reschedule/remove buttons. Added focus management (ref to trigger, restore on cleanup). Added disabled+opacity styling.
+
+## Stage 9: Final Tester
+- `npx vitest run` — 476 passed, 0 failed, 2 skipped
+- `npx tsc --noEmit` — clean (pre-existing EditFeedingModal errors only)
+- **Verdict: PASS** — All Batch 3 tests pass. 13 new tests added. All 40 previously failing tests also fixed. No regressions.
+
+---
+
+# Batch 4: Stories 7 & 8 — Birthday Groups + Age Tracking
+
+## Stage 1: Test Writer
+- `src/lib/validation.agenda.test.ts` — 18 tests (birthdayGroup, birthYear create/update/defaults/validation)
+- `src/app/api/agenda/route.test.ts` — 8 tests (GET with/without birthday fields, POST with/without, PUT update, DELETE)
+
+## Stage 2: Implementer
+- **Modified**: `src/types/agenda.ts` — Added `DEFAULT_BIRTHDAY_GROUPS`, `birthdayGroup: string | null`, `birthYear: number | null` to AgendaEvent
+- **Modified**: `src/lib/validation.ts` — Added `birthdayGroup` (max 50, nullable, default null) and `birthYear` (int 1900-2100, nullable, default null) to both schemas
+- **Modified**: `src/app/api/agenda/route.ts` — GET returns `birthdayGroup ?? null` and `birthYear ?? null` (read-time migration)
+- **Modified**: `src/hooks/useAgenda.ts` — Added fields to AddEventData and UpdateEventData interfaces
+- **Modified**: `src/app/agenda/page.tsx`:
+  - EventModal: Birthday group dropdown + birth year input (shown when category="verjaardag")
+  - EventCard: "Wordt X jaar" display + birthday group badge in meta section
+  - onSave signature updated to include new fields
+
+## Stages 3-8: Reviews
+- **Performance**: No issues. Simple string/number fields, client-side age calculation.
+- **Security**: Date format validated before age calculation. NaN-safe parseInt for birthYear.
+- **Code Quality**: Birthday fields cleared when switching category away from verjaardag.
+- **Accessibility**: Birthday group select and birth year input properly labeled.
+- **Type Safety**: Nullable fields consistent between types, schemas, and API responses.
+- **Feedback applied**: Added date format guard and positive age check in EventCard. Clear birthday state on category change. NaN-safe birthYear parsing.
+
+## Stage 9: Final Tester
+- `npx vitest run` — 502 passed, 0 failed, 2 skipped
+- `npx tsc --noEmit` — clean (pre-existing EditFeedingModal errors only)
+- **Verdict: PASS** — All Batch 4 tests pass. 26 new tests added. No regressions.
+
+---
+
+# Batch 5: Story 10 — Custom Categories
+
+## Stage 1: Test Writer
+- `src/lib/validation.customCategory.test.ts` — 9 tests (create/delete schema validation, label trim, emoji/colorScheme constraints)
+- `src/app/api/custom-categories/route.test.ts` — 7 tests (GET list, POST create, DELETE with family scoping + 404/403)
+- `src/components/CategoryManager.test.tsx` — 6 tests (render categories, empty state, add form, submit, delete, empty label guard)
+
+## Stage 2: Implementer
+- **New**: `src/types/customCategory.ts` — CustomCategory interface + COLOR_SCHEMES (8 preset color schemes)
+- **New**: `src/app/api/custom-categories/route.ts` — GET/POST/DELETE with family scoping
+- **New**: `src/hooks/useCustomCategories.ts` — Client hook for custom categories CRUD
+- **New**: `src/components/CategoryManager.tsx` — Settings component for managing custom categories
+- **Modified**: `src/types/agenda.ts`:
+  - `BuiltInCategory` type (the old 8-value union)
+  - `AgendaCategory = string` (widened for custom categories)
+  - `BUILT_IN_CATEGORIES` array
+  - `getCategoryConfig(category, customCategories?)` helper
+  - `CategoryConfig` interface exported
+- **Modified**: `src/lib/validation.ts`:
+  - Category field changed from `z.enum([...])` to `z.string().min(1).max(50)`
+  - Added `customCategorySchema` and `customCategoryDeleteSchema`
+- **Modified**: `src/hooks/useAgenda.ts` — Added `birthdayGroup` and `birthYear` to AddEventData/UpdateEventData
+- **Modified**: `src/app/agenda/page.tsx`:
+  - Uses `getCategoryConfig()` instead of `CATEGORY_CONFIG[x]` for all category lookups
+  - Category selector in EventModal + filter bar shows both built-in and custom categories
+  - `customCategories` passed as prop to EventCard, EventModal, SearchFilterBar, QuickAddFAB, UpcomingEvents
+  - `useCustomCategories` hook integrated in main component
+- **Modified**: `src/app/instellingen/page.tsx` — Added CategoryManager section
+
+## Stages 3-9: Reviews + Final Test
+- **Performance**: No issues. Custom categories fetched once and passed as props.
+- **Security**: Family scoping enforced on GET/POST/DELETE. colorScheme validated as string.
+- **Code Quality**: getCategoryConfig helper centralizes config lookup. Default fallback for unknown categories.
+- **Accessibility**: CategoryManager has proper labels, aria-pressed on color buttons.
+- **Type Safety**: BuiltInCategory for strict built-in checking, AgendaCategory widened to string.
+
+## Stage 9: Final Tester
+- `npx vitest run` — 524 passed, 0 failed, 2 skipped
+- `npx tsc --noEmit` — clean (pre-existing EditFeedingModal errors only)
+- **Verdict: PASS** — All Batch 5 tests pass. 22 new tests added. No regressions.

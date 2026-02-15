@@ -27,15 +27,15 @@ describe("InstallBanner", () => {
   it("renders install banner when installable", () => {
     mockIsInstallable = true;
     render(<InstallBanner />);
-    expect(screen.getByText("Install Family App")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Install" })).toBeInTheDocument();
+    expect(screen.getByText("Installeer Family App")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Installeren" })).toBeInTheDocument();
   });
 
   it("calls install when button is clicked", async () => {
     mockIsInstallable = true;
     const user = userEvent.setup();
     render(<InstallBanner />);
-    await user.click(screen.getByRole("button", { name: "Install" }));
+    await user.click(screen.getByRole("button", { name: "Installeren" }));
     expect(mockInstall).toHaveBeenCalledOnce();
   });
 });

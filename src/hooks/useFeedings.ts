@@ -25,7 +25,8 @@ export function useFeedings(familyId: string | undefined) {
     if (!familyId) return;
 
     try {
-      const res = await fetch("/api/feedings");
+      const tzOffset = new Date().getTimezoneOffset();
+      const res = await fetch(`/api/feedings?tzOffset=${tzOffset}`);
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         setError(body.message || `Failed to load feedings (${res.status})`);

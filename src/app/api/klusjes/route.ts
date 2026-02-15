@@ -44,6 +44,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           familyId: data.familyId,
           name: data.name,
           status,
+          priority: data.priority ?? 2,
           date: data.date ?? null,
           recurrence: data.recurrence ?? "none",
           completions: data.completions ?? {},
@@ -89,13 +90,14 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { name, date, recurrence } = result.data;
+  const { name, date, recurrence, priority } = result.data;
 
   try {
     const item = {
       familyId: user.familyId,
       name,
       status: "todo",
+      priority: priority ?? 2,
       date: date ?? null,
       recurrence: recurrence ?? "none",
       completions: {},
@@ -109,7 +111,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     sendNotificationToFamily(
       user.familyId,
       {
-        title: "Nieuw klusje",
+        title: "Nieuwe taak",
         body: `${user.name} heeft "${name}" toegevoegd`,
         url: "/klusjes",
         type: "family_activity",
@@ -150,7 +152,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { id, status, completionDate, date, recurrence } = result.data;
+  const { id, status, completionDate, date, recurrence, priority } = result.data;
 
   if (id.length > 128 || id.includes("/")) {
     return NextResponse.json({ message: "Invalid request" }, { status: 400 });
@@ -175,14 +177,18 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       }
       // Recurring item: update completions map with dot-notation
       await docRef.update({
-        [`completions.${completionDate}`]: { status },
+        [`completions.${completionDate}`]: { status: status ?? "todo" },
       });
     } else {
       // Normal update
-      const updateData: Record<string, unknown> = { status };
+      const updateData: Record<string, unknown> = {};
+      if (status !== undefined) updateData.status = status;
       if (date !== undefined) updateData.date = date;
       if (recurrence !== undefined) updateData.recurrence = recurrence;
-      await docRef.update(updateData);
+      if (priority !== undefined) updateData.priority = priority;
+      if (Object.keys(updateData).length > 0) {
+        await docRef.update(updateData);
+      }
     }
 
     return NextResponse.json({ message: "Updated" });

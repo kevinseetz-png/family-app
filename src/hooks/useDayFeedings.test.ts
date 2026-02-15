@@ -44,7 +44,8 @@ describe("useDayFeedings", () => {
       await result.current.fetchDay("2025-03-15");
     });
 
-    expect(mockFetch).toHaveBeenCalledWith("/api/feedings?date=2025-03-15");
+    const tzOffset = new Date().getTimezoneOffset();
+    expect(mockFetch).toHaveBeenCalledWith(`/api/feedings?date=2025-03-15&tzOffset=${tzOffset}`);
     expect(result.current.feedings).toHaveLength(1);
     expect(result.current.feedings[0].id).toBe("f1");
     expect(result.current.isLoading).toBe(false);

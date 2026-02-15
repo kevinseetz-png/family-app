@@ -59,7 +59,7 @@ describe("AdminDashboard", () => {
 
     render(<AdminDashboard />);
 
-    expect(screen.getByText("Loading")).toBeInTheDocument();
+    expect(screen.getByText("Laden...")).toBeInTheDocument();
   });
 
   it("should fetch and display families when user is admin", async () => {

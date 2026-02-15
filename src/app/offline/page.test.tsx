@@ -4,12 +4,12 @@ import OfflinePage from "./page";
 describe("OfflinePage", () => {
   it("renders the offline heading", () => {
     render(<OfflinePage />);
-    expect(screen.getByRole("heading", { name: /you're offline/i })).toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: /je bent offline/i })).toBeInTheDocument();
   });
 
   it("renders helpful message", () => {
     render(<OfflinePage />);
-    expect(screen.getByText(/check your internet connection/i)).toBeInTheDocument();
+    expect(screen.getByText(/controleer je internetverbinding/i)).toBeInTheDocument();
   });
 
   it("renders a main landmark", () => {

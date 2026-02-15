@@ -17,7 +17,8 @@ export function useFeedingHistory(familyId: string | undefined) {
     if (!familyId) return;
 
     try {
-      const res = await fetch("/api/feedings/history");
+      const tzOffset = new Date().getTimezoneOffset();
+      const res = await fetch(`/api/feedings/history?tzOffset=${tzOffset}`);
       if (!res.ok) {
         const body = await res.json().catch(() => ({}));
         setError(body.message || `Failed to load history (${res.status})`);

@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import type { KlusjesRecurrence } from "@/types/klusjes";
-import { RECURRENCE_LABELS } from "@/types/klusjes";
+import type { KlusjesRecurrence, KlusjesPriority } from "@/types/klusjes";
+import { RECURRENCE_LABELS, PRIORITY_CONFIG } from "@/types/klusjes";
 
 interface AddItemData {
   name: string;
   date: string | null;
   recurrence: KlusjesRecurrence;
+  priority: KlusjesPriority;
 }
 
 interface KlusjesFormProps {
@@ -18,6 +19,7 @@ export function KlusjesForm({ onAdd }: KlusjesFormProps) {
   const [name, setName] = useState("");
   const [date, setDate] = useState("");
   const [recurrence, setRecurrence] = useState<KlusjesRecurrence>("none");
+  const [priority, setPriority] = useState<KlusjesPriority>(2);
   const [expanded, setExpanded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -33,12 +35,14 @@ export function KlusjesForm({ onAdd }: KlusjesFormProps) {
         name: name.trim(),
         date: date || null,
         recurrence,
+        priority,
       });
       setName("");
       setDate("");
       setRecurrence("none");
+      setPriority(2);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Kon klusje niet toevoegen");
+      setError(err instanceof Error ? err.message : "Kon taak niet toevoegen");
     } finally {
       setIsSubmitting(false);
     }
@@ -47,7 +51,7 @@ export function KlusjesForm({ onAdd }: KlusjesFormProps) {
   return (
     <div>
       <form onSubmit={handleSubmit} className="flex gap-2">
-        <label htmlFor="klusje-name" className="sr-only">Klusje naam</label>
+        <label htmlFor="klusje-name" className="sr-only">Taak naam</label>
         <input
           id="klusje-name"
           type="text"
@@ -55,7 +59,7 @@ export function KlusjesForm({ onAdd }: KlusjesFormProps) {
           value={name}
           onChange={(e) => setName(e.target.value)}
           className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-          placeholder="Voeg klusje toe..."
+          placeholder="Voeg taak toe..."
         />
         <button
           type="submit"
@@ -111,6 +115,28 @@ export function KlusjesForm({ onAdd }: KlusjesFormProps) {
                 </option>
               ))}
             </select>
+          </div>
+          <div>
+            <span className="block text-sm font-medium text-gray-700 mb-1">Prioriteit</span>
+            <div className="flex gap-2">
+              {([1, 2, 3] as KlusjesPriority[]).map((p) => {
+                const config = PRIORITY_CONFIG[p];
+                return (
+                  <button
+                    key={p}
+                    type="button"
+                    onClick={() => setPriority(p)}
+                    className={`px-3 py-1 rounded-lg text-sm font-medium border ${
+                      priority === p
+                        ? `${config.bgColor} ${config.color} border-current`
+                        : "bg-white text-gray-500 border-gray-300"
+                    }`}
+                  >
+                    {config.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
       )}

@@ -86,7 +86,7 @@ describe("FeedingHistory", () => {
       />
     );
 
-    expect(screen.getByText(/loading/i)).toBeTruthy();
+    expect(screen.getByText(/laden/i)).toBeTruthy();
   });
 
   it("should show day feedings when a day is selected", () => {
@@ -102,8 +102,8 @@ describe("FeedingHistory", () => {
       />
     );
 
-    expect(screen.getByText("Formula")).toBeTruthy();
-    expect(screen.getByText("Breast milk")).toBeTruthy();
+    expect(screen.getByText("Flesvoeding")).toBeTruthy();
+    expect(screen.getByText("Moedermelk")).toBeTruthy();
   });
 
   it("should not show feedings for unselected days", () => {
@@ -120,7 +120,7 @@ describe("FeedingHistory", () => {
     );
 
     // Feedings should only appear under the selected date's section
-    const feedingItems = screen.getAllByText(/Formula|Breast milk/);
+    const feedingItems = screen.getAllByText(/Flesvoeding|Moedermelk/);
     expect(feedingItems.length).toBeGreaterThan(0);
   });
 
@@ -137,8 +137,8 @@ describe("FeedingHistory", () => {
       />
     );
 
-    expect(screen.queryByLabelText("Edit feeding")).toBeNull();
-    expect(screen.queryByLabelText("Delete feeding")).toBeNull();
+    expect(screen.queryByLabelText("Voeding bewerken")).toBeNull();
+    expect(screen.queryByLabelText("Voeding verwijderen")).toBeNull();
   });
 
   it("should collapse day when clicking the already-selected day", async () => {

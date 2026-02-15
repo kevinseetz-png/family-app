@@ -90,6 +90,31 @@ describe("klusjesSchema", () => {
     const result = klusjesSchema.safeParse({ name: "  Stofzuigen  " });
     expect(result.success).toBe(true);
   });
+
+  it("defaults priority to 2 when omitted", () => {
+    const result = klusjesSchema.safeParse({ name: "Stofzuigen" });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.priority).toBe(2);
+    }
+  });
+
+  it("accepts priority values 1, 2, 3", () => {
+    for (const priority of [1, 2, 3]) {
+      const result = klusjesSchema.safeParse({ name: "Test", priority });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("rejects invalid priority values", () => {
+    const result = klusjesSchema.safeParse({ name: "Test", priority: 4 });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects priority value 0", () => {
+    const result = klusjesSchema.safeParse({ name: "Test", priority: 0 });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("klusjesUpdateSchema", () => {
@@ -121,9 +146,9 @@ describe("klusjesUpdateSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects missing status", () => {
+  it("accepts missing status (for date-only updates)", () => {
     const result = klusjesUpdateSchema.safeParse({ id: "klusje123" });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
   it("rejects empty id", () => {
@@ -168,6 +193,15 @@ describe("klusjesUpdateSchema", () => {
       completionDate: "10/02/2026",
     });
     expect(result.success).toBe(false);
+  });
+
+  it("accepts update with optional priority field", () => {
+    const result = klusjesUpdateSchema.safeParse({
+      id: "klusje123",
+      status: "todo",
+      priority: 1,
+    });
+    expect(result.success).toBe(true);
   });
 });
 

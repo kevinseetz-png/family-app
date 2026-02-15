@@ -5,6 +5,8 @@ import Link from "next/link";
 import { useAuthContext } from "@/components/AuthProvider";
 import { useNotifications } from "@/hooks/useNotifications";
 import { NotificationToggle } from "@/components/NotificationToggle";
+import { CategoryManager } from "@/components/CategoryManager";
+import { useCustomCategories } from "@/hooks/useCustomCategories";
 
 const TOGGLEABLE_TABS = [
   { href: "/agenda", label: "Agenda" },
@@ -13,7 +15,7 @@ const TOGGLEABLE_TABS = [
   { href: "/weekmenu", label: "Menu" },
   { href: "/maaltijden", label: "Maaltijd" },
   { href: "/boodschappen", label: "Boodschap" },
-  { href: "/klusjes", label: "Klusjes" },
+  { href: "/klusjes", label: "Taken" },
   { href: "/medicijn", label: "Medicijn" },
   { href: "/community", label: "Community" },
 ];
@@ -21,6 +23,7 @@ const TOGGLEABLE_TABS = [
 export default function SettingsPage() {
   const { user, logout, visibleTabs, updateVisibleTabs } = useAuthContext();
   const { isSupported, isSubscribed, subscribe, unsubscribe } = useNotifications();
+  const { categories: customCategories, addCategory, deleteCategory } = useCustomCategories(user?.familyId);
 
   const defaultTabs = TOGGLEABLE_TABS.map((t) => t.href);
   const [localTabs, setLocalTabs] = useState<string[]>(visibleTabs ?? defaultTabs);
@@ -123,6 +126,15 @@ export default function SettingsPage() {
         <p className="text-xs text-gray-400 mt-1">
           Momenteel krijgt iedereen de herinnering om 10:00. Je voorkeur wordt bewaard voor toekomstig gebruik.
         </p>
+      </section>
+
+      <section className="mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 mb-3">Agenda categorieën</h2>
+        <CategoryManager
+          categories={customCategories}
+          onAdd={addCategory}
+          onDelete={deleteCategory}
+        />
       </section>
 
       <section className="mb-6">

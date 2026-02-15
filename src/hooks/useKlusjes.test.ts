@@ -36,13 +36,14 @@ describe("useKlusjes", () => {
     expect(result.current.isLoading).toBe(true);
   });
 
-  it("should fetch klusjes from /api/klusjes with new fields", async () => {
+  it("should fetch klusjes from /api/klusjes with new fields including priority", async () => {
     const mockItems = [
       {
         id: "klusje1",
         familyId: "fam1",
         name: "Stofzuigen",
         status: "todo",
+        priority: 1,
         date: null,
         recurrence: "none",
         completions: {},
@@ -66,6 +67,7 @@ describe("useKlusjes", () => {
     expect(result.current.items).toHaveLength(1);
     expect(result.current.items[0].name).toBe("Stofzuigen");
     expect(result.current.items[0].status).toBe("todo");
+    expect(result.current.items[0].priority).toBe(1);
     expect(result.current.items[0].date).toBeNull();
     expect(result.current.items[0].recurrence).toBe("none");
     expect(result.current.error).toBeNull();
@@ -102,7 +104,7 @@ describe("useKlusjes", () => {
     expect(result.current.error).toBe("Network error loading klusjes");
   });
 
-  it("should add a new klusje via addItem with object", async () => {
+  it("should add a new klusje via addItem with object including priority", async () => {
     const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
 
     fetchMock.mockResolvedValueOnce({
@@ -127,11 +129,11 @@ describe("useKlusjes", () => {
     fetchMock.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        items: [{ id: "klusje1", name: "Afwassen", status: "todo", date: null, recurrence: "none", completions: {} }],
+        items: [{ id: "klusje1", name: "Afwassen", status: "todo", priority: 2, date: null, recurrence: "none", completions: {} }],
       }),
     });
 
-    await result.current.addItem({ name: "Afwassen", date: null, recurrence: "none" });
+    await result.current.addItem({ name: "Afwassen", date: null, recurrence: "none", priority: 2 });
 
     await waitFor(() => {
       expect(result.current.items).toHaveLength(1);
@@ -140,7 +142,7 @@ describe("useKlusjes", () => {
     expect(fetchMock).toHaveBeenCalledWith("/api/klusjes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "Afwassen", date: null, recurrence: "none" }),
+      body: JSON.stringify({ name: "Afwassen", date: null, recurrence: "none", priority: 2 }),
     });
   });
 
@@ -168,12 +170,12 @@ describe("useKlusjes", () => {
       json: async () => ({ items: [] }),
     });
 
-    await result.current.addItem({ name: "Stofzuigen", date: "2026-02-10", recurrence: "weekly" });
+    await result.current.addItem({ name: "Stofzuigen", date: "2026-02-10", recurrence: "weekly", priority: 1 });
 
     expect(fetchMock).toHaveBeenCalledWith("/api/klusjes", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name: "Stofzuigen", date: "2026-02-10", recurrence: "weekly" }),
+      body: JSON.stringify({ name: "Stofzuigen", date: "2026-02-10", recurrence: "weekly", priority: 1 }),
     });
   });
 
@@ -196,7 +198,7 @@ describe("useKlusjes", () => {
       json: async () => ({ message: "Failed to add item" }),
     });
 
-    await expect(result.current.addItem({ name: "Test", date: null, recurrence: "none" })).rejects.toThrow(
+    await expect(result.current.addItem({ name: "Test", date: null, recurrence: "none", priority: 2 })).rejects.toThrow(
       "Failed to add item"
     );
   });

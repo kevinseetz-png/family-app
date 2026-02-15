@@ -1,13 +1,14 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { KlusjesItem, KlusjesStatus, KlusjesRecurrence } from "@/types/klusjes";
+import type { KlusjesItem, KlusjesStatus, KlusjesRecurrence, KlusjesPriority } from "@/types/klusjes";
 
 interface KlusjesResponse {
   id: string;
   familyId: string;
   name: string;
   status: KlusjesStatus;
+  priority: KlusjesPriority;
   date: string | null;
   recurrence: KlusjesRecurrence;
   completions: Record<string, { status: KlusjesStatus }>;
@@ -20,6 +21,7 @@ interface AddItemData {
   name: string;
   date: string | null;
   recurrence: KlusjesRecurrence;
+  priority: KlusjesPriority;
 }
 
 interface UseKlusjesReturn {
@@ -31,6 +33,8 @@ interface UseKlusjesReturn {
   updateStatus: (id: string, status: KlusjesStatus, completionDate?: string) => Promise<void>;
   deleteItem: (id: string) => Promise<void>;
   getItemsForDate: (date: string) => KlusjesItem[];
+  getOverdueTasks: () => KlusjesItem[];
+  rescheduleTask: (id: string, newDate: string | null) => Promise<void>;
 }
 
 function toDateStr(d: Date): string {
@@ -114,6 +118,7 @@ export function useKlusjes(familyId: string | undefined): UseKlusjesReturn {
         familyId: item.familyId,
         name: item.name,
         status: item.status,
+        priority: item.priority ?? 2,
         date: item.date,
         recurrence: item.recurrence,
         completions: item.completions ?? {},
@@ -181,5 +186,26 @@ export function useKlusjes(familyId: string | undefined): UseKlusjesReturn {
     return expandRecurringKlusjes(items, date);
   }, [items]);
 
-  return { items, isLoading, error, refetch: fetchItems, addItem, updateStatus, deleteItem, getItemsForDate };
+  const getOverdueTasks = useCallback(() => {
+    const today = toDateStr(new Date());
+    return items.filter(
+      (item) => item.date && item.date < today && item.recurrence === "none" && item.status !== "klaar"
+    );
+  }, [items]);
+
+  const rescheduleTask = useCallback(async (id: string, newDate: string | null) => {
+    const payload: Record<string, unknown> = { id, date: newDate };
+    const res = await fetch("/api/klusjes", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.message || "Failed to reschedule task");
+    }
+    await fetchItems();
+  }, [fetchItems]);
+
+  return { items, isLoading, error, refetch: fetchItems, addItem, updateStatus, deleteItem, getItemsForDate, getOverdueTasks, rescheduleTask };
 }

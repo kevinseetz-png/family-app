@@ -154,14 +154,16 @@ export const klusjesSchema = z.object({
   name: z.string().min(1, "Name is required").max(200, "Name is too long"),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat").nullable().optional().default(null),
   recurrence: z.enum(["none", "daily", "weekly", "monthly"]).optional().default("none"),
+  priority: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional().default(2),
 });
 
 export const klusjesUpdateSchema = z.object({
   id: z.string().min(1, "Invalid request"),
-  status: z.enum(["todo", "bezig", "klaar"]),
+  status: z.enum(["todo", "bezig", "klaar"]).optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat").nullable().optional(),
   recurrence: z.enum(["none", "daily", "weekly", "monthly"]).optional(),
   completionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat").optional(),
+  priority: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
 });
 
 export const klusjesDeleteSchema = z.object({
@@ -172,28 +174,43 @@ export const klusjesDeleteSchema = z.object({
 export const agendaEventSchema = z.object({
   title: z.string().min(1, "Titel is verplicht").max(200, "Titel is te lang"),
   description: z.string().max(2000, "Beschrijving is te lang").optional().default(""),
-  category: z.enum(["familie", "werk", "school", "gezondheid", "sport", "verjaardag", "afspraak", "overig"]),
+  category: z.string().min(1, "Categorie is verplicht").max(50, "Categorie is te lang"),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat"),
   startTime: z.string().regex(/^\d{2}:\d{2}$/, "Ongeldig tijdformaat").nullable(),
   endTime: z.string().regex(/^\d{2}:\d{2}$/, "Ongeldig tijdformaat").nullable(),
   allDay: z.boolean(),
   recurrence: z.enum(["none", "daily", "weekly", "monthly", "yearly"]).default("none"),
   assignedTo: z.string().max(100).nullable().default(null),
+  birthdayGroup: z.string().max(50).nullable().default(null),
+  birthYear: z.number().int().min(1900).max(2100).nullable().default(null),
 });
 
 export const agendaEventUpdateSchema = z.object({
   id: z.string().min(1, "Invalid request"),
   title: z.string().min(1, "Titel is verplicht").max(200, "Titel is te lang").optional(),
   description: z.string().max(2000, "Beschrijving is te lang").optional(),
-  category: z.enum(["familie", "werk", "school", "gezondheid", "sport", "verjaardag", "afspraak", "overig"]).optional(),
+  category: z.string().min(1, "Categorie is verplicht").max(50, "Categorie is te lang").optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat").optional(),
   startTime: z.string().regex(/^\d{2}:\d{2}$/, "Ongeldig tijdformaat").nullable().optional(),
   endTime: z.string().regex(/^\d{2}:\d{2}$/, "Ongeldig tijdformaat").nullable().optional(),
   allDay: z.boolean().optional(),
   recurrence: z.enum(["none", "daily", "weekly", "monthly", "yearly"]).optional(),
   assignedTo: z.string().max(100).nullable().optional(),
+  birthdayGroup: z.string().max(50).nullable().optional(),
+  birthYear: z.number().int().min(1900).max(2100).nullable().optional(),
 });
 
 export const agendaEventDeleteSchema = z.object({
+  id: z.string().min(1, "Invalid request"),
+});
+
+// Custom category schemas
+export const customCategorySchema = z.object({
+  label: z.string().trim().min(1, "Naam is verplicht").max(50, "Naam is te lang"),
+  emoji: z.string().min(1, "Emoji is verplicht").max(10, "Emoji is te lang"),
+  colorScheme: z.string().min(1, "Kleur is verplicht").max(20),
+});
+
+export const customCategoryDeleteSchema = z.object({
   id: z.string().min(1, "Invalid request"),
 });

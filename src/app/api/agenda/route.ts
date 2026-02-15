@@ -35,6 +35,8 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           allDay: data.allDay ?? true,
           recurrence: data.recurrence || "none",
           assignedTo: data.assignedTo || null,
+          birthdayGroup: data.birthdayGroup ?? null,
+          birthYear: data.birthYear ?? null,
           createdBy: data.createdBy,
           createdByName: data.createdByName,
           createdAt: data.createdAt.toDate().toISOString(),

@@ -14,6 +14,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
+    // Client sends tzOffset in minutes (e.g., -60 for CET) to group by local date
+    const tzOffsetParam = request.nextUrl.searchParams.get("tzOffset");
+    const tzOffsetMs = tzOffsetParam ? parseInt(tzOffsetParam, 10) * 60 * 1000 : 0;
+
     const now = new Date();
     const thirtyDaysAgo = new Date(now);
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
@@ -31,7 +35,12 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       const data = doc.data();
       const ts: Date = data.timestamp.toDate();
       if (ts < thirtyDaysAgo) continue;
-      const dateKey = ts.toISOString().slice(0, 10);
+      // Adjust to local time before extracting date
+      const local = new Date(ts.getTime() - tzOffsetMs);
+      const y = local.getUTCFullYear();
+      const m = String(local.getUTCMonth() + 1).padStart(2, "0");
+      const d = String(local.getUTCDate()).padStart(2, "0");
+      const dateKey = `${y}-${m}-${d}`;
 
       const entry = dailyMap.get(dateKey) ?? { totalMl: 0, count: 0 };
       entry.totalMl += data.amount;

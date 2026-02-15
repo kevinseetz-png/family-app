@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { KlusjesItem, KlusjesStatus } from "@/types/klusjes";
-import { RECURRENCE_LABELS, STATUS_CONFIG } from "@/types/klusjes";
+import { RECURRENCE_LABELS, STATUS_CONFIG, PRIORITY_CONFIG } from "@/types/klusjes";
 
 const NEXT_STATUS: Record<KlusjesStatus, KlusjesStatus> = {
   todo: "bezig",
@@ -28,7 +28,10 @@ function getMonday(d: Date): Date {
 }
 
 function formatDateStr(d: Date): string {
-  return d.toISOString().slice(0, 10);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
 function formatDayHeader(d: Date): string {
@@ -110,7 +113,7 @@ export function KlusjesWeekView({ items, getItemsForDate, onStatusChange, onDele
                 </span>
               </div>
               {dayItems.length === 0 ? (
-                <p className="text-xs text-gray-400">Geen klusjes</p>
+                <p className="text-xs text-gray-400">Geen taken</p>
               ) : (
                 <ul className="space-y-1">
                   {dayItems.map((item) => (
@@ -131,6 +134,11 @@ export function KlusjesWeekView({ items, getItemsForDate, onStatusChange, onDele
                       <span className={item.status === "klaar" ? "line-through text-gray-400" : "text-gray-900"}>
                         {item.name}
                       </span>
+                      {item.priority !== undefined && item.priority !== 2 && (
+                        <span className={`text-xs ${PRIORITY_CONFIG[item.priority].color}`}>
+                          {PRIORITY_CONFIG[item.priority].label}
+                        </span>
+                      )}
                       {item.recurrence !== "none" && (
                         <span className="text-xs text-blue-600">{RECURRENCE_LABELS[item.recurrence]}</span>
                       )}
@@ -161,6 +169,11 @@ export function KlusjesWeekView({ items, getItemsForDate, onStatusChange, onDele
                 <span className={item.status === "klaar" ? "line-through text-gray-400" : "text-gray-900"}>
                   {item.name}
                 </span>
+                {item.priority !== undefined && item.priority !== 2 && (
+                  <span className={`text-xs ${PRIORITY_CONFIG[item.priority].color}`}>
+                    {PRIORITY_CONFIG[item.priority].label}
+                  </span>
+                )}
               </li>
             ))}
           </ul>

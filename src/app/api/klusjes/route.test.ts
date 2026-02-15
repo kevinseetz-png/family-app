@@ -52,7 +52,7 @@ describe("GET /api/klusjes", () => {
     expect(res.status).toBe(401);
   });
 
-  it("should return klusjes list with new fields", async () => {
+  it("should return klusjes list with new fields including priority", async () => {
     mockVerifyToken.mockResolvedValue({
       id: "user1",
       name: "Test User",
@@ -67,6 +67,7 @@ describe("GET /api/klusjes", () => {
         data: () => ({
           name: "Stofzuigen",
           status: "todo",
+          priority: 1,
           date: null,
           recurrence: "none",
           completions: {},
@@ -91,9 +92,46 @@ describe("GET /api/klusjes", () => {
     expect(data.items).toHaveLength(1);
     expect(data.items[0].name).toBe("Stofzuigen");
     expect(data.items[0].status).toBe("todo");
+    expect(data.items[0].priority).toBe(1);
     expect(data.items[0].date).toBeNull();
     expect(data.items[0].recurrence).toBe("none");
     expect(data.items[0].completions).toEqual({});
+  });
+
+  it("should default priority to 2 when not present in Firestore", async () => {
+    mockVerifyToken.mockResolvedValue({
+      id: "user1",
+      name: "Test User",
+      email: "test@example.com",
+      familyId: "fam1",
+      role: "member",
+    });
+
+    const mockItems = [
+      {
+        id: "klusje1",
+        data: () => ({
+          name: "Old item",
+          status: "todo",
+          createdBy: "user1",
+          createdByName: "Test User",
+          createdAt: { toDate: () => new Date("2026-01-01") },
+        }),
+      },
+    ];
+
+    mockCollection.mockReturnValue({
+      where: vi.fn().mockReturnValue({
+        limit: vi.fn().mockReturnValue({
+          get: vi.fn().mockResolvedValue({ docs: mockItems }),
+        }),
+      }),
+    } as never);
+
+    const res = await GET(makeRequest("GET"));
+    expect(res.status).toBe(200);
+    const data = await res.json();
+    expect(data.items[0].priority).toBe(2);
   });
 
   it("should migrate old checked:true to status:klaar", async () => {
@@ -240,7 +278,7 @@ describe("POST /api/klusjes", () => {
     expect(res.status).toBe(400);
   });
 
-  it("should create a new klusje with status todo", async () => {
+  it("should create a new klusje with status todo and default priority", async () => {
     mockVerifyToken.mockResolvedValue({
       id: "user1",
       name: "Test User",
@@ -258,8 +296,28 @@ describe("POST /api/klusjes", () => {
     const data = await res.json();
     expect(data.name).toBe("Stofzuigen");
     expect(data.status).toBe("todo");
+    expect(data.priority).toBe(2);
     expect(data.date).toBeNull();
     expect(data.recurrence).toBe("none");
+  });
+
+  it("should create a klusje with custom priority", async () => {
+    mockVerifyToken.mockResolvedValue({
+      id: "user1",
+      name: "Test User",
+      email: "test@example.com",
+      familyId: "fam1",
+      role: "member",
+    });
+
+    const mockAdd = vi.fn().mockResolvedValue({ id: "klusje1" });
+    mockCollection.mockReturnValue({ add: mockAdd } as never);
+
+    const res = await POST(makeRequest("POST", { name: "Urgent", priority: 1 }));
+
+    expect(res.status).toBe(201);
+    const data = await res.json();
+    expect(data.priority).toBe(1);
   });
 
   it("should create klusje with date and recurrence", async () => {
@@ -332,7 +390,7 @@ describe("PUT /api/klusjes", () => {
     expect(res.status).toBe(400);
   });
 
-  it("should return 400 with missing status", async () => {
+  it("should accept update without status (date-only update)", async () => {
     mockVerifyToken.mockResolvedValue({
       id: "user1",
       name: "Test User",
@@ -340,8 +398,16 @@ describe("PUT /api/klusjes", () => {
       familyId: "fam1",
       role: "member",
     });
-    const res = await PUT(makeRequest("PUT", { id: "klusje1" }));
-    expect(res.status).toBe(400);
+    const mockUpdate = vi.fn().mockResolvedValue(undefined);
+    mockCollection.mockReturnValue({
+      doc: vi.fn().mockReturnValue({
+        get: vi.fn().mockResolvedValue({ exists: true, data: () => ({ familyId: "fam1" }) }),
+        update: mockUpdate,
+      }),
+    } as never);
+    const res = await PUT(makeRequest("PUT", { id: "klusje1", date: "2026-03-01" }));
+    expect(res.status).toBe(200);
+    expect(mockUpdate).toHaveBeenCalledWith({ date: "2026-03-01" });
   });
 
   it("should return 404 when klusje not found", async () => {

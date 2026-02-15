@@ -17,6 +17,8 @@ interface AddEventData {
   allDay: boolean;
   recurrence?: RecurrenceType;
   assignedTo?: string | null;
+  birthdayGroup?: string | null;
+  birthYear?: number | null;
 }
 
 interface UpdateEventData {
@@ -29,6 +31,8 @@ interface UpdateEventData {
   allDay?: boolean;
   recurrence?: RecurrenceType;
   assignedTo?: string | null;
+  birthdayGroup?: string | null;
+  birthYear?: number | null;
 }
 
 interface UseAgendaReturn {
