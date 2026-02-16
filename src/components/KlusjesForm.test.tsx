@@ -47,6 +47,7 @@ describe("KlusjesForm", () => {
       name: "Afwassen",
       date: null,
       recurrence: "none",
+      recurrenceInterval: 1,
       priority: 2,
       endDate: null,
     });
@@ -146,6 +147,7 @@ describe("KlusjesForm", () => {
       name: "Stofzuigen",
       date: null,
       recurrence: "none",
+      recurrenceInterval: 1,
       priority: 2,
       endDate: null,
     });
@@ -206,6 +208,7 @@ describe("KlusjesForm", () => {
       name: "Stofzuigen",
       date: "2026-02-10",
       recurrence: "weekly",
+      recurrenceInterval: 1,
       priority: 2,
       endDate: null,
     });

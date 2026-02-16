@@ -101,6 +101,7 @@ export interface AgendaEvent {
   endTime: string | null; // HH:MM or null for all-day
   allDay: boolean;
   recurrence: RecurrenceType;
+  recurrenceInterval: number; // 1 = default, 2 = every 2 weeks, etc.
   assignedTo: string | null; // user name or null for everyone
   birthdayGroup: string | null; // group label for verjaardag events
   birthYear: number | null; // birth year for verjaardag events (age calculation)

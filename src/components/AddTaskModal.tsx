@@ -9,6 +9,7 @@ interface AddTaskData {
   date: string | null;
   recurrence: KlusjesRecurrence;
   priority: KlusjesPriority;
+  recurrenceInterval?: number;
   endDate?: string | null;
   reminder?: ReminderOption | null;
 }
@@ -24,7 +25,9 @@ export function AddTaskModal({ selectedDate, onSave, onClose }: AddTaskModalProp
   const [date, setDate] = useState(selectedDate);
   const [recurrence, setRecurrence] = useState<KlusjesRecurrence>("none");
   const [priority, setPriority] = useState<KlusjesPriority>(2);
+  const [recurrenceInterval, setRecurrenceInterval] = useState(1);
   const [endDate, setEndDate] = useState("");
+  const [weeks, setWeeks] = useState("");
   const [reminder, setReminder] = useState<ReminderOption | "">("");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -54,6 +57,7 @@ export function AddTaskModal({ selectedDate, onSave, onClose }: AddTaskModalProp
         name: name.trim(),
         date: date || null,
         recurrence,
+        recurrenceInterval: recurrence !== "none" ? recurrenceInterval : 1,
         priority,
         endDate: recurrence !== "none" ? (endDate || null) : null,
         reminder: reminder || null,
@@ -148,18 +152,67 @@ export function AddTaskModal({ selectedDate, onSave, onClose }: AddTaskModalProp
           </div>
 
           {recurrence !== "none" && (
-            <div>
-              <label htmlFor="task-enddate" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
-                Loopt tot
-              </label>
-              <input
-                id="task-enddate"
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
-              />
-            </div>
+            <>
+              <div>
+                <label htmlFor="task-interval" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                  Elke
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="task-interval"
+                    type="number"
+                    min={1}
+                    max={52}
+                    value={recurrenceInterval}
+                    onChange={(e) => setRecurrenceInterval(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-20 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  />
+                  <span className="text-sm text-gray-600">
+                    {recurrence === "daily" ? (recurrenceInterval === 1 ? "dag" : "dagen") : recurrence === "weekly" ? (recurrenceInterval === 1 ? "week" : "weken") : (recurrenceInterval === 1 ? "maand" : "maanden")}
+                  </span>
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="task-enddate" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                  Loopt tot
+                </label>
+                <input
+                  id="task-enddate"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => { setEndDate(e.target.value); setWeeks(""); }}
+                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+              </div>
+
+              <div>
+                <label htmlFor="task-weeks" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                  Of aantal weken
+                </label>
+                <input
+                  id="task-weeks"
+                  type="number"
+                  min={1}
+                  max={52}
+                  value={weeks}
+                  onChange={(e) => {
+                    const w = e.target.value;
+                    setWeeks(w);
+                    if (w) {
+                      const start = new Date((date || new Date().toISOString().slice(0, 10)) + "T00:00:00");
+                      start.setDate(start.getDate() + parseInt(w) * 7);
+                      const y = start.getFullYear();
+                      const m = String(start.getMonth() + 1).padStart(2, "0");
+                      const d = String(start.getDate()).padStart(2, "0");
+                      setEndDate(`${y}-${m}-${d}`);
+                    }
+                  }}
+                  placeholder="bijv. 4"
+                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+              </div>
+            </>
           )}
 
           <div>

@@ -34,6 +34,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           endTime: data.endTime || null,
           allDay: data.allDay ?? true,
           recurrence: data.recurrence || "none",
+          recurrenceInterval: data.recurrenceInterval ?? 1,
           assignedTo: data.assignedTo || null,
           birthdayGroup: data.birthdayGroup ?? null,
           birthYear: data.birthYear ?? null,

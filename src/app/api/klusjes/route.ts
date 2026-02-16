@@ -48,6 +48,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           date: data.date ?? null,
           endDate: data.endDate ?? null,
           recurrence: data.recurrence ?? "none",
+          recurrenceInterval: data.recurrenceInterval ?? 1,
           completions: data.completions ?? {},
           reminder: data.reminder ?? null,
           createdBy: data.createdBy,
@@ -92,7 +93,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { name, date, recurrence, priority, endDate, reminder } = result.data;
+  const { name, date, recurrence, recurrenceInterval, priority, endDate, reminder } = result.data;
 
   try {
     const item = {
@@ -103,6 +104,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       date: date ?? null,
       endDate: endDate ?? null,
       recurrence: recurrence ?? "none",
+      recurrenceInterval: recurrenceInterval ?? 1,
       reminder: reminder ?? null,
       completions: {},
       createdBy: user.id,
@@ -156,7 +158,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { id, status, completionDate, date, recurrence, priority, endDate, reminder } = result.data;
+  const { id, status, completionDate, date, recurrence, recurrenceInterval, priority, endDate, reminder } = result.data;
 
   if (id.length > 128 || id.includes("/")) {
     return NextResponse.json({ message: "Invalid request" }, { status: 400 });
@@ -191,6 +193,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       if (recurrence !== undefined) updateData.recurrence = recurrence;
       if (priority !== undefined) updateData.priority = priority;
       if (endDate !== undefined) updateData.endDate = endDate;
+      if (recurrenceInterval !== undefined) updateData.recurrenceInterval = recurrenceInterval;
       if (reminder !== undefined) updateData.reminder = reminder;
       if (Object.keys(updateData).length > 0) {
         await docRef.update(updateData);

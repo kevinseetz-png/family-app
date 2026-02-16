@@ -21,6 +21,7 @@ import {
   type RecurrenceType,
 } from "@/types/agenda";
 import { useCustomCategories } from "@/hooks/useCustomCategories";
+import { CategoryManager } from "@/components/CategoryManager";
 import type { CustomCategory } from "@/types/customCategory";
 
 const DAYS_NL = ["Ma", "Di", "Wo", "Do", "Vr", "Za", "Zo"];
@@ -633,6 +634,7 @@ function SearchFilterBar({
   onToggleExpand,
   allCategories,
   customCategories,
+  onManageCategories,
 }: {
   searchQuery: string;
   onSearchChange: (q: string) => void;
@@ -642,6 +644,7 @@ function SearchFilterBar({
   onToggleExpand: () => void;
   allCategories: string[];
   customCategories?: CustomCategory[];
+  onManageCategories?: () => void;
 }) {
   const hasActiveFilters = searchQuery.length > 0 || activeCategories.size < allCategories.length;
 
@@ -693,7 +696,7 @@ function SearchFilterBar({
 
       {/* Category filter chips */}
       {isExpanded && (
-        <div className="flex flex-wrap gap-1.5 mt-2.5 animate-fadeIn">
+        <div className="flex flex-wrap gap-1.5 mt-2.5 animate-fadeIn items-center">
           {allCategories.map((cat) => {
             const config = getCategoryConfig(cat, customCategories);
             const isActive = activeCategories.has(cat);
@@ -712,6 +715,19 @@ function SearchFilterBar({
               </button>
             );
           })}
+          {onManageCategories && (
+            <button
+              onClick={onManageCategories}
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+              aria-label="Categorieën beheren"
+            >
+              <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.066 2.573c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.573 1.066c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.066-2.573c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+              </svg>
+              Beheer
+            </button>
+          )}
         </div>
       )}
     </div>
@@ -947,6 +963,7 @@ function EventModal({
     birthdayGroup: string | null;
     birthYear: number | null;
     reminder: ReminderOption | null;
+    recurrenceInterval: number;
   }) => Promise<void>;
   onClose: () => void;
   allCategories: string[];
@@ -962,6 +979,7 @@ function EventModal({
   const [startTime, setStartTime] = useState(event?.startTime || smartStart);
   const [endTime, setEndTime] = useState(event?.endTime || smartEnd);
   const [recurrence, setRecurrence] = useState<RecurrenceType>(event?.recurrence || "none");
+  const [recurrenceInterval, setRecurrenceInterval] = useState(event?.recurrenceInterval ?? 1);
   const [assignedTo, setAssignedTo] = useState(event?.assignedTo || "");
   const [birthdayGroup, setBirthdayGroup] = useState(event?.birthdayGroup || "");
   const [birthYear, setBirthYear] = useState(event?.birthYear?.toString() || "");
@@ -1019,6 +1037,7 @@ function EventModal({
         birthdayGroup: category === "verjaardag" && birthdayGroup.trim() ? birthdayGroup.trim() : null,
         birthYear: category === "verjaardag" && birthYear ? (Number.isNaN(parseInt(birthYear, 10)) ? null : parseInt(birthYear, 10)) : null,
         reminder: reminder || null,
+        recurrenceInterval: recurrence !== "none" ? recurrenceInterval : 1,
       });
       onClose();
     } catch (err) {
@@ -1182,6 +1201,32 @@ function EventModal({
               ))}
             </select>
           </div>
+
+          {/* Recurrence interval */}
+          {recurrence !== "none" && (
+            <div>
+              <label htmlFor="event-interval" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                Elke
+              </label>
+              <div className="flex items-center gap-2">
+                <input
+                  id="event-interval"
+                  type="number"
+                  min={1}
+                  max={52}
+                  value={recurrenceInterval}
+                  onChange={(e) => setRecurrenceInterval(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="w-20 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                />
+                <span className="text-sm text-gray-600">
+                  {recurrence === "daily" ? (recurrenceInterval === 1 ? "dag" : "dagen")
+                    : recurrence === "weekly" ? (recurrenceInterval === 1 ? "week" : "weken")
+                    : recurrence === "monthly" ? (recurrenceInterval === 1 ? "maand" : "maanden")
+                    : (recurrenceInterval === 1 ? "jaar" : "jaar")}
+                </span>
+              </div>
+            </div>
+          )}
 
           {/* Reminder / Alarm */}
           <div>
@@ -1830,7 +1875,8 @@ export default function AgendaPage() {
   const router = useRouter();
   const { events, isLoading, error, addEvent, updateEvent, deleteEvent, getEventsForDate, getEventsForMonth } = useAgenda(user?.familyId);
   const { items: tasks, isLoading: tasksLoading, addItem: addTask, updateStatus: updateTaskStatus, getItemsForDate: getTasksForDate } = useKlusjes(user?.familyId);
-  const { categories: customCategories, hiddenBuiltIn } = useCustomCategories(user?.familyId);
+  const { categories: customCategories, hiddenBuiltIn, addCategory, deleteCategory, toggleBuiltIn } = useCustomCategories(user?.familyId);
+  const [showCategoryManager, setShowCategoryManager] = useState(false);
 
   const allCategories = useMemo(() => {
     const labels: string[] = ALL_BUILT_IN_CATEGORIES.filter((c) => !hiddenBuiltIn.includes(c));
@@ -2058,6 +2104,7 @@ export default function AgendaPage() {
     birthdayGroup: string | null;
     birthYear: number | null;
     reminder: ReminderOption | null;
+    recurrenceInterval: number;
   }) => {
     if (editingEvent) {
       await updateEvent(editingEvent.id, data);
@@ -2188,6 +2235,7 @@ export default function AgendaPage() {
         onToggleExpand={() => setSearchExpanded(!searchExpanded)}
         allCategories={allCategories}
         customCategories={customCategories}
+        onManageCategories={() => setShowCategoryManager(true)}
       />
 
       {/* Week strip */}
@@ -2318,6 +2366,42 @@ export default function AgendaPage() {
           onSave={addTask}
           onClose={() => setShowTaskModal(false)}
         />
+      )}
+
+      {/* Category Manager Modal */}
+      {showCategoryManager && (
+        <div
+          className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-end sm:items-center justify-center z-50"
+          onClick={() => setShowCategoryManager(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Categorieën beheren"
+        >
+          <div
+            className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-100 px-5 py-4 flex items-center justify-between rounded-t-2xl z-10">
+              <h2 className="font-semibold text-gray-900">Categorieën beheren</h2>
+              <button
+                onClick={() => setShowCategoryManager(false)}
+                className="text-sm text-gray-500 hover:text-gray-700 transition-colors py-1 px-2 -mr-2 rounded-lg"
+                aria-label="Sluiten"
+              >
+                Sluiten
+              </button>
+            </div>
+            <div className="p-5">
+              <CategoryManager
+                categories={customCategories}
+                onAdd={addCategory}
+                onDelete={deleteCategory}
+                hiddenBuiltIn={hiddenBuiltIn}
+                onToggleBuiltIn={toggleBuiltIn}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </main>
   );

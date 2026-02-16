@@ -19,6 +19,7 @@ function makeOverdueItem(overrides: Partial<KlusjesItem> = {}): KlusjesItem {
     endDate: null,
     reminder: null,
     recurrence: "none",
+    recurrenceInterval: 1,
     completions: {},
     createdBy: "user1",
     createdByName: "Test User",

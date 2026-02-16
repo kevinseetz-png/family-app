@@ -17,6 +17,7 @@ interface AddEventData {
   endTime: string | null;
   allDay: boolean;
   recurrence?: RecurrenceType;
+  recurrenceInterval?: number;
   assignedTo?: string | null;
   birthdayGroup?: string | null;
   birthYear?: number | null;
@@ -32,6 +33,7 @@ interface UpdateEventData {
   endTime?: string | null;
   allDay?: boolean;
   recurrence?: RecurrenceType;
+  recurrenceInterval?: number;
   assignedTo?: string | null;
   birthdayGroup?: string | null;
   birthYear?: number | null;
@@ -77,18 +79,19 @@ function expandRecurringEvents(events: AgendaEvent[], year: number, month: numbe
         }
       }
 
+      const interval = event.recurrenceInterval || 1;
       switch (event.recurrence) {
         case "daily":
-          current.setDate(current.getDate() + 1);
+          current.setDate(current.getDate() + interval);
           break;
         case "weekly":
-          current.setDate(current.getDate() + 7);
+          current.setDate(current.getDate() + 7 * interval);
           break;
         case "monthly":
-          current.setMonth(current.getMonth() + 1);
+          current.setMonth(current.getMonth() + interval);
           break;
         case "yearly":
-          current.setFullYear(current.getFullYear() + 1);
+          current.setFullYear(current.getFullYear() + interval);
           break;
       }
     }

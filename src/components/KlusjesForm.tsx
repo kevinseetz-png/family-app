@@ -8,6 +8,7 @@ interface AddItemData {
   name: string;
   date: string | null;
   recurrence: KlusjesRecurrence;
+  recurrenceInterval?: number;
   priority: KlusjesPriority;
   endDate?: string | null;
 }
@@ -21,6 +22,7 @@ export function KlusjesForm({ onAdd }: KlusjesFormProps) {
   const [date, setDate] = useState("");
   const [recurrence, setRecurrence] = useState<KlusjesRecurrence>("none");
   const [priority, setPriority] = useState<KlusjesPriority>(2);
+  const [recurrenceInterval, setRecurrenceInterval] = useState(1);
   const [endDate, setEndDate] = useState("");
   const [weeks, setWeeks] = useState("");
   const [expanded, setExpanded] = useState(false);
@@ -38,12 +40,14 @@ export function KlusjesForm({ onAdd }: KlusjesFormProps) {
         name: name.trim(),
         date: date || null,
         recurrence,
+        recurrenceInterval: recurrence !== "none" ? recurrenceInterval : 1,
         priority,
         endDate: recurrence !== "none" ? (endDate || null) : null,
       });
       setName("");
       setDate("");
       setRecurrence("none");
+      setRecurrenceInterval(1);
       setPriority(2);
       setEndDate("");
       setWeeks("");
@@ -124,6 +128,25 @@ export function KlusjesForm({ onAdd }: KlusjesFormProps) {
           </div>
           {recurrence !== "none" && (
             <div className="space-y-2">
+              <div>
+                <label htmlFor="klusje-interval" className="block text-sm font-medium text-gray-700">
+                  Elke
+                </label>
+                <div className="flex items-center gap-2 mt-1">
+                  <input
+                    id="klusje-interval"
+                    type="number"
+                    min={1}
+                    max={52}
+                    value={recurrenceInterval}
+                    onChange={(e) => setRecurrenceInterval(Math.max(1, parseInt(e.target.value) || 1))}
+                    className="w-20 rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                  />
+                  <span className="text-sm text-gray-600">
+                    {recurrence === "daily" ? (recurrenceInterval === 1 ? "dag" : "dagen") : recurrence === "weekly" ? (recurrenceInterval === 1 ? "week" : "weken") : (recurrenceInterval === 1 ? "maand" : "maanden")}
+                  </span>
+                </div>
+              </div>
               <div>
                 <label htmlFor="klusje-enddate" className="block text-sm font-medium text-gray-700">
                   Loopt tot

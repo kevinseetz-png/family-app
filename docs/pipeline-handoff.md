@@ -1405,3 +1405,34 @@ Task: Rename Klusjes→Taken (UI), add priorities, verjaardag default yearly rec
 - `npx vitest run` — 524 passed, 0 failed, 2 skipped
 - `npx tsc --noEmit` — clean (pre-existing EditFeedingModal errors only)
 - **Verdict: PASS** — All Batch 5 tests pass. 22 new tests added. No regressions.
+
+---
+
+# Pipeline Handoff — Unified Cron Route for cron-job.org
+
+Task: Create unified `/api/cron/run-all` route combining agenda-reminders + vitamin-reminder, remove Vercel cron config
+
+---
+
+## Stage 1: Test Writer
+- Files created: `src/app/api/cron/run-all/route.test.ts` — 6 tests
+- Coverage: auth (401 no header, wrong secret, missing env var), combined results shape, empty results, error handling (500)
+
+## Stage 2: Implementer
+- Files created: `src/app/api/cron/run-all/route.ts` — unified route combining agenda-reminders and vitamin-reminder logic
+- Files modified: `vercel.json` — removed cron config (empty object)
+- Implementation: `runAgendaReminders()` + `runVitaminReminders()` called via `Promise.all`, returns `{ agendaReminded, vitaminReminded }`
+- Auth: Bearer CRON_SECRET (same pattern as existing routes)
+
+## Stages 3-8: Reviews
+- **Performance**: Promise.all runs both checks concurrently — improvement over sequential Vercel cron calls
+- **Security**: Same Bearer CRON_SECRET auth pattern as existing routes. No new attack surface.
+- **Code Quality**: Clean extraction of existing logic into named functions. No duplication — old routes kept for backward compat.
+- **Accessibility**: N/A (API route only)
+- **Type Safety**: Proper NextRequest/NextResponse types, Promise<number> return types on helper functions
+- **Feedback**: No issues requiring fixes
+
+## Stage 9: Final Tester
+- `npx vitest run src/app/api/cron/run-all/` — 6 passed, 0 failed
+- `npx tsc --noEmit` — clean (pre-existing errors only)
+- **Verdict: PASS**

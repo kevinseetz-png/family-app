@@ -12,6 +12,7 @@ interface KlusjesResponse {
   date: string | null;
   endDate: string | null;
   recurrence: KlusjesRecurrence;
+  recurrenceInterval: number;
   completions: Record<string, { status: KlusjesStatus }>;
   reminder: ReminderOption | null;
   createdBy: string;
@@ -23,6 +24,7 @@ interface AddItemData {
   name: string;
   date: string | null;
   recurrence: KlusjesRecurrence;
+  recurrenceInterval?: number;
   priority: KlusjesPriority;
   endDate?: string | null;
   reminder?: ReminderOption | null;
@@ -87,15 +89,16 @@ function expandRecurringKlusjes(items: KlusjesItem[], targetDate: string): Klusj
         matched = true;
       }
 
+      const interval = item.recurrenceInterval || 1;
       switch (item.recurrence) {
         case "daily":
-          current.setDate(current.getDate() + 1);
+          current.setDate(current.getDate() + interval);
           break;
         case "weekly":
-          current.setDate(current.getDate() + 7);
+          current.setDate(current.getDate() + 7 * interval);
           break;
         case "monthly":
-          current.setMonth(current.getMonth() + 1);
+          current.setMonth(current.getMonth() + interval);
           break;
       }
     }
@@ -129,6 +132,7 @@ export function useKlusjes(familyId: string | undefined): UseKlusjesReturn {
         date: item.date,
         endDate: item.endDate ?? null,
         recurrence: item.recurrence,
+        recurrenceInterval: item.recurrenceInterval ?? 1,
         completions: item.completions ?? {},
         reminder: item.reminder ?? null,
         createdBy: item.createdBy,

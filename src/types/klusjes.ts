@@ -12,6 +12,7 @@ export interface KlusjesItem {
   date: string | null;
   endDate: string | null;
   recurrence: KlusjesRecurrence;
+  recurrenceInterval: number; // 1 = elke week, 2 = elke 2 weken, etc.
   completions: Record<string, { status: KlusjesStatus }>;
   reminder: ReminderOption | null;
   createdBy: string;
