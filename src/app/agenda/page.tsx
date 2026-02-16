@@ -1754,11 +1754,19 @@ function QuickAddFAB({
 
   const visibleItems = useMemo(() => {
     const hidden = hiddenBuiltIn ?? [];
-    return QUICK_ADD_ITEMS.filter((item) => {
+    const items: QuickAddItem[] = QUICK_ADD_ITEMS.filter((item) => {
       if (item.type === "task") return true;
       return !hidden.includes(item.category);
     });
-  }, [hiddenBuiltIn]);
+    // Add custom categories that aren't already in the list
+    const existingCats = new Set(items.filter((i): i is QuickAddItem & { type: "event" } => i.type === "event").map((i) => i.category));
+    for (const c of customCategories ?? []) {
+      if (!existingCats.has(c.label)) {
+        items.push({ category: c.label, label: c.label, type: "event" });
+      }
+    }
+    return items;
+  }, [hiddenBuiltIn, customCategories]);
 
   return (
     <div className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-30 flex flex-col items-end">
