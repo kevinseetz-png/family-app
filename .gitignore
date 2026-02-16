@@ -5,3 +5,10 @@ out
 .vercel
 functions/dist
 functions/node_modules
+
+# Capacitor Android build artifacts
+android/app/build/
+android/.gradle/
+android/build/
+android/app/.cxx/
+*.apk
