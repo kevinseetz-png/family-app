@@ -32,7 +32,7 @@ export function TabBar() {
   ];
 
   return (
-    <nav aria-label="Hoofdnavigatie" className="sticky top-0 z-40 bg-white border-b border-gray-200">
+    <nav aria-label="Hoofdnavigatie" className="sticky top-0 z-40 flex-shrink-0 bg-white border-b border-gray-200">
       <ul className="flex overflow-x-auto scrollbar-hide">
         {tabs.map(({ href, label }) => {
           const isActive = pathname.startsWith(href);

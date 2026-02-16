@@ -16,6 +16,8 @@ function makeItem(overrides: Partial<KlusjesItem> = {}): KlusjesItem {
     status: "todo",
     priority: 2,
     date: null,
+    endDate: null,
+    reminder: null,
     recurrence: "none",
     completions: {},
     createdBy: "user1",

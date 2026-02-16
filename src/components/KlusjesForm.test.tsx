@@ -48,6 +48,7 @@ describe("KlusjesForm", () => {
       date: null,
       recurrence: "none",
       priority: 2,
+      endDate: null,
     });
   });
 
@@ -146,6 +147,7 @@ describe("KlusjesForm", () => {
       date: null,
       recurrence: "none",
       priority: 2,
+      endDate: null,
     });
   });
 
@@ -205,6 +207,7 @@ describe("KlusjesForm", () => {
       date: "2026-02-10",
       recurrence: "weekly",
       priority: 2,
+      endDate: null,
     });
   });
 
@@ -231,6 +234,58 @@ describe("KlusjesForm", () => {
 
     expect(mockOnAdd).toHaveBeenCalledWith(
       expect.objectContaining({ priority: 1 })
+    );
+  });
+
+  it("should show endDate field when recurrence is not none", async () => {
+    const user = userEvent.setup();
+    render(<KlusjesForm onAdd={mockOnAdd} />);
+
+    await user.click(screen.getByText("Meer opties"));
+
+    // endDate field should not be visible when recurrence is "none"
+    expect(screen.queryByLabelText("Loopt tot")).not.toBeInTheDocument();
+
+    // Change recurrence to weekly
+    const recurrenceSelect = screen.getByLabelText("Herhaling");
+    await user.selectOptions(recurrenceSelect, "weekly");
+
+    // Now endDate field should be visible
+    expect(screen.getByLabelText("Loopt tot")).toBeInTheDocument();
+  });
+
+  it("should show weeks input as alternative to endDate", async () => {
+    const user = userEvent.setup();
+    render(<KlusjesForm onAdd={mockOnAdd} />);
+
+    await user.click(screen.getByText("Meer opties"));
+    const recurrenceSelect = screen.getByLabelText("Herhaling");
+    await user.selectOptions(recurrenceSelect, "weekly");
+
+    expect(screen.getByLabelText("Aantal weken")).toBeInTheDocument();
+  });
+
+  it("should submit with endDate when set", async () => {
+    const user = userEvent.setup();
+    mockOnAdd.mockResolvedValue(undefined);
+    render(<KlusjesForm onAdd={mockOnAdd} />);
+
+    await user.type(screen.getByPlaceholderText("Voeg taak toe..."), "Stofzuigen");
+    await user.click(screen.getByText("Meer opties"));
+
+    const dateInput = screen.getByLabelText("Datum");
+    await user.type(dateInput, "2026-02-16");
+
+    const recurrenceSelect = screen.getByLabelText("Herhaling");
+    await user.selectOptions(recurrenceSelect, "weekly");
+
+    const endDateInput = screen.getByLabelText("Loopt tot");
+    await user.type(endDateInput, "2026-03-16");
+
+    await user.click(screen.getByRole("button", { name: "Toevoegen" }));
+
+    expect(mockOnAdd).toHaveBeenCalledWith(
+      expect.objectContaining({ endDate: "2026-03-16" })
     );
   });
 

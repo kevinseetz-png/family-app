@@ -16,6 +16,8 @@ function makeItem(overrides: Partial<KlusjesItem> = {}): KlusjesItem {
     status: "todo",
     priority: 2,
     date: null,
+    endDate: null,
+    reminder: null,
     recurrence: "none",
     completions: {},
     createdBy: "user1",
@@ -28,6 +30,7 @@ function makeItem(overrides: Partial<KlusjesItem> = {}): KlusjesItem {
 describe("KlusjesList", () => {
   const mockOnStatusChange = vi.fn();
   const mockOnDelete = vi.fn();
+  const mockOnReschedule = vi.fn();
 
   beforeEach(() => {
     vi.clearAllMocks();
@@ -35,7 +38,7 @@ describe("KlusjesList", () => {
 
   it("should display empty state when no items", () => {
     render(
-      <KlusjesList items={[]} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={[]} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
 
     expect(screen.getByText("Geen taken op de lijst.")).toBeInTheDocument();
@@ -48,7 +51,7 @@ describe("KlusjesList", () => {
     ];
 
     render(
-      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
 
     expect(screen.getByText("Stofzuigen")).toBeInTheDocument();
@@ -62,7 +65,7 @@ describe("KlusjesList", () => {
     ];
 
     const { container } = render(
-      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
     const listItems = container.querySelectorAll("li");
 
@@ -76,7 +79,7 @@ describe("KlusjesList", () => {
     const items = [makeItem({ id: "k1", status: "todo" })];
 
     render(
-      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
 
     const statusButton = screen.getByRole("button", { name: /status/i });
@@ -90,7 +93,7 @@ describe("KlusjesList", () => {
     const items = [makeItem({ id: "k1", status: "bezig" })];
 
     render(
-      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
 
     const statusButton = screen.getByRole("button", { name: /status/i });
@@ -104,7 +107,7 @@ describe("KlusjesList", () => {
     const items = [makeItem({ id: "k1", status: "klaar" })];
 
     render(
-      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
 
     const statusButton = screen.getByRole("button", { name: /status/i });
@@ -118,7 +121,7 @@ describe("KlusjesList", () => {
     const items = [makeItem({ id: "k1", name: "Stofzuigen" })];
 
     render(
-      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
 
     const deleteButton = screen.getByRole("button", { name: /verwijder stofzuigen/i });
@@ -131,7 +134,7 @@ describe("KlusjesList", () => {
     const items = [makeItem({ id: "k1", name: "Completed Item", status: "klaar" })];
 
     render(
-      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
 
     const itemText = screen.getByText("Completed Item");
@@ -142,7 +145,7 @@ describe("KlusjesList", () => {
     const items = [makeItem({ id: "k1", name: "Test", date: "2026-02-10" })];
 
     render(
-      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
 
     expect(screen.getByText("10 feb")).toBeInTheDocument();
@@ -152,7 +155,7 @@ describe("KlusjesList", () => {
     const items = [makeItem({ id: "k1", name: "Test", recurrence: "weekly" })];
 
     render(
-      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
 
     expect(screen.getByText("Wekelijks")).toBeInTheDocument();
@@ -162,7 +165,7 @@ describe("KlusjesList", () => {
     const items = [makeItem({ id: "k1", name: "Test", recurrence: "none" })];
 
     render(
-      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
 
     expect(screen.queryByText("Eenmalig")).not.toBeInTheDocument();
@@ -172,7 +175,7 @@ describe("KlusjesList", () => {
     const items = [makeItem({ id: "k1", name: "Test Klusje", status: "todo" })];
 
     render(
-      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
 
     const statusButton = screen.getByRole("button", { name: /status test klusje.*klik voor/i });
@@ -183,7 +186,7 @@ describe("KlusjesList", () => {
     const items = [makeItem({ id: "k1", name: "Test Klusje" })];
 
     render(
-      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
 
     const deleteButton = screen.getByRole("button", { name: /verwijder test klusje/i });
@@ -194,7 +197,7 @@ describe("KlusjesList", () => {
     const items = [makeItem({ id: "k1", name: "Urgent", priority: 1 })];
 
     render(
-      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
 
     expect(screen.getByText("Hoog")).toBeInTheDocument();
@@ -204,7 +207,7 @@ describe("KlusjesList", () => {
     const items = [makeItem({ id: "k1", name: "Later", priority: 3 })];
 
     render(
-      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
 
     expect(screen.getByText("Laag")).toBeInTheDocument();
@@ -214,7 +217,7 @@ describe("KlusjesList", () => {
     const items = [makeItem({ id: "k1", name: "Normal", priority: 2 })];
 
     render(
-      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
 
     expect(screen.queryByText("Hoog")).not.toBeInTheDocument();
@@ -229,12 +232,69 @@ describe("KlusjesList", () => {
     ];
 
     const { container } = render(
-      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} />
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
     );
     const listItems = container.querySelectorAll("li");
 
     expect(listItems[0]).toHaveTextContent("High Item");
     expect(listItems[1]).toHaveTextContent("Normal Item");
     expect(listItems[2]).toHaveTextContent("Low Item");
+  });
+
+  it("should show edit date button for each task", () => {
+    const items = [makeItem({ id: "k1", name: "Stofzuigen" })];
+
+    render(
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
+    );
+
+    expect(screen.getByRole("button", { name: /datum wijzigen.*stofzuigen/i })).toBeInTheDocument();
+  });
+
+  it("should show date input when edit date button is clicked", async () => {
+    const user = userEvent.setup();
+    const items = [makeItem({ id: "k1", name: "Stofzuigen", date: "2026-02-16" })];
+
+    render(
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
+    );
+
+    await user.click(screen.getByRole("button", { name: /datum wijzigen.*stofzuigen/i }));
+
+    expect(screen.getByLabelText("Nieuwe datum")).toBeInTheDocument();
+  });
+
+  it("should call onReschedule when date is changed", async () => {
+    const user = userEvent.setup();
+    mockOnReschedule.mockResolvedValue(undefined);
+    const items = [makeItem({ id: "k1", name: "Stofzuigen", date: "2026-02-16" })];
+
+    render(
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
+    );
+
+    await user.click(screen.getByRole("button", { name: /datum wijzigen.*stofzuigen/i }));
+
+    const dateInput = screen.getByLabelText("Nieuwe datum");
+    await user.clear(dateInput);
+    await user.type(dateInput, "2026-03-01");
+    await user.click(screen.getByRole("button", { name: /opslaan/i }));
+
+    expect(mockOnReschedule).toHaveBeenCalledWith("k1", "2026-03-01");
+  });
+
+  it("should call onReschedule with null when datum verwijderen is clicked", async () => {
+    const user = userEvent.setup();
+    mockOnReschedule.mockResolvedValue(undefined);
+    const items = [makeItem({ id: "k1", name: "Stofzuigen", date: "2026-02-16" })];
+
+    render(
+      <KlusjesList items={items} onStatusChange={mockOnStatusChange} onDelete={mockOnDelete} onReschedule={mockOnReschedule} />
+    );
+
+    await user.click(screen.getByRole("button", { name: /datum wijzigen.*stofzuigen/i }));
+    await user.click(screen.getByRole("button", { name: /datum verwijderen/i }));
+
+    expect(mockOnReschedule).toHaveBeenCalledWith("k1", null);
   });
 });

@@ -1,6 +1,7 @@
 export type KlusjesStatus = "todo" | "bezig" | "klaar";
 export type KlusjesRecurrence = "none" | "daily" | "weekly" | "monthly";
 export type KlusjesPriority = 1 | 2 | 3;
+export type ReminderOption = "0" | "5" | "15" | "30" | "60" | "1440";
 
 export interface KlusjesItem {
   id: string;
@@ -9,8 +10,10 @@ export interface KlusjesItem {
   status: KlusjesStatus;
   priority: KlusjesPriority;
   date: string | null;
+  endDate: string | null;
   recurrence: KlusjesRecurrence;
   completions: Record<string, { status: KlusjesStatus }>;
+  reminder: ReminderOption | null;
   createdBy: string;
   createdByName: string;
   createdAt: Date;
@@ -34,3 +37,12 @@ export const RECURRENCE_LABELS: Record<KlusjesRecurrence, string> = {
   weekly: "Wekelijks",
   monthly: "Maandelijks",
 };
+
+export const REMINDER_OPTIONS: { value: ReminderOption; label: string }[] = [
+  { value: "0", label: "Op het moment zelf" },
+  { value: "5", label: "5 minuten ervoor" },
+  { value: "15", label: "15 minuten ervoor" },
+  { value: "30", label: "30 minuten ervoor" },
+  { value: "60", label: "1 uur ervoor" },
+  { value: "1440", label: "1 dag ervoor" },
+];

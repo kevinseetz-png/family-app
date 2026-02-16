@@ -4,15 +4,19 @@ import { useState } from "react";
 import type { CustomCategory } from "@/types/customCategory";
 import { COLOR_SCHEMES } from "@/types/customCategory";
 
+import { CATEGORY_CONFIG, BUILT_IN_CATEGORIES } from "@/types/agenda";
+
 interface CategoryManagerProps {
   categories: CustomCategory[];
   onAdd: (data: { label: string; emoji: string; colorScheme: string }) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  hiddenBuiltIn: string[];
+  onToggleBuiltIn: (category: string) => Promise<void>;
 }
 
 const COLOR_SCHEME_KEYS = Object.keys(COLOR_SCHEMES);
 
-export function CategoryManager({ categories, onAdd, onDelete }: CategoryManagerProps) {
+export function CategoryManager({ categories, onAdd, onDelete, hiddenBuiltIn, onToggleBuiltIn }: CategoryManagerProps) {
   const [showForm, setShowForm] = useState(false);
   const [label, setLabel] = useState("");
   const [emoji, setEmoji] = useState("");
@@ -131,6 +135,63 @@ export function CategoryManager({ categories, onAdd, onDelete }: CategoryManager
           );
         })}
       </ul>
+
+      <h3 className="text-sm font-semibold text-gray-700 mt-6 mb-3">Standaard categorieën</h3>
+      <ul className="space-y-2">
+        {BUILT_IN_CATEGORIES.filter((cat) => !hiddenBuiltIn.includes(cat)).map((cat) => {
+          const config = CATEGORY_CONFIG[cat];
+          return (
+            <li
+              key={cat}
+              className="flex items-center justify-between p-2.5 rounded-lg border border-gray-200 bg-white"
+            >
+              <div className="flex items-center gap-2">
+                <span className={`w-3 h-3 rounded-full ${config.bgColor} ${config.borderColor} border`} />
+                <span className="text-sm">{config.emoji}</span>
+                <span className="text-sm text-gray-900">{config.label}</span>
+              </div>
+              <button
+                onClick={() => onToggleBuiltIn(cat)}
+                className="text-gray-400 hover:text-gray-600 text-xs font-medium"
+                aria-label={`Verberg ${config.label}`}
+              >
+                Verberg
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+
+      {hiddenBuiltIn.length > 0 && (
+        <>
+          <h3 className="text-sm font-semibold text-gray-700 mt-6 mb-3">Verborgen categorieën</h3>
+          <ul className="space-y-2">
+            {hiddenBuiltIn.map((cat) => {
+              const config = CATEGORY_CONFIG[cat as keyof typeof CATEGORY_CONFIG];
+              if (!config) return null;
+              return (
+                <li
+                  key={cat}
+                  className="flex items-center justify-between p-2.5 rounded-lg border border-gray-100 bg-gray-50"
+                >
+                  <div className="flex items-center gap-2 opacity-50">
+                    <span className={`w-3 h-3 rounded-full ${config.bgColor} ${config.borderColor} border`} />
+                    <span className="text-sm">{config.emoji}</span>
+                    <span className="text-sm text-gray-900">{config.label}</span>
+                  </div>
+                  <button
+                    onClick={() => onToggleBuiltIn(cat)}
+                    className="text-emerald-600 hover:text-emerald-700 text-xs font-medium"
+                    aria-label={`Terugzetten ${config.label}`}
+                  >
+                    Terugzetten
+                  </button>
+                </li>
+              );
+            })}
+          </ul>
+        </>
+      )}
     </div>
   );
 }

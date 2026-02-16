@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { KlusjesItem, KlusjesStatus } from "@/types/klusjes";
 import { RECURRENCE_LABELS, STATUS_CONFIG, PRIORITY_CONFIG } from "@/types/klusjes";
 
@@ -31,9 +32,12 @@ interface KlusjesListProps {
   items: KlusjesItem[];
   onStatusChange: (id: string, status: KlusjesStatus, completionDate?: string) => Promise<void>;
   onDelete: (id: string) => Promise<void>;
+  onReschedule: (id: string, newDate: string | null) => Promise<void>;
 }
 
-export function KlusjesList({ items, onStatusChange, onDelete }: KlusjesListProps) {
+export function KlusjesList({ items, onStatusChange, onDelete, onReschedule }: KlusjesListProps) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editDate, setEditDate] = useState("");
   const notDone = items
     .filter((i) => i.status !== "klaar")
     .sort((a, b) => (a.priority ?? 2) - (b.priority ?? 2));
@@ -49,7 +53,7 @@ export function KlusjesList({ items, onStatusChange, onDelete }: KlusjesListProp
       {sorted.map((item) => (
         <li
           key={item.id}
-          className="flex items-center gap-3 rounded-lg border border-gray-200 bg-white p-3"
+          className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-200 bg-white p-3"
         >
           <button
             onClick={() => onStatusChange(item.id, NEXT_STATUS[item.status], undefined)}
@@ -89,12 +93,57 @@ export function KlusjesList({ items, onStatusChange, onDelete }: KlusjesListProp
             </div>
           </div>
           <button
+            onClick={() => {
+              setEditingId(editingId === item.id ? null : item.id);
+              setEditDate(item.date || "");
+            }}
+            className="text-gray-400 hover:text-emerald-600 text-sm"
+            aria-label={`Datum wijzigen ${item.name}`}
+          >
+            &#x1F4C5;
+          </button>
+          <button
             onClick={() => onDelete(item.id)}
             className="text-red-400 hover:text-red-600 text-sm font-medium"
             aria-label={`Verwijder ${item.name}`}
           >
             &#x2715;
           </button>
+          {editingId === item.id && (
+            <div className="w-full mt-2 pt-2 border-t border-gray-100 flex flex-wrap gap-2 items-center">
+              <label htmlFor={`date-edit-${item.id}`} className="sr-only">Nieuwe datum</label>
+              <input
+                id={`date-edit-${item.id}`}
+                type="date"
+                value={editDate}
+                onChange={(e) => setEditDate(e.target.value)}
+                aria-label="Nieuwe datum"
+                className="flex-1 min-w-0 rounded border border-gray-300 px-2 py-1 text-sm text-gray-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+              />
+              <button
+                onClick={async () => {
+                  await onReschedule(item.id, editDate || null);
+                  setEditingId(null);
+                }}
+                className="text-xs font-medium text-white bg-emerald-600 px-2 py-1 rounded hover:bg-emerald-700"
+                aria-label="Opslaan"
+              >
+                Opslaan
+              </button>
+              {item.date && (
+                <button
+                  onClick={async () => {
+                    await onReschedule(item.id, null);
+                    setEditingId(null);
+                  }}
+                  className="text-xs font-medium text-red-600 hover:text-red-700 px-2 py-1"
+                  aria-label="Datum verwijderen"
+                >
+                  Datum verwijderen
+                </button>
+              )}
+            </div>
+          )}
         </li>
       ))}
     </ul>

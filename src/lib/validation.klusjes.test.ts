@@ -3,6 +3,8 @@ import {
   klusjesSchema,
   klusjesUpdateSchema,
   klusjesDeleteSchema,
+  agendaEventSchema,
+  agendaEventUpdateSchema,
 } from "./validation";
 
 describe("klusjesSchema", () => {
@@ -115,6 +117,41 @@ describe("klusjesSchema", () => {
     const result = klusjesSchema.safeParse({ name: "Test", priority: 0 });
     expect(result.success).toBe(false);
   });
+
+  it("defaults endDate to null when omitted", () => {
+    const result = klusjesSchema.safeParse({ name: "Stofzuigen" });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.endDate).toBeNull();
+    }
+  });
+
+  it("accepts valid endDate", () => {
+    const result = klusjesSchema.safeParse({
+      name: "Stofzuigen",
+      endDate: "2026-03-15",
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.endDate).toBe("2026-03-15");
+    }
+  });
+
+  it("accepts null endDate", () => {
+    const result = klusjesSchema.safeParse({
+      name: "Stofzuigen",
+      endDate: null,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid endDate format", () => {
+    const result = klusjesSchema.safeParse({
+      name: "Stofzuigen",
+      endDate: "15-03-2026",
+    });
+    expect(result.success).toBe(false);
+  });
 });
 
 describe("klusjesUpdateSchema", () => {
@@ -200,6 +237,121 @@ describe("klusjesUpdateSchema", () => {
       id: "klusje123",
       status: "todo",
       priority: 1,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts update with optional endDate field", () => {
+    const result = klusjesUpdateSchema.safeParse({
+      id: "klusje123",
+      endDate: "2026-04-01",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts update with null endDate (remove end date)", () => {
+    const result = klusjesUpdateSchema.safeParse({
+      id: "klusje123",
+      endDate: null,
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+describe("klusjesSchema — reminder", () => {
+  it("defaults reminder to null when omitted", () => {
+    const result = klusjesSchema.safeParse({ name: "Stofzuigen" });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.reminder).toBeNull();
+    }
+  });
+
+  it("accepts valid reminder value", () => {
+    for (const reminder of ["0", "5", "15", "30", "60", "1440"]) {
+      const result = klusjesSchema.safeParse({ name: "Test", reminder });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("rejects invalid reminder value", () => {
+    const result = klusjesSchema.safeParse({ name: "Test", reminder: "10" });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts null reminder", () => {
+    const result = klusjesSchema.safeParse({ name: "Test", reminder: null });
+    expect(result.success).toBe(true);
+  });
+});
+
+describe("klusjesUpdateSchema — reminder", () => {
+  it("accepts update with reminder field", () => {
+    const result = klusjesUpdateSchema.safeParse({
+      id: "klusje123",
+      reminder: "15",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts update with null reminder (remove alarm)", () => {
+    const result = klusjesUpdateSchema.safeParse({
+      id: "klusje123",
+      reminder: null,
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+describe("agendaEventSchema — reminder", () => {
+  const validEvent = {
+    title: "Tandarts",
+    category: "gezondheid",
+    date: "2026-02-20",
+    startTime: "10:00",
+    endTime: "10:30",
+    allDay: false,
+  };
+
+  it("defaults reminder to null when omitted", () => {
+    const result = agendaEventSchema.safeParse(validEvent);
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data.reminder).toBeNull();
+    }
+  });
+
+  it("accepts valid reminder values", () => {
+    for (const reminder of ["0", "5", "15", "30", "60", "1440"]) {
+      const result = agendaEventSchema.safeParse({ ...validEvent, reminder });
+      expect(result.success).toBe(true);
+    }
+  });
+
+  it("rejects invalid reminder value", () => {
+    const result = agendaEventSchema.safeParse({ ...validEvent, reminder: "10" });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts null reminder", () => {
+    const result = agendaEventSchema.safeParse({ ...validEvent, reminder: null });
+    expect(result.success).toBe(true);
+  });
+});
+
+describe("agendaEventUpdateSchema — reminder", () => {
+  it("accepts update with reminder", () => {
+    const result = agendaEventUpdateSchema.safeParse({
+      id: "evt1",
+      reminder: "30",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts update with null reminder", () => {
+    const result = agendaEventUpdateSchema.safeParse({
+      id: "evt1",
+      reminder: null,
     });
     expect(result.success).toBe(true);
   });

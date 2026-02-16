@@ -50,23 +50,35 @@ describe("GET /api/custom-categories", () => {
 
   it("should return custom categories for family", async () => {
     mockVerifyToken.mockResolvedValue(mockUser);
-    mockCollection.mockReturnValue({
-      where: vi.fn().mockReturnValue({
-        get: vi.fn().mockResolvedValue({
-          docs: [
-            {
-              id: "cat1",
-              data: () => ({
-                familyId: "fam1",
-                label: "Huisdier",
-                emoji: "🐕",
-                colorScheme: "groen",
-              }),
-            },
-          ],
-        }),
-      }),
-    } as never);
+    mockCollection.mockImplementation((name: string) => {
+      if (name === "customCategories") {
+        return {
+          where: vi.fn().mockReturnValue({
+            get: vi.fn().mockResolvedValue({
+              docs: [
+                {
+                  id: "cat1",
+                  data: () => ({
+                    familyId: "fam1",
+                    label: "Huisdier",
+                    emoji: "🐕",
+                    colorScheme: "groen",
+                  }),
+                },
+              ],
+            }),
+          }),
+        } as never;
+      }
+      if (name === "categorySettings") {
+        return {
+          doc: vi.fn().mockReturnValue({
+            get: vi.fn().mockResolvedValue({ exists: false }),
+          }),
+        } as never;
+      }
+      return {} as never;
+    });
 
     const res = await GET(makeRequest("GET"));
     expect(res.status).toBe(200);
@@ -74,6 +86,7 @@ describe("GET /api/custom-categories", () => {
     expect(data.categories).toHaveLength(1);
     expect(data.categories[0].label).toBe("Huisdier");
     expect(data.categories[0].id).toBe("cat1");
+    expect(data.hiddenBuiltIn).toEqual([]);
   });
 });
 

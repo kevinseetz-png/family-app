@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import type { KlusjesItem, KlusjesStatus, KlusjesRecurrence, KlusjesPriority } from "@/types/klusjes";
+import type { KlusjesItem, KlusjesStatus, KlusjesRecurrence, KlusjesPriority, ReminderOption } from "@/types/klusjes";
 
 interface KlusjesResponse {
   id: string;
@@ -10,8 +10,10 @@ interface KlusjesResponse {
   status: KlusjesStatus;
   priority: KlusjesPriority;
   date: string | null;
+  endDate: string | null;
   recurrence: KlusjesRecurrence;
   completions: Record<string, { status: KlusjesStatus }>;
+  reminder: ReminderOption | null;
   createdBy: string;
   createdByName: string;
   createdAt: string;
@@ -22,6 +24,8 @@ interface AddItemData {
   date: string | null;
   recurrence: KlusjesRecurrence;
   priority: KlusjesPriority;
+  endDate?: string | null;
+  reminder?: ReminderOption | null;
 }
 
 interface UseKlusjesReturn {
@@ -56,6 +60,9 @@ function expandRecurringKlusjes(items: KlusjesItem[], targetDate: string): Klusj
       }
       continue;
     }
+
+    // Skip if target date is past endDate
+    if (item.endDate && targetDate > item.endDate) continue;
 
     const itemDate = new Date(item.date + "T00:00:00");
     if (itemDate > target) continue;
@@ -120,8 +127,10 @@ export function useKlusjes(familyId: string | undefined): UseKlusjesReturn {
         status: item.status,
         priority: item.priority ?? 2,
         date: item.date,
+        endDate: item.endDate ?? null,
         recurrence: item.recurrence,
         completions: item.completions ?? {},
+        reminder: item.reminder ?? null,
         createdBy: item.createdBy,
         createdByName: item.createdByName,
         createdAt: new Date(item.createdAt),

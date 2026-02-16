@@ -23,7 +23,7 @@ const TOGGLEABLE_TABS = [
 export default function SettingsPage() {
   const { user, logout, visibleTabs, updateVisibleTabs } = useAuthContext();
   const { isSupported, isSubscribed, subscribe, unsubscribe } = useNotifications();
-  const { categories: customCategories, addCategory, deleteCategory } = useCustomCategories(user?.familyId);
+  const { categories: customCategories, hiddenBuiltIn, addCategory, deleteCategory, toggleBuiltIn } = useCustomCategories(user?.familyId);
 
   const defaultTabs = TOGGLEABLE_TABS.map((t) => t.href);
   const [localTabs, setLocalTabs] = useState<string[]>(visibleTabs ?? defaultTabs);
@@ -134,6 +134,8 @@ export default function SettingsPage() {
           categories={customCategories}
           onAdd={addCategory}
           onDelete={deleteCategory}
+          hiddenBuiltIn={hiddenBuiltIn}
+          onToggleBuiltIn={toggleBuiltIn}
         />
       </section>
 

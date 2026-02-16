@@ -5,13 +5,16 @@ import type { CustomCategory } from "@/types/customCategory";
 
 interface UseCustomCategoriesReturn {
   categories: CustomCategory[];
+  hiddenBuiltIn: string[];
   isLoading: boolean;
   addCategory: (data: { label: string; emoji: string; colorScheme: string }) => Promise<void>;
   deleteCategory: (id: string) => Promise<void>;
+  toggleBuiltIn: (category: string) => Promise<void>;
 }
 
 export function useCustomCategories(familyId: string | undefined): UseCustomCategoriesReturn {
   const [categories, setCategories] = useState<CustomCategory[]>([]);
+  const [hiddenBuiltIn, setHiddenBuiltIn] = useState<string[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchCategories = useCallback(async () => {
@@ -25,6 +28,7 @@ export function useCustomCategories(familyId: string | undefined): UseCustomCate
       if (res.ok) {
         const data = await res.json();
         setCategories(data.categories);
+        setHiddenBuiltIn(data.hiddenBuiltIn ?? []);
       }
     } catch {
       // silently fail
@@ -63,5 +67,19 @@ export function useCustomCategories(familyId: string | undefined): UseCustomCate
     await fetchCategories();
   }, [fetchCategories]);
 
-  return { categories, isLoading, addCategory, deleteCategory };
+  const toggleBuiltIn = useCallback(async (category: string) => {
+    const res = await fetch("/api/custom-categories/toggle-builtin", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ category }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.message || "Failed to toggle category");
+    }
+    const data = await res.json();
+    setHiddenBuiltIn(data.hiddenBuiltIn);
+  }, []);
+
+  return { categories, hiddenBuiltIn, isLoading, addCategory, deleteCategory, toggleBuiltIn };
 }

@@ -1,5 +1,6 @@
 import type { CustomCategory } from "./customCategory";
 import { COLOR_SCHEMES } from "./customCategory";
+import type { ReminderOption } from "./klusjes";
 
 export type BuiltInCategory =
   | "familie"
@@ -103,6 +104,7 @@ export interface AgendaEvent {
   assignedTo: string | null; // user name or null for everyone
   birthdayGroup: string | null; // group label for verjaardag events
   birthYear: number | null; // birth year for verjaardag events (age calculation)
+  reminder: ReminderOption | null;
   createdBy: string;
   createdByName: string;
   createdAt: Date;

@@ -9,6 +9,7 @@ interface AddItemData {
   date: string | null;
   recurrence: KlusjesRecurrence;
   priority: KlusjesPriority;
+  endDate?: string | null;
 }
 
 interface KlusjesFormProps {
@@ -20,6 +21,8 @@ export function KlusjesForm({ onAdd }: KlusjesFormProps) {
   const [date, setDate] = useState("");
   const [recurrence, setRecurrence] = useState<KlusjesRecurrence>("none");
   const [priority, setPriority] = useState<KlusjesPriority>(2);
+  const [endDate, setEndDate] = useState("");
+  const [weeks, setWeeks] = useState("");
   const [expanded, setExpanded] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -36,11 +39,14 @@ export function KlusjesForm({ onAdd }: KlusjesFormProps) {
         date: date || null,
         recurrence,
         priority,
+        endDate: recurrence !== "none" ? (endDate || null) : null,
       });
       setName("");
       setDate("");
       setRecurrence("none");
       setPriority(2);
+      setEndDate("");
+      setWeeks("");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Kon taak niet toevoegen");
     } finally {
@@ -116,6 +122,55 @@ export function KlusjesForm({ onAdd }: KlusjesFormProps) {
               ))}
             </select>
           </div>
+          {recurrence !== "none" && (
+            <div className="space-y-2">
+              <div>
+                <label htmlFor="klusje-enddate" className="block text-sm font-medium text-gray-700">
+                  Loopt tot
+                </label>
+                <input
+                  id="klusje-enddate"
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => { setEndDate(e.target.value); setWeeks(""); }}
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="klusje-weeks" className="block text-sm font-medium text-gray-700">
+                  Aantal weken
+                </label>
+                <input
+                  id="klusje-weeks"
+                  type="number"
+                  min="1"
+                  max="52"
+                  value={weeks}
+                  onChange={(e) => {
+                    const w = e.target.value;
+                    setWeeks(w);
+                    if (w && date) {
+                      const start = new Date(date + "T00:00:00");
+                      start.setDate(start.getDate() + parseInt(w) * 7);
+                      const y = start.getFullYear();
+                      const m = String(start.getMonth() + 1).padStart(2, "0");
+                      const d = String(start.getDate()).padStart(2, "0");
+                      setEndDate(`${y}-${m}-${d}`);
+                    } else if (w) {
+                      const start = new Date();
+                      start.setDate(start.getDate() + parseInt(w) * 7);
+                      const y = start.getFullYear();
+                      const m = String(start.getMonth() + 1).padStart(2, "0");
+                      const d = String(start.getDate()).padStart(2, "0");
+                      setEndDate(`${y}-${m}-${d}`);
+                    }
+                  }}
+                  placeholder="bijv. 4"
+                  className="mt-1 w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+              </div>
+            </div>
+          )}
           <div>
             <span className="block text-sm font-medium text-gray-700 mb-1">Prioriteit</span>
             <div className="flex gap-2">

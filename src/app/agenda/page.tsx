@@ -8,7 +8,8 @@ import { useKlusjes } from "@/hooks/useKlusjes";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { TaskCard } from "@/components/TaskCard";
 import { AddTaskModal } from "@/components/AddTaskModal";
-import type { KlusjesItem, KlusjesStatus } from "@/types/klusjes";
+import type { KlusjesItem, KlusjesStatus, ReminderOption } from "@/types/klusjes";
+import { REMINDER_OPTIONS } from "@/types/klusjes";
 import {
   CATEGORY_CONFIG,
   BUILT_IN_CATEGORIES,
@@ -945,6 +946,7 @@ function EventModal({
     assignedTo: string | null;
     birthdayGroup: string | null;
     birthYear: number | null;
+    reminder: ReminderOption | null;
   }) => Promise<void>;
   onClose: () => void;
   allCategories: string[];
@@ -963,6 +965,7 @@ function EventModal({
   const [assignedTo, setAssignedTo] = useState(event?.assignedTo || "");
   const [birthdayGroup, setBirthdayGroup] = useState(event?.birthdayGroup || "");
   const [birthYear, setBirthYear] = useState(event?.birthYear?.toString() || "");
+  const [reminder, setReminder] = useState<ReminderOption | "">(event?.reminder || "");
   const [isSaving, setIsSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
 
@@ -1015,6 +1018,7 @@ function EventModal({
         assignedTo: assignedTo.trim() || null,
         birthdayGroup: category === "verjaardag" && birthdayGroup.trim() ? birthdayGroup.trim() : null,
         birthYear: category === "verjaardag" && birthYear ? (Number.isNaN(parseInt(birthYear, 10)) ? null : parseInt(birthYear, 10)) : null,
+        reminder: reminder || null,
       });
       onClose();
     } catch (err) {
@@ -1175,6 +1179,26 @@ function EventModal({
             >
               {(Object.entries(RECURRENCE_LABELS) as [RecurrenceType, string][]).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* Reminder / Alarm */}
+          <div>
+            <label htmlFor="event-reminder" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+              Herinnering
+            </label>
+            <select
+              id="event-reminder"
+              value={reminder}
+              onChange={(e) => setReminder(e.target.value as ReminderOption | "")}
+              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none"
+            >
+              <option value="">Geen</option>
+              {REMINDER_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
+                </option>
               ))}
             </select>
           </div>
@@ -1806,15 +1830,15 @@ export default function AgendaPage() {
   const router = useRouter();
   const { events, isLoading, error, addEvent, updateEvent, deleteEvent, getEventsForDate, getEventsForMonth } = useAgenda(user?.familyId);
   const { items: tasks, isLoading: tasksLoading, addItem: addTask, updateStatus: updateTaskStatus, getItemsForDate: getTasksForDate } = useKlusjes(user?.familyId);
-  const { categories: customCategories } = useCustomCategories(user?.familyId);
+  const { categories: customCategories, hiddenBuiltIn } = useCustomCategories(user?.familyId);
 
   const allCategories = useMemo(() => {
-    const labels: string[] = [...ALL_BUILT_IN_CATEGORIES];
+    const labels: string[] = ALL_BUILT_IN_CATEGORIES.filter((c) => !hiddenBuiltIn.includes(c));
     for (const c of customCategories) {
       if (!labels.includes(c.label)) labels.push(c.label);
     }
     return labels;
-  }, [customCategories]);
+  }, [customCategories, hiddenBuiltIn]);
   const allCategoriesCount = allCategories.length;
 
   const [selectedDate, setSelectedDate] = useState(getToday());
@@ -2033,6 +2057,7 @@ export default function AgendaPage() {
     assignedTo: string | null;
     birthdayGroup: string | null;
     birthYear: number | null;
+    reminder: ReminderOption | null;
   }) => {
     if (editingEvent) {
       await updateEvent(editingEvent.id, data);

@@ -31,7 +31,16 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       };
     });
 
-    return NextResponse.json({ categories });
+    // Also fetch hidden built-in categories
+    const settingsDoc = await adminDb
+      .collection("categorySettings")
+      .doc(user.familyId)
+      .get();
+    const hiddenBuiltIn: string[] = settingsDoc.exists
+      ? (settingsDoc.data()?.hiddenBuiltIn ?? [])
+      : [];
+
+    return NextResponse.json({ categories, hiddenBuiltIn });
   } catch (err) {
     console.error("Failed to fetch custom categories:", err);
     return NextResponse.json({ message: "Failed to fetch custom categories" }, { status: 500 });

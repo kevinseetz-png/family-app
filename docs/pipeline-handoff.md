@@ -1081,6 +1081,43 @@ Features implemented:
 
 ---
 
+# Pipeline Handoff — Boodschappen Scroll Bugfix (Story #5)
+
+Task: Fix bug where tab navigation disappears when scrolling in boodschappen tab
+
+---
+
+## Stage 1: Test Writer
+- Files modified: `src/components/TabBar.test.tsx` — added 1 test for `flex-shrink-0` on nav
+- Test count: 9 tests (1 new)
+- Coverage: Verifies TabBar nav element has flex-shrink-0 to prevent shrinking in flex layout
+
+## Stage 2: Implementer
+- Files modified:
+  - `src/app/layout.tsx` — Changed body to `h-screen flex flex-col overflow-hidden`, wrapped children in `div.flex-1.overflow-y-auto` scroll container
+  - `src/components/TabBar.tsx` — Added `flex-shrink-0` to nav element (alongside existing sticky top-0)
+- Summary: TabBar is now outside the scroll container, so it can never scroll out of view. Content scrolls independently within the flex-1 container.
+
+## Stages 3-7: Reviews
+- Performance: No impact (CSS-only changes)
+- Security: No impact
+- Code Quality: Standard flex-column layout pattern
+- Accessibility: Keyboard scroll and focus management preserved
+- Type Safety: No TS changes
+
+## Stage 8: Feedback Processor
+- No fixes needed
+
+## Stage 9: Final Tester
+| Check | Status | Details |
+|-------|--------|---------|
+| Vitest | PASS | 524 passed, 1 date-dependent pre-existing failure, 2 skipped |
+| TypeScript | PASS | 0 new errors (pre-existing EditFeedingModal errors only) |
+
+### Verdict: PASS
+
+---
+
 # Pipeline Handoff — Klusjes (Chores) Feature — Stage 3: Performance Review
 
 Task: Review klusjes feature implementation for performance issues

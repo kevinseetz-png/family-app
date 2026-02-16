@@ -26,7 +26,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body className="min-h-screen bg-gray-50 text-gray-900 antialiased">
+      <body className="h-screen flex flex-col bg-gray-50 text-gray-900 antialiased overflow-hidden">
         <a
           href="#main-content"
           className="sr-only focus:not-sr-only focus:absolute focus:z-50 focus:p-4 focus:bg-white focus:text-emerald-600"
@@ -36,9 +36,11 @@ export default function RootLayout({
         <AuthProvider>
           <RouteAnnouncer />
           <TabBar />
-          <MedicineReminder />
-          {children}
-          <InstallBanner />
+          <div className="flex-1 overflow-y-auto">
+            <MedicineReminder />
+            {children}
+            <InstallBanner />
+          </div>
         </AuthProvider>
         <ServiceWorkerRegister />
       </body>

@@ -66,6 +66,12 @@ describe("TabBar", () => {
     expect(scrollContainer).toHaveClass("overflow-x-auto");
   });
 
+  it("has flex-shrink-0 on nav to prevent shrinking in flex layout", () => {
+    render(<TabBar />);
+    const nav = screen.getByRole("navigation");
+    expect(nav).toHaveClass("flex-shrink-0");
+  });
+
   it("hides scrollbar on the tab container", () => {
     render(<TabBar />);
     const nav = screen.getByRole("navigation");

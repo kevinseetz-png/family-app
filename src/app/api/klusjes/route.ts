@@ -46,8 +46,10 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           status,
           priority: data.priority ?? 2,
           date: data.date ?? null,
+          endDate: data.endDate ?? null,
           recurrence: data.recurrence ?? "none",
           completions: data.completions ?? {},
+          reminder: data.reminder ?? null,
           createdBy: data.createdBy,
           createdByName: data.createdByName,
           createdAt: createdAt.toISOString(),
@@ -90,7 +92,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { name, date, recurrence, priority } = result.data;
+  const { name, date, recurrence, priority, endDate, reminder } = result.data;
 
   try {
     const item = {
@@ -99,7 +101,9 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       status: "todo",
       priority: priority ?? 2,
       date: date ?? null,
+      endDate: endDate ?? null,
       recurrence: recurrence ?? "none",
+      reminder: reminder ?? null,
       completions: {},
       createdBy: user.id,
       createdByName: user.name,
@@ -152,7 +156,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { id, status, completionDate, date, recurrence, priority } = result.data;
+  const { id, status, completionDate, date, recurrence, priority, endDate, reminder } = result.data;
 
   if (id.length > 128 || id.includes("/")) {
     return NextResponse.json({ message: "Invalid request" }, { status: 400 });
@@ -186,6 +190,8 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       if (date !== undefined) updateData.date = date;
       if (recurrence !== undefined) updateData.recurrence = recurrence;
       if (priority !== undefined) updateData.priority = priority;
+      if (endDate !== undefined) updateData.endDate = endDate;
+      if (reminder !== undefined) updateData.reminder = reminder;
       if (Object.keys(updateData).length > 0) {
         await docRef.update(updateData);
       }

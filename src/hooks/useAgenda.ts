@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { AgendaEvent, AgendaCategory, RecurrenceType } from "@/types/agenda";
+import type { ReminderOption } from "@/types/klusjes";
 
 interface ErrorResponse {
   message?: string;
@@ -19,6 +20,7 @@ interface AddEventData {
   assignedTo?: string | null;
   birthdayGroup?: string | null;
   birthYear?: number | null;
+  reminder?: ReminderOption | null;
 }
 
 interface UpdateEventData {
@@ -33,6 +35,7 @@ interface UpdateEventData {
   assignedTo?: string | null;
   birthdayGroup?: string | null;
   birthYear?: number | null;
+  reminder?: ReminderOption | null;
 }
 
 interface UseAgendaReturn {

@@ -37,6 +37,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           assignedTo: data.assignedTo || null,
           birthdayGroup: data.birthdayGroup ?? null,
           birthYear: data.birthYear ?? null,
+          reminder: data.reminder ?? null,
           createdBy: data.createdBy,
           createdByName: data.createdByName,
           createdAt: data.createdAt.toDate().toISOString(),

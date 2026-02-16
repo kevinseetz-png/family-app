@@ -78,6 +78,7 @@ export default function KlusjesPage() {
             items={items}
             onStatusChange={updateStatus}
             onDelete={deleteItem}
+            onReschedule={rescheduleTask}
           />
         ) : (
           <KlusjesWeekView

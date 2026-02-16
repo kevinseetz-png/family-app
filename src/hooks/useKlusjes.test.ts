@@ -364,4 +364,68 @@ describe("useKlusjes", () => {
     expect(items).toHaveLength(1);
     expect(items[0].name).toBe("Daily chore");
   });
+
+  it("should NOT expand recurring klusjes past endDate", async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        items: [
+          { id: "k1", name: "Daily chore", status: "todo", date: "2026-02-09", recurrence: "daily", endDate: "2026-02-11", completions: {}, createdBy: "u1", createdByName: "User", createdAt: "2026-01-01T00:00:00Z" },
+        ],
+      }),
+    });
+
+    const { result } = renderHook(() => useKlusjes("fam1"));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    // Should still expand on 2026-02-10 (before endDate)
+    const beforeEnd = result.current.getItemsForDate("2026-02-10");
+    expect(beforeEnd).toHaveLength(1);
+
+    // Should still expand on 2026-02-11 (on endDate, inclusive)
+    const onEnd = result.current.getItemsForDate("2026-02-11");
+    expect(onEnd).toHaveLength(1);
+
+    // Should NOT expand on 2026-02-12 (after endDate)
+    const afterEnd = result.current.getItemsForDate("2026-02-12");
+    expect(afterEnd).toHaveLength(0);
+  });
+
+  it("should include endDate in addItem request", async () => {
+    const fetchMock = global.fetch as ReturnType<typeof vi.fn>;
+
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ items: [] }),
+    });
+
+    const { result } = renderHook(() => useKlusjes("fam1"));
+
+    await waitFor(() => {
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ id: "klusje1" }),
+    });
+
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ items: [] }),
+    });
+
+    await result.current.addItem({ name: "Stofzuigen", date: "2026-02-16", recurrence: "weekly", priority: 2, endDate: "2026-03-16" });
+
+    expect(fetchMock).toHaveBeenCalledWith("/api/klusjes", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: "Stofzuigen", date: "2026-02-16", recurrence: "weekly", priority: 2, endDate: "2026-03-16" }),
+    });
+  });
 });

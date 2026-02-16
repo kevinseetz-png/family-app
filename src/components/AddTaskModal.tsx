@@ -1,14 +1,16 @@
 "use client";
 
 import { useState, useEffect, type FormEvent } from "react";
-import type { KlusjesRecurrence, KlusjesPriority } from "@/types/klusjes";
-import { RECURRENCE_LABELS, PRIORITY_CONFIG } from "@/types/klusjes";
+import type { KlusjesRecurrence, KlusjesPriority, ReminderOption } from "@/types/klusjes";
+import { RECURRENCE_LABELS, PRIORITY_CONFIG, REMINDER_OPTIONS } from "@/types/klusjes";
 
 interface AddTaskData {
   name: string;
   date: string | null;
   recurrence: KlusjesRecurrence;
   priority: KlusjesPriority;
+  endDate?: string | null;
+  reminder?: ReminderOption | null;
 }
 
 interface AddTaskModalProps {
@@ -22,6 +24,8 @@ export function AddTaskModal({ selectedDate, onSave, onClose }: AddTaskModalProp
   const [date, setDate] = useState(selectedDate);
   const [recurrence, setRecurrence] = useState<KlusjesRecurrence>("none");
   const [priority, setPriority] = useState<KlusjesPriority>(2);
+  const [endDate, setEndDate] = useState("");
+  const [reminder, setReminder] = useState<ReminderOption | "">("");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,6 +55,8 @@ export function AddTaskModal({ selectedDate, onSave, onClose }: AddTaskModalProp
         date: date || null,
         recurrence,
         priority,
+        endDate: recurrence !== "none" ? (endDate || null) : null,
+        reminder: reminder || null,
       });
       onClose();
     } catch (err) {
@@ -136,6 +142,40 @@ export function AddTaskModal({ selectedDate, onSave, onClose }: AddTaskModalProp
               {Object.entries(RECURRENCE_LABELS).map(([value, label]) => (
                 <option key={value} value={value}>
                   {label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {recurrence !== "none" && (
+            <div>
+              <label htmlFor="task-enddate" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                Loopt tot
+              </label>
+              <input
+                id="task-enddate"
+                type="date"
+                value={endDate}
+                onChange={(e) => setEndDate(e.target.value)}
+                className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              />
+            </div>
+          )}
+
+          <div>
+            <label htmlFor="task-reminder" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+              Herinnering
+            </label>
+            <select
+              id="task-reminder"
+              value={reminder}
+              onChange={(e) => setReminder(e.target.value as ReminderOption | "")}
+              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+            >
+              <option value="">Geen</option>
+              {REMINDER_OPTIONS.map((opt) => (
+                <option key={opt.value} value={opt.value}>
+                  {opt.label}
                 </option>
               ))}
             </select>

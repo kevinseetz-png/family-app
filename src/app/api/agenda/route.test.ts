@@ -179,6 +179,128 @@ describe("POST /api/agenda", () => {
   });
 });
 
+describe("POST /api/agenda — reminder", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("should store reminder field when provided", async () => {
+    mockVerifyToken.mockResolvedValue(mockUser);
+    const mockAdd = vi.fn().mockResolvedValue({ id: "event3" });
+    mockCollection.mockReturnValue({ add: mockAdd } as never);
+
+    const res = await POST(makeRequest("POST", {
+      title: "Tandarts",
+      category: "gezondheid",
+      date: "2026-02-20",
+      startTime: "10:00",
+      endTime: "10:30",
+      allDay: false,
+      reminder: "15",
+    }));
+
+    expect(res.status).toBe(201);
+    const data = await res.json();
+    expect(data.event.reminder).toBe("15");
+    expect(mockAdd).toHaveBeenCalledWith(
+      expect.objectContaining({ reminder: "15" })
+    );
+  });
+
+  it("should default reminder to null when not provided", async () => {
+    mockVerifyToken.mockResolvedValue(mockUser);
+    const mockAdd = vi.fn().mockResolvedValue({ id: "event4" });
+    mockCollection.mockReturnValue({ add: mockAdd } as never);
+
+    const res = await POST(makeRequest("POST", {
+      title: "Meeting",
+      category: "werk",
+      date: "2026-03-15",
+      startTime: "09:00",
+      endTime: "10:00",
+      allDay: false,
+    }));
+
+    expect(res.status).toBe(201);
+    expect(mockAdd).toHaveBeenCalledWith(
+      expect.objectContaining({ reminder: null })
+    );
+  });
+});
+
+describe("GET /api/agenda — reminder", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("should return reminder field in events", async () => {
+    mockVerifyToken.mockResolvedValue(mockUser);
+    mockCollection.mockReturnValue({
+      where: vi.fn().mockReturnValue({
+        get: vi.fn().mockResolvedValue({
+          docs: [
+            {
+              id: "evt1",
+              data: () => ({
+                familyId: "fam1",
+                title: "Tandarts",
+                description: "",
+                category: "gezondheid",
+                date: "2026-02-20",
+                startTime: "10:00",
+                endTime: "10:30",
+                allDay: false,
+                recurrence: "none",
+                assignedTo: null,
+                birthdayGroup: null,
+                birthYear: null,
+                reminder: "15",
+                createdBy: "user1",
+                createdByName: "Test User",
+                createdAt: { toDate: () => new Date("2026-01-01") },
+              }),
+            },
+          ],
+        }),
+      }),
+    } as never);
+
+    const res = await GET(makeRequest("GET"));
+    const data = await res.json();
+    expect(data.events[0].reminder).toBe("15");
+  });
+
+  it("should default reminder to null for old events without reminder", async () => {
+    mockVerifyToken.mockResolvedValue(mockUser);
+    mockCollection.mockReturnValue({
+      where: vi.fn().mockReturnValue({
+        get: vi.fn().mockResolvedValue({
+          docs: [
+            {
+              id: "evt2",
+              data: () => ({
+                familyId: "fam1",
+                title: "Old event",
+                description: "",
+                category: "overig",
+                date: "2026-02-20",
+                startTime: "10:00",
+                endTime: "10:30",
+                allDay: false,
+                recurrence: "none",
+                assignedTo: null,
+                createdBy: "user1",
+                createdByName: "Test User",
+                createdAt: { toDate: () => new Date("2026-01-01") },
+              }),
+            },
+          ],
+        }),
+      }),
+    } as never);
+
+    const res = await GET(makeRequest("GET"));
+    const data = await res.json();
+    expect(data.events[0].reminder).toBeNull();
+  });
+});
+
 describe("PUT /api/agenda", () => {
   beforeEach(() => vi.clearAllMocks());
 
@@ -207,6 +329,58 @@ describe("PUT /api/agenda", () => {
         birthdayGroup: "Vrienden",
         birthYear: 1990,
       })
+    );
+  });
+});
+
+describe("PUT /api/agenda — reminder", () => {
+  beforeEach(() => vi.clearAllMocks());
+
+  it("should update reminder field", async () => {
+    mockVerifyToken.mockResolvedValue(mockUser);
+    const mockUpdate = vi.fn().mockResolvedValue(undefined);
+    mockCollection.mockReturnValue({
+      doc: vi.fn().mockReturnValue({
+        get: vi.fn().mockResolvedValue({
+          exists: true,
+          data: () => ({ familyId: "fam1" }),
+        }),
+        update: mockUpdate,
+      }),
+    } as never);
+
+    const res = await PUT(makeRequest("PUT", {
+      id: "event1",
+      reminder: "30",
+    }));
+
+    expect(res.status).toBe(200);
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ reminder: "30" })
+    );
+  });
+
+  it("should remove reminder by setting to null", async () => {
+    mockVerifyToken.mockResolvedValue(mockUser);
+    const mockUpdate = vi.fn().mockResolvedValue(undefined);
+    mockCollection.mockReturnValue({
+      doc: vi.fn().mockReturnValue({
+        get: vi.fn().mockResolvedValue({
+          exists: true,
+          data: () => ({ familyId: "fam1" }),
+        }),
+        update: mockUpdate,
+      }),
+    } as never);
+
+    const res = await PUT(makeRequest("PUT", {
+      id: "event1",
+      reminder: null,
+    }));
+
+    expect(res.status).toBe(200);
+    expect(mockUpdate).toHaveBeenCalledWith(
+      expect.objectContaining({ reminder: null })
     );
   });
 });

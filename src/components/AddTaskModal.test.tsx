@@ -86,6 +86,39 @@ describe("AddTaskModal", () => {
     );
   });
 
+  it("should show reminder select defaulting to 'Geen'", () => {
+    render(<AddTaskModal selectedDate="2026-02-15" onSave={mockOnSave} onClose={mockOnClose} />);
+    expect(screen.getByLabelText(/herinnering/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/herinnering/i)).toHaveValue("");
+  });
+
+  it("should submit with reminder when selected", async () => {
+    const user = userEvent.setup();
+    mockOnSave.mockResolvedValue(undefined);
+    render(<AddTaskModal selectedDate="2026-02-15" onSave={mockOnSave} onClose={mockOnClose} />);
+
+    await user.type(screen.getByPlaceholderText("Taaknaam"), "Alarm test");
+    await user.selectOptions(screen.getByLabelText(/herinnering/i), "15");
+    await user.click(screen.getByRole("button", { name: /bewaar/i }));
+
+    expect(mockOnSave).toHaveBeenCalledWith(
+      expect.objectContaining({ reminder: "15" })
+    );
+  });
+
+  it("should submit with null reminder when 'Geen' is selected", async () => {
+    const user = userEvent.setup();
+    mockOnSave.mockResolvedValue(undefined);
+    render(<AddTaskModal selectedDate="2026-02-15" onSave={mockOnSave} onClose={mockOnClose} />);
+
+    await user.type(screen.getByPlaceholderText("Taaknaam"), "No alarm");
+    await user.click(screen.getByRole("button", { name: /bewaar/i }));
+
+    expect(mockOnSave).toHaveBeenCalledWith(
+      expect.objectContaining({ reminder: null })
+    );
+  });
+
   it("should show error message when save fails", async () => {
     const user = userEvent.setup();
     mockOnSave.mockRejectedValue(new Error("Kon taak niet toevoegen"));

@@ -149,12 +149,17 @@ export const mealDeleteSchema = z.object({
   id: z.string().min(1, "Invalid request"),
 });
 
+// Reminder field shared by klusjes and agenda
+const reminderField = z.enum(["0", "5", "15", "30", "60", "1440"]).nullable().optional().default(null);
+
 // Klusjes schemas
 export const klusjesSchema = z.object({
   name: z.string().min(1, "Name is required").max(200, "Name is too long"),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat").nullable().optional().default(null),
   recurrence: z.enum(["none", "daily", "weekly", "monthly"]).optional().default("none"),
   priority: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional().default(2),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat").nullable().optional().default(null),
+  reminder: reminderField,
 });
 
 export const klusjesUpdateSchema = z.object({
@@ -164,6 +169,8 @@ export const klusjesUpdateSchema = z.object({
   recurrence: z.enum(["none", "daily", "weekly", "monthly"]).optional(),
   completionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat").optional(),
   priority: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional(),
+  endDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat").nullable().optional(),
+  reminder: z.enum(["0", "5", "15", "30", "60", "1440"]).nullable().optional(),
 });
 
 export const klusjesDeleteSchema = z.object({
@@ -183,6 +190,7 @@ export const agendaEventSchema = z.object({
   assignedTo: z.string().max(100).nullable().default(null),
   birthdayGroup: z.string().max(50).nullable().default(null),
   birthYear: z.number().int().min(1900).max(2100).nullable().default(null),
+  reminder: reminderField,
 });
 
 export const agendaEventUpdateSchema = z.object({
@@ -198,6 +206,7 @@ export const agendaEventUpdateSchema = z.object({
   assignedTo: z.string().max(100).nullable().optional(),
   birthdayGroup: z.string().max(50).nullable().optional(),
   birthYear: z.number().int().min(1900).max(2100).nullable().optional(),
+  reminder: z.enum(["0", "5", "15", "30", "60", "1440"]).nullable().optional(),
 });
 
 export const agendaEventDeleteSchema = z.object({
