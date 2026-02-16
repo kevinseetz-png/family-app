@@ -1436,3 +1436,363 @@ Task: Create unified `/api/cron/run-all` route combining agenda-reminders + vita
 - `npx vitest run src/app/api/cron/run-all/` — 6 passed, 0 failed
 - `npx tsc --noEmit` — clean (pre-existing errors only)
 - **Verdict: PASS**
+
+---
+
+# Pipeline Handoff — Dark Mode Feature
+
+Task: Review dark mode implementation for performance issues
+
+---
+
+## Stage 3: Performance Review
+
+### Critical (must fix)
+None
+
+### Warnings (should fix)
+
+1. **Context value object recreated on every render**: `src/components/ThemeProvider.tsx:37-39` — The `{ theme, toggleTheme }` object passed to ThemeContext.Provider is created inline on every render. Although `toggleTheme` is memoized, the object itself is a new reference each render, causing all context consumers to re-render unnecessarily.
+   - **Impact**: All components using `useTheme()` re-render on parent re-renders, even if theme hasn't changed
+   - **Suggested fix**: Wrap object in `useMemo` with dependencies `[theme, toggleTheme]`
+   ```typescript
+   const value = useMemo(() => ({ theme, toggleTheme }), [theme, toggleTheme]);
+   return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+   ```
+
+2. **Synchronous localStorage access in initializer**: `src/components/ThemeProvider.tsx:15-21` — The `useState` initializer reads from localStorage synchronously. While necessary for hydration, this can be slow on low-end devices or if localStorage is large. On subsequent renders (component remounting), this re-runs.
+   - **Impact**: Slight performance hit on mount, especially if localStorage operations are slow
+   - **Suggested fix**: Consider caching the initial value or using a separate effect for deferred hydration
+
+3. **Sequential DOM mutations on theme change**: `src/components/ThemeProvider.tsx:23-30` — The effect does classList operations followed by localStorage.setItem in the same tick. While this is correct, localStorage writes have latency. On rapid theme toggles, this could queue multiple operations.
+   - **Impact**: Minor, but noticeable on rapid theme changes
+   - **Suggested fix**: Consider debouncing if users toggle theme rapidly, or batch DOM + storage updates
+
+4. **Client-side theme load creates Flash of Unstyled Content (FOUC)**: `src/components/ThemeProvider.tsx:14-20` — Theme is read from localStorage client-side after page load, but CSS dark variant is applied asynchronously. On hard refresh, users see light theme momentarily before dark theme kicks in.
+   - **Impact**: Visible layout shift if user prefers dark mode
+   - **Suggested fix**: Add inline script in `layout.tsx` root to read localStorage and apply class before React hydrates
+
+### Suggestions
+
+1. **FOUC mitigation with inline script**: Consider adding a script tag in `src/app/layout.tsx` before hydration:
+   ```typescript
+   <script dangerouslySetInnerHTML={{__html: `
+     if(localStorage.getItem('theme')==='dark')
+       document.documentElement.classList.add('dark')
+   `}} />
+   ```
+   This runs before React hydrates, preventing the flash.
+
+2. **Memoize TOGGLEABLE_TABS array in settings page**: `src/app/instellingen/page.tsx:12-22` — The `TOGGLEABLE_TABS` array is defined outside the component, which is good, but should be moved to module level if not already to prevent recreation on renders.
+
+3. **Consider memoizing NotificationToggle components in settings**: `src/app/instellingen/page.tsx:84-91` — The `.map()` over `TOGGLEABLE_TABS` creates new component instances on every render even if the array hasn't changed. Could wrap in `useMemo`.
+
+4. **No issues with TabBar dark mode classes**: `src/components/TabBar.tsx` — The dark mode class application is conditional and efficient. No performance concerns.
+
+5. **NotificationToggle component is optimized**: `src/components/NotificationToggle.tsx` — Minimal re-render surface, appropriate for toggle components. No concerns.
+
+6. **globals.css animations are performant**: `src/app/globals.css` — Animations use `transform` and `opacity` (GPU-accelerated properties). No performance red flags.
+
+**Total: 0 critical, 3 warnings, 6 suggestions**
+
+## Stage 4: Security Review
+
+### Critical (must fix before merge)
+None
+
+### High (should fix before merge)
+None
+
+### Medium
+
+**SEC-01: localStorage used without validation of stored values**
+- **Location**: `src/components/ThemeProvider.tsx:17-18`
+- **Issue**: The code reads from localStorage and validates the value is "dark" or "light", which is good defensive programming. The check `if (stored === "dark" || stored === "light")` ensures that only valid theme values are accepted. This is SECURE.
+- **Risk**: LOW (current implementation is defensive and secure)
+- **Recommendation**: Current implementation is secure. No changes required.
+
+**SEC-02: Theme preference persisted without user consent notice**
+- **Location**: `src/components/ThemeProvider.tsx:29`
+- **Issue**: Theme preference is persisted to localStorage without explicit user consent. While theme is a user preference (not sensitive data), users may not be aware their preference is being stored. This could violate GDPR/privacy regulations depending on jurisdiction if not disclosed in privacy policy.
+- **Risk**: MEDIUM (regulatory/privacy concern rather than security)
+- **Recommendation**: Ensure privacy policy discloses that theme preference is stored locally (in browser's localStorage). Consider adding a brief notice in the settings page that preferences are saved locally.
+
+**SEC-03: No XSS protection verification in settings page**
+- **Location**: `src/app/instellingen/page.tsx:98`
+- **Issue**: The dark mode toggle uses a button that renders the theme state. The code doesn't use `dangerouslySetInnerHTML` or any unsafe rendering patterns. Theme is rendered as text ("dark" | "light"), which is safe. Theme state is controlled internally via `useTheme()` hook and cannot be manipulated by query parameters or external input.
+- **Risk**: LOW (current implementation is safe)
+- **Recommendation**: Current implementation is safe. No changes required.
+
+### Low / Informational
+
+**INFO-01: Proper SSR/hydration handling**
+- **Location**: `src/components/ThemeProvider.tsx:16`
+- **Status**: ✓ SECURE — Code checks `typeof window !== "undefined"` before accessing localStorage, which prevents errors on server-side rendering. Good practice.
+
+**INFO-02: No sensitive data in theme context**
+- **Location**: `src/components/ThemeProvider.tsx:12-13`
+- **Status**: ✓ SECURE — Theme context only exposes theme state ("light" | "dark") and toggleTheme callback. No sensitive information or PII exposed.
+
+**INFO-03: Theme applied to document element**
+- **Location**: `src/components/ThemeProvider.tsx:24-28`
+- **Status**: ✓ SECURE — Code manipulates DOM classes (`classList.add/remove`) to apply dark mode. This is a standard, safe approach. No `innerHTML` or `dangerouslySetInnerHTML` used.
+
+**INFO-04: Settings page has proper authentication context**
+- **Location**: `src/app/instellingen/page.tsx:25`
+- **Status**: ✓ SECURE — Page uses `useAuthContext()` to verify user is authenticated before rendering settings. Good security practice.
+
+**INFO-05: No externally sourced styles**
+- **Location**: `src/app/instellingen/page.tsx:99-114`
+- **Status**: ✓ SECURE — Dark mode toggle uses inline Tailwind classes and computed className strings. No external URLs or user-controlled CSS loaded. Safe from CSS injection.
+
+**INFO-06: Layout properly structures provider hierarchy**
+- **Location**: `src/app/layout.tsx:37-47`
+- **Status**: ✓ SECURE — ThemeProvider is correctly placed INSIDE AuthProvider in the provider hierarchy. Provider order is appropriate.
+
+**INFO-07: suppressHydrationWarning used appropriately**
+- **Location**: `src/app/layout.tsx:29`
+- **Status**: ✓ SECURE — The `<html>` element uses `suppressHydrationWarning` attribute. This is necessary because the dark class may differ between server render (default "light") and client hydration (from localStorage). This is the correct pattern for theme switching in Next.js. Does not create security issues.
+
+**INFO-08: React auto-escaping prevents XSS**
+- **Location**: `src/app/instellingen/page.tsx:entire file`
+- **Status**: ✓ SECURE — All dynamic content is rendered via React JSX (not dangerouslySetInnerHTML). React automatically escapes strings rendered as text content, protecting against XSS injection.
+
+### Summary
+
+**Total: 0 critical, 0 high, 3 medium**
+
+#### Medium Issues Detail:
+1. **SEC-01** (localStorage validation): Already handled well by the code. No code changes required. SECURE.
+2. **SEC-02** (Privacy consent): Regulatory recommendation, not a code security issue. Ensure privacy policy mentions localStorage theme storage.
+3. **SEC-03** (XSS in settings): Current implementation is safe. Theme state is internal and immutable. SECURE.
+
+### Verdict
+
+The dark mode feature implementation is **SECURE**. All three files follow security best practices:
+
+- ✓ No use of `dangerouslySetInnerHTML` or unsafe HTML rendering
+- ✓ localStorage properly validated and protected against tampering
+- ✓ No sensitive data or PII exposed in theme context
+- ✓ Proper XSS protection through React's auto-escaping and safe DOM manipulation
+- ✓ Correct SSR/hydration handling with `typeof window` check
+- ✓ Proper authentication context integration
+- ✓ No externally sourced or user-controlled CSS/scripts
+- ✓ Provider hierarchy correctly structured
+
+**Ready to proceed to Stage 5 (Code Quality Review).**
+
+## Stage 5: Code Quality Review
+
+### Must Fix
+None
+
+### Should Fix
+
+1. **Settings page component size**: `/home/user/family-app/src/app/instellingen/page.tsx:24-199` — Component is 199 lines, exceeding the 150-line guideline. Suggests splitting into sub-components for sections like tab toggles, vitamin reminder, etc.
+   - **Suggested fix**: Extract a `TabPreferencesSection` component (lines 77-93) to reduce main component size to ~160 lines
+
+2. **Duplicate toggle component patterns**: `/home/user/family-app/src/app/instellingen/page.tsx:85-91 and 122-127` — Both notification and tab toggles use similar mapping patterns with NotificationToggle. While acceptable as-is, extracting a reusable list pattern could reduce duplication.
+   - **Suggested fix**: Consider a generic `ToggleList` wrapper component to DRY up the mapping pattern if more toggles are added in future
+
+3. **Magic number for vitamin reminder hour**: `/home/user/family-app/src/app/instellingen/page.tsx:32` — The default vitaminHour value `10` is hard-coded. Should be a named constant.
+   - **Suggested fix**: Extract `const DEFAULT_VITAMIN_HOUR = 10;` at top of component
+
+4. **Long className strings with ternaries**: `/home/user/family-app/src/app/instellingen/page.tsx:105-107` — Dark mode toggle button className spans 3 lines with nested ternary. Hard to read.
+   - **Suggested fix**: Extract to a helper function or separate style constant:
+   ```typescript
+   const getToggleButtonClass = (isDark: boolean) =>
+     `relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+       isDark ? "bg-emerald-500" : "bg-gray-300"
+     }`;
+   ```
+
+5. **TOGGLEABLE_TABS array recreation**: `/home/user/family-app/src/app/instellingen/page.tsx:12-22` — The `TOGGLEABLE_TABS` constant is defined at module level (good), but the component references it directly. In a future refactor, consider moving to a separate `constants.ts` file for consistency with TabBar approach.
+
+### Nitpicks
+
+1. **Inconsistent error logging pattern**: `/home/user/family-app/src/app/instellingen/page.tsx:49` — The catch block in vitaminHour fetch silently swallows errors without logging. Inconsistent with recommended error handling pattern (already flagged in Community feature review).
+
+2. **Multiple direct fetch calls**: `/home/user/family-app/src/app/instellingen/page.tsx:42, 56` — Both fetch endpoints (`/api/settings/vitamin-time` and implicit tab preference fetches via useAuthContext) are called directly. Consider extracting to a custom hook like `useSettings()` for consistency with other hooks used in the page.
+
+3. **No explicit propTypes/interfaces**: While the component doesn't accept props, adding an explicit interface for the shape helps with future refactoring:
+   ```typescript
+   interface SettingsPageProps {} // Explicit for clarity
+   ```
+
+4. **TabBar export pattern**: `/home/user/family-app/src/components/TabBar.tsx:19` — Uses `export function` (named export, good). Consistent with project conventions.
+
+5. **NotificationToggle props could be an options object**: `/home/user/family-app/src/components/NotificationToggle.tsx:3-8` — Current 4 prop signature is reasonable, but if more props are added, consider options object pattern to avoid "boolean parameter" code smell. Current usage is fine.
+
+**Total: 0 must-fix, 5 should-fix, 5 nitpicks**
+
+## Stage 7: Type Safety Review
+
+### Must Fix (type errors or unsafe patterns)
+None
+
+### Should Fix (weak typing)
+None
+
+### Suggestions
+None
+
+**Total: 0 must-fix, 0 should-fix, 0 suggestions**
+
+### Detailed Type Safety Analysis
+
+**File: `/home/user/family-app/src/components/ThemeProvider.tsx`**
+- ✅ **Theme type definition**: Strict literal union `type Theme = "light" | "dark"` prevents invalid state values and catches misuse at compile time
+- ✅ **ThemeContextValue interface**: Properly exports theme property (Theme type) and toggleTheme callback with correct signature `() => void`
+- ✅ **Context type**: `createContext<ThemeContextValue | null>(null)` correctly represents that context may not have a provider
+- ✅ **useState generics**: `useState<Theme>` constrains theme state to the Theme union, preventing accidental string assignments
+- ✅ **Null-safe hook**: `useTheme()` returns `ThemeContextValue` with explicit non-null assertion via error throw. Type narrows from `ThemeContextValue | null` to `ThemeContextValue`, making hook safe for consumer use
+- ✅ **localStorage type handling**: `localStorage.getItem("theme")` returns `string | null`. Properly narrowed with triple equality checks `=== "dark" || === "light"` before returning, defaulting to `"light"` otherwise
+- ✅ **useCallback return type**: Implicitly typed as `() => void`, matches toggleTheme signature in interface
+- ✅ **No `any` types**: All types are explicit or properly inferred
+- ✅ **No type assertions**: No `as` operators or forced casting
+
+**File: `/home/user/family-app/src/components/ThemeProvider.test.tsx`**
+- ✅ **localStorage mock typing**: `Record<string, string>` correctly types the store object
+- ✅ **Mock function signatures**: `getItem: vi.fn((key: string) => store[key] ?? null)` properly types parameters and return value
+- ✅ **TestConsumer component**: Properly destructures `{ theme, toggleTheme }` from useTheme, matching ThemeContextValue interface
+- ✅ **Safe hook usage**: useTheme called within ThemeProvider wrapper, so null check passes at runtime
+- ✅ **Mock setup type safety**: `mockTheme = "light"` and `mockTheme = "dark"` remain within Theme literal union
+
+**File: `/home/user/family-app/src/app/instellingen/page.tsx`**
+- ✅ **useTheme import and usage**: Hook imported from correct module and destructured properly
+- ✅ **Theme comparisons**: `theme === "dark"` uses strict equality, safe for Theme literal comparison
+- ✅ **aria-checked assignment**: `aria-checked={theme === "dark"}` correctly converts Theme comparison to boolean
+- ✅ **Ternary expressions**: Conditional classNames use `theme === "dark" ? "bg-emerald-500" : "bg-gray-300"` correctly, covering both union cases
+- ✅ **No unsafe indexing**: No array indexing on theme or string slicing that could bypass type safety
+- ✅ **Other hooks**: useAuthContext, useNotifications, useCustomCategories all properly typed in their respective modules
+
+**File: `/home/user/family-app/src/app/instellingen/page.test.tsx`**
+- ✅ **Mock setup typing**: `useTheme: () => ({ theme: mockTheme, toggleTheme: mockToggleTheme })` correctly returns object matching ThemeContextValue interface structure
+- ✅ **mockTheme tracking**: State variable `let mockTheme = "light"` initialized and reassigned within Theme literal values only
+- ✅ **Test assertions**: Tests check `aria-checked` against boolean expressions derived from theme, properly typed
+- ✅ **Mock invocation**: `mockToggleTheme` typed as `vi.fn()` and properly stubbed
+
+### Summary
+
+**Type Safety Rating: EXCELLENT**
+
+The dark mode implementation demonstrates best-in-class TypeScript usage:
+
+1. **Strict Typing**: Theme uses literal union preventing any string drift
+2. **Safe Context Pattern**: Optional context with error-throwing hook ensures safe access without null coalescing issues
+3. **Exhaustive Type Coverage**: All values properly typed, no implicit `any`
+4. **Consumer Safety**: Components using useTheme are protected by TypeScript from invalid theme values
+5. **Test Type Safety**: Mock setup maintains type contract with actual implementation
+6. **No Workarounds Needed**: No type assertions, casting, or `as` operators required
+
+This implementation would immediately catch errors at compile time if:
+- A component passes invalid theme values
+- useTheme is called outside a provider (error is thrown at runtime, not type-missed)
+- Theme comparisons use wrong string values
+- Context value structure is modified without updating all consumers
+
+**Verdict: Type-safe, maintainable, and ready for production.**
+
+---
+
+# Stage 6: Accessibility Review — Dark Mode Feature
+
+Task: Review dark mode implementation for WCAG 2.1 AA compliance across UI components
+
+Files reviewed:
+1. `src/components/ThemeProvider.tsx` - Theme context provider (non-UI)
+2. `src/app/instellingen/page.tsx` - Settings page with dark mode toggle
+3. `src/components/TabBar.tsx` - Navigation tab bar with dark mode styling
+4. `src/components/NotificationToggle.tsx` - Reusable toggle component for switches
+5. `src/app/layout.tsx` - Root layout with dark mode body classes
+
+---
+
+## Stage 6: Accessibility Review
+
+### Critical (WCAG A — must fix)
+
+None
+
+### Important (WCAG AA — should fix)
+
+1. **Missing aria-label on dark mode toggle button**: `src/app/instellingen/page.tsx:99-114` — The toggle button has `aria-label="Dark mode"` but should be more descriptive about the current state. Screen reader users cannot distinguish between "activate dark mode" vs "deactivate dark mode" from the current label alone.
+   - **Issue**: WCAG 1.3.1 (Info and Relationships), 4.1.2 (Name, Role, Value)
+   - **Current**: `aria-label="Dark mode"` (static, does not indicate state)
+   - **Impact**: Screen reader users cannot understand the toggle's current state or action
+   - **Fix**: Change to `aria-label={theme === "dark" ? "Dark mode aan, klik om uit te zetten" : "Dark mode uit, klik om aan te zetten"}` to include state and action
+
+2. **NotificationToggle missing aria-label**: `src/components/NotificationToggle.tsx:14-29` — The toggle component has `role="switch"` and `aria-checked={enabled}` but no `aria-label`. Each toggle uses the passed `label` prop as visual text, but it's not programmatically associated with the button element.
+   - **Issue**: WCAG 1.3.1 (Info and Relationships), 4.1.2 (Name, Role, Value)
+   - **Impact**: When used in different contexts (like tab preferences), screen readers may lack accessible name
+   - **Fix**: Add `aria-label={label}` directly on the button element
+
+3. **Focus indicator contrast in dark mode on settings page**: `src/app/instellingen/page.tsx:141` — The select element has `focus:ring-2 focus:ring-emerald-500` but in dark mode (with `dark:bg-gray-700`) the emerald focus ring may have insufficient contrast against the dark background.
+   - **Issue**: WCAG 2.4.7 (Focus Visible) and 1.4.3 (Contrast - Minimum)
+   - **Impact**: Users navigating via keyboard may lose focus position in dark mode
+   - **Fix**: Add `dark:focus:ring-emerald-400` to improve contrast (use lighter emerald in dark mode)
+
+4. **Logout button text color in dark mode**: `src/app/instellingen/page.tsx:192` — The logout button uses `text-red-600 dark:text-red-400` on background `bg-red-50 dark:bg-red-900/30`. Red 400 on red-900/30 may have contrast issues.
+   - **Issue**: WCAG 1.4.3 (Contrast - Minimum)
+   - **Required contrast ratio**: 4.5:1 for AA (normal text)
+   - **Impact**: Red text on reddish background may be hard to read in dark mode
+   - **Fix**: Verify contrast or use `dark:text-red-300` for better contrast against `dark:bg-red-900/30`
+
+### Best Practice
+
+1. **TabBar lacks focus-visible indicator**: `src/components/TabBar.tsx:41-51` — Navigation links use `aria-current="page"` correctly for active state, but there's no explicit `focus:ring-*` class for keyboard navigation. The underline state gives visual feedback, but focus indicator should be independent.
+   - **Improvement**: Add `focus:ring-2 focus:outline-none focus:ring-emerald-500` to links for clear keyboard focus visibility
+
+2. **Dark mode toggle visual indicator with border redundancy**: `src/components/TabBar.tsx:44-46` — Active tab is indicated by color change (`text-emerald-600 dark:text-emerald-400` and `border-emerald-600 dark:border-emerald-400`). The combination of color + border provides good redundancy. Good practice confirmed.
+
+3. **Layout.tsx skip-to-content link styling**: `src/app/layout.tsx:31-36` — The "Skip to content" link has proper sr-only and focus:not-sr-only classes, with focus styling `focus:bg-white dark:bg-gray-800 focus:text-emerald-600`. Ensures skip link is visible on both light and dark backgrounds. Best practice confirmed.
+
+4. **Body text color inheritance**: `src/app/layout.tsx:30` — The body element has `text-gray-900 dark:text-gray-100` which ensures all text inherits appropriate contrast. Good default inheritance. Best practice confirmed.
+
+5. **Semantic HTML for theme switching**: `src/app/instellingen/page.tsx:77-116` — The settings page uses proper semantic `<section>` elements with `<h2>` headings. The dark mode toggle is within a logical "Weergave" section. Good semantic structure confirmed.
+
+---
+
+## Summary
+
+**Total: 0 critical, 4 important, 5 best-practice**
+
+### Critical Issues (WCAG A)
+- None
+
+### Important Issues (WCAG AA — should fix)
+1. Dark mode toggle aria-label lacks state information (instellingen/page.tsx:102)
+2. NotificationToggle missing aria-label on button (NotificationToggle.tsx:14)
+3. Focus ring contrast insufficient in dark mode on select (instellingen/page.tsx:141)
+4. Logout button text contrast in dark mode needs verification (instellingen/page.tsx:192)
+
+### Best Practice Items
+1. TabBar navigation links should add focus:ring-* for keyboard focus visibility (TabBar.tsx:41)
+2. Color-only status indicators confirmed adequate with border redundancy (TabBar.tsx:44) ✓
+3. Skip-to-content link accessibility confirmed good (layout.tsx:31) ✓
+4. Body text color inheritance confirmed good (layout.tsx:30) ✓
+5. Semantic HTML structure for settings confirmed good (instellingen/page.tsx:77) ✓
+
+### File-by-File Status
+
+| File | Critical | Important | Best Practice | Status |
+|------|----------|-----------|---------------|--------|
+| ThemeProvider.tsx | — | — | — | ✓ No UI |
+| instellingen/page.tsx | — | 2 | 1 | ⚠ 2 AA issues (aria-label, focus contrast, logout contrast) |
+| TabBar.tsx | — | — | 1 | ⚠ 1 best practice (focus indicator) |
+| NotificationToggle.tsx | — | 1 | — | ⚠ 1 AA issue (aria-label) |
+| layout.tsx | — | — | 2 | ✓ 2 best practices confirmed |
+
+---
+
+## Recommendations (Priority Order)
+
+1. **[HIGH]** Update dark mode toggle aria-label to include state: `aria-label={theme === "dark" ? "Dark mode aan, klik om uit te zetten" : "Dark mode uit, klik om aan te zetten"}`
+
+2. **[HIGH]** Add aria-label to NotificationToggle component: `aria-label={label}` on the button element
+
+3. **[MEDIUM]** Add dark:focus:ring-emerald-400 to select element for better focus contrast in dark mode (instellingen/page.tsx:141)
+
+4. **[MEDIUM]** Verify logout button contrast (red-400 on red-900/30) and update to red-300 if needed for 4.5:1 ratio (instellingen/page.tsx:192)
+
+5. **[LOW]** Add focus:ring-2 focus:outline-none focus:ring-emerald-500 to TabBar links for keyboard focus visibility (TabBar.tsx:41)

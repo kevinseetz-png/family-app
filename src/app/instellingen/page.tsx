@@ -7,6 +7,7 @@ import { useNotifications } from "@/hooks/useNotifications";
 import { NotificationToggle } from "@/components/NotificationToggle";
 import { CategoryManager } from "@/components/CategoryManager";
 import { useCustomCategories } from "@/hooks/useCustomCategories";
+import { useTheme } from "@/components/ThemeProvider";
 
 const TOGGLEABLE_TABS = [
   { href: "/agenda", label: "Agenda" },
@@ -24,6 +25,7 @@ export default function SettingsPage() {
   const { user, logout, visibleTabs, updateVisibleTabs } = useAuthContext();
   const { isSupported, isSubscribed, subscribe, unsubscribe } = useNotifications();
   const { categories: customCategories, hiddenBuiltIn, addCategory, deleteCategory, toggleBuiltIn } = useCustomCategories(user?.familyId);
+  const { theme, toggleTheme } = useTheme();
 
   const defaultTabs = TOGGLEABLE_TABS.map((t) => t.href);
   const [localTabs, setLocalTabs] = useState<string[]>(visibleTabs ?? defaultTabs);
@@ -74,10 +76,10 @@ export default function SettingsPage() {
 
   return (
     <main className="max-w-md mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Instellingen</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Instellingen</h1>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Zichtbare tabbladen</h2>
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">Zichtbare tabbladen</h2>
         <div className="space-y-1">
           {TOGGLEABLE_TABS.map(({ href, label }) => (
             <NotificationToggle
@@ -91,7 +93,30 @@ export default function SettingsPage() {
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Meldingen</h2>
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">Weergave</h2>
+        <div className="flex items-center justify-between py-3">
+          <span className="text-sm text-gray-700 dark:text-gray-300">Dark mode</span>
+          <button
+            type="button"
+            role="switch"
+            aria-checked={theme === "dark"}
+            aria-label="Dark mode"
+            onClick={toggleTheme}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors cursor-pointer ${
+              theme === "dark" ? "bg-emerald-500" : "bg-gray-300"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                theme === "dark" ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
+        </div>
+      </section>
+
+      <section className="mb-6">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">Meldingen</h2>
         {isSupported ? (
           <div className="space-y-1">
             <NotificationToggle
@@ -106,14 +131,14 @@ export default function SettingsPage() {
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Vitamine herinnering</h2>
-        <label className="flex items-center gap-3 text-sm text-gray-700">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">Vitamine herinnering</h2>
+        <label className="flex items-center gap-3 text-sm text-gray-700 dark:text-gray-300">
           <span>Herinneringstijd</span>
           <select
             value={vitaminHour}
             onChange={(e) => saveVitaminHour(Number(e.target.value))}
             disabled={vitaminSaving}
-            className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+            className="rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400"
           >
             {Array.from({ length: 24 }, (_, h) => (
               <option key={h} value={h}>
@@ -129,7 +154,7 @@ export default function SettingsPage() {
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Agenda categorieën</h2>
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">Agenda categorieën</h2>
         <CategoryManager
           categories={customCategories}
           onAdd={addCategory}
@@ -140,7 +165,7 @@ export default function SettingsPage() {
       </section>
 
       <section className="mb-6">
-        <h2 className="text-lg font-semibold text-gray-800 mb-3">Familie</h2>
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">Familie</h2>
         <Link
           href="/invite"
           className="inline-block text-emerald-600 hover:text-emerald-700 text-sm font-medium"
@@ -151,7 +176,7 @@ export default function SettingsPage() {
 
       {user?.role === "admin" && (
         <section className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-3">Beheer</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-3">Beheer</h2>
           <Link
             href="/admin"
             className="inline-block text-emerald-600 hover:text-emerald-700 text-sm font-medium"
@@ -164,7 +189,7 @@ export default function SettingsPage() {
       <section>
         <button
           onClick={logout}
-          className="w-full py-2 px-4 bg-red-50 text-red-600 rounded-lg text-sm font-medium hover:bg-red-100 transition-colors"
+          className="w-full py-2 px-4 bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-400 rounded-lg text-sm font-medium hover:bg-red-100 dark:hover:bg-red-900/50 transition-colors"
         >
           Uitloggen
         </button>
