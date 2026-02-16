@@ -2,19 +2,79 @@ import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { sendNotificationToFamily } from "@/lib/push";
 
-function toDateStr(d: Date): string {
-  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+const TZ = "Europe/Amsterdam";
+
+/** Get current date/time components in Dutch timezone */
+function getNow(): { date: string; time: string; minutesOfDay: number } {
+  const now = new Date();
+  // Format in Dutch timezone
+  const parts = new Intl.DateTimeFormat("en-CA", {
+    timeZone: TZ,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).formatToParts(now);
+
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "00";
+  const date = `${get("year")}-${get("month")}-${get("day")}`;
+  const hours = parseInt(get("hour"), 10);
+  const minutes = parseInt(get("minute"), 10);
+  const time = `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
+
+  return { date, time, minutesOfDay: hours * 60 + minutes };
 }
 
-function toTimeStr(d: Date): string {
-  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
+/** Parse "HH:mm" to minutes-of-day */
+function timeToMinutes(t: string): number {
+  const [h, m] = t.split(":").map(Number);
+  return h * 60 + m;
+}
+
+/** Subtract days from a date string, returns "YYYY-MM-DD" */
+function subtractDay(dateStr: string): string {
+  // Parse in Dutch timezone to avoid UTC shift
+  const d = new Date(dateStr + "T12:00:00"); // noon to avoid DST edge
+  d.setDate(d.getDate() - 1);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+/** Subtract minutes from a time, may cross midnight (returns { date offset, time }) */
+function subtractMinutesFromTime(dateStr: string, time: string, minutes: number): { date: string; time: string; minutesOfDay: number } {
+  let totalMin = timeToMinutes(time) - minutes;
+  let resultDate = dateStr;
+  if (totalMin < 0) {
+    totalMin += 1440;
+    resultDate = subtractDay(dateStr);
+  }
+  const h = Math.floor(totalMin / 60);
+  const m = totalMin % 60;
+  return {
+    date: resultDate,
+    time: `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`,
+    minutesOfDay: totalMin,
+  };
 }
 
 async function runAgendaReminders(): Promise<number> {
-  const now = new Date();
-  const today = toDateStr(now);
-  const currentTime = toTimeStr(now);
+  const { date: today, time: currentTime, minutesOfDay: currentMinutes } = getNow();
   let reminded = 0;
+
+  /**
+   * Check if a reminder should fire right now.
+   * All times are already in Dutch timezone (from getNow / stored by user).
+   * Returns true if the reminder target time is within the last 5 minutes.
+   */
+  function isInWindow(targetDate: string, targetTime: string): boolean {
+    if (targetDate !== today) return false;
+    const targetMin = timeToMinutes(targetTime);
+    return currentMinutes >= targetMin && currentMinutes - targetMin < 5;
+  }
 
   // Check agenda events with reminders
   const eventsSnap = await adminDb
@@ -32,38 +92,27 @@ async function runAgendaReminders(): Promise<number> {
 
     if (data.allDay) {
       if (reminderMinutes === 1440) {
-        const eventDate = new Date(data.date + "T00:00:00");
-        const dayBefore = new Date(eventDate);
-        dayBefore.setDate(dayBefore.getDate() - 1);
-        const dayBeforeStr = toDateStr(dayBefore);
-        if (dayBeforeStr === today && currentTime >= "09:00" && currentTime < "09:05") {
+        // Day before at 09:00
+        const dayBefore = subtractDay(data.date);
+        if (isInWindow(dayBefore, "09:00")) {
           shouldNotify = true;
           notifyBody = `Morgen: ${data.title}`;
         }
       } else if (reminderMinutes === 0) {
-        if (data.date === today && currentTime >= "09:00" && currentTime < "09:05") {
+        // Day itself at 09:00
+        if (isInWindow(data.date, "09:00")) {
           shouldNotify = true;
           notifyBody = `Vandaag: ${data.title}`;
         }
       }
     } else if (data.startTime && data.date) {
-      const [hours, minutes] = data.startTime.split(":").map(Number);
-      const eventDateTime = new Date(data.date + "T00:00:00");
-      eventDateTime.setHours(hours, minutes, 0, 0);
-
-      const reminderTime = new Date(eventDateTime.getTime() - reminderMinutes * 60 * 1000);
-      const reminderDateStr = toDateStr(reminderTime);
-      const reminderTimeStr = toTimeStr(reminderTime);
-
-      if (reminderDateStr === today && currentTime >= reminderTimeStr) {
-        const reminderMinutesOfDay = reminderTime.getHours() * 60 + reminderTime.getMinutes();
-        const currentMinutesOfDay = now.getHours() * 60 + now.getMinutes();
-        if (currentMinutesOfDay - reminderMinutesOfDay < 5 && currentMinutesOfDay >= reminderMinutesOfDay) {
-          shouldNotify = true;
-          notifyBody = reminderMinutes === 0
-            ? `Nu: ${data.title}`
-            : `Over ${reminderMinutes} min: ${data.title} om ${data.startTime}`;
-        }
+      // Timed event: reminder fires (startTime - reminderMinutes)
+      const target = subtractMinutesFromTime(data.date, data.startTime, reminderMinutes);
+      if (isInWindow(target.date, target.time)) {
+        shouldNotify = true;
+        notifyBody = reminderMinutes === 0
+          ? `Nu: ${data.title}`
+          : `Over ${reminderMinutes} min: ${data.title} om ${data.startTime}`;
       }
     }
 
@@ -104,55 +153,32 @@ async function runAgendaReminders(): Promise<number> {
 
     if (taskTime) {
       // Task has a specific time — calculate reminder relative to that time
-      const [hours, minutes] = taskTime.split(":").map(Number);
-
       if (reminderMinutes === 1440) {
-        // "1 dag ervoor" — notify day before at the task's time
-        const taskDate = new Date(data.date + "T00:00:00");
-        const dayBefore = new Date(taskDate);
-        dayBefore.setDate(dayBefore.getDate() - 1);
-        const dayBeforeStr = toDateStr(dayBefore);
-        const targetTime = taskTime;
-        if (dayBeforeStr === today && currentTime >= targetTime) {
-          const targetMinutes = hours * 60 + minutes;
-          const currentMinutesOfDay = now.getHours() * 60 + now.getMinutes();
-          if (currentMinutesOfDay - targetMinutes < 5 && currentMinutesOfDay >= targetMinutes) {
-            shouldNotify = true;
-            notifyBody = `Morgen om ${taskTime}: taak "${data.name}"`;
-          }
+        // "1 dag ervoor" at the task's time
+        const dayBefore = subtractDay(data.date);
+        if (isInWindow(dayBefore, taskTime)) {
+          shouldNotify = true;
+          notifyBody = `Morgen om ${taskTime}: taak "${data.name}"`;
         }
       } else {
-        // Calculate reminder time relative to task time
-        const taskDateTime = new Date(data.date + "T00:00:00");
-        taskDateTime.setHours(hours, minutes, 0, 0);
-        const reminderTime = new Date(taskDateTime.getTime() - reminderMinutes * 60 * 1000);
-        const reminderDateStr = toDateStr(reminderTime);
-        const reminderTimeStr = toTimeStr(reminderTime);
-
-        if (reminderDateStr === today && currentTime >= reminderTimeStr) {
-          const reminderMinutesOfDay = reminderTime.getHours() * 60 + reminderTime.getMinutes();
-          const currentMinutesOfDay = now.getHours() * 60 + now.getMinutes();
-          if (currentMinutesOfDay - reminderMinutesOfDay < 5 && currentMinutesOfDay >= reminderMinutesOfDay) {
-            shouldNotify = true;
-            notifyBody = reminderMinutes === 0
-              ? `Nu: taak "${data.name}"`
-              : `Over ${reminderMinutes} min: taak "${data.name}" om ${taskTime}`;
-          }
+        const target = subtractMinutesFromTime(data.date, taskTime, reminderMinutes);
+        if (isInWindow(target.date, target.time)) {
+          shouldNotify = true;
+          notifyBody = reminderMinutes === 0
+            ? `Nu: taak "${data.name}"`
+            : `Over ${reminderMinutes} min: taak "${data.name}" om ${taskTime}`;
         }
       }
     } else {
-      // No time set — use 09:00 as default (existing behavior)
+      // No time set — use 09:00 as default
       if (reminderMinutes === 1440) {
-        const taskDate = new Date(data.date + "T00:00:00");
-        const dayBefore = new Date(taskDate);
-        dayBefore.setDate(dayBefore.getDate() - 1);
-        const dayBeforeStr = toDateStr(dayBefore);
-        if (dayBeforeStr === today && currentTime >= "09:00" && currentTime < "09:05") {
+        const dayBefore = subtractDay(data.date);
+        if (isInWindow(dayBefore, "09:00")) {
           shouldNotify = true;
           notifyBody = `Morgen: taak "${data.name}"`;
         }
       } else {
-        if (data.date === today && currentTime >= "09:00" && currentTime < "09:05") {
+        if (isInWindow(data.date, "09:00")) {
           shouldNotify = true;
           notifyBody = `Vandaag: taak "${data.name}"`;
         }
@@ -183,7 +209,7 @@ async function runAgendaReminders(): Promise<number> {
 }
 
 async function runVitaminReminders(): Promise<number> {
-  const today = toDateStr(new Date());
+  const { date: today } = getNow();
   const families = await adminDb.collection("families").get();
   let reminded = 0;
 
