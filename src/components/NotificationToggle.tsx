@@ -10,11 +10,12 @@ interface NotificationToggleProps {
 export function NotificationToggle({ label, enabled, onToggle, disabled }: NotificationToggleProps) {
   return (
     <div className="flex items-center justify-between py-3">
-      <span className="text-sm text-gray-700">{label}</span>
+      <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
       <button
         type="button"
         role="switch"
         aria-checked={enabled}
+        aria-label={label}
         disabled={disabled}
         onClick={() => onToggle(!enabled)}
         className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${

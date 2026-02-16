@@ -1,5 +1,9 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
+
+const mockToggleTheme = vi.fn();
+let mockTheme = "light";
 
 vi.mock("@/components/AuthProvider", () => ({
   useAuthContext: vi.fn().mockReturnValue({
@@ -41,9 +45,18 @@ vi.mock("next/link", () => ({
   ),
 }));
 
+vi.mock("@/components/ThemeProvider", () => ({
+  useTheme: () => ({ theme: mockTheme, toggleTheme: mockToggleTheme }),
+}));
+
 import SettingsPage from "./page";
 
 describe("Settings page (/instellingen)", () => {
+  beforeEach(() => {
+    mockTheme = "light";
+    mockToggleTheme.mockClear();
+  });
+
   it("should render the settings page title", () => {
     render(<SettingsPage />);
     expect(screen.getByRole("heading", { name: /instellingen/i })).toBeInTheDocument();
@@ -68,5 +81,38 @@ describe("Settings page (/instellingen)", () => {
   it("should show logout button", () => {
     render(<SettingsPage />);
     expect(screen.getByRole("button", { name: /uitloggen/i })).toBeInTheDocument();
+  });
+
+  it("should show dark mode section with heading", () => {
+    render(<SettingsPage />);
+    expect(screen.getByRole("heading", { name: /weergave/i })).toBeInTheDocument();
+  });
+
+  it("should show dark mode toggle with label", () => {
+    render(<SettingsPage />);
+    expect(screen.getByText("Dark mode")).toBeInTheDocument();
+    expect(screen.getByRole("switch", { name: /dark mode/i })).toBeInTheDocument();
+  });
+
+  it("should show toggle as off when theme is light", () => {
+    mockTheme = "light";
+    render(<SettingsPage />);
+    const toggle = screen.getByRole("switch", { name: /dark mode/i });
+    expect(toggle).toHaveAttribute("aria-checked", "false");
+  });
+
+  it("should show toggle as on when theme is dark", () => {
+    mockTheme = "dark";
+    render(<SettingsPage />);
+    const toggle = screen.getByRole("switch", { name: /dark mode/i });
+    expect(toggle).toHaveAttribute("aria-checked", "true");
+  });
+
+  it("should call toggleTheme when dark mode toggle is clicked", async () => {
+    const user = userEvent.setup();
+    render(<SettingsPage />);
+    const toggle = screen.getByRole("switch", { name: /dark mode/i });
+    await user.click(toggle);
+    expect(mockToggleTheme).toHaveBeenCalledOnce();
   });
 });
