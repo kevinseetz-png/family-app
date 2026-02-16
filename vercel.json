@@ -1,12 +1,8 @@
 {
   "crons": [
     {
-      "path": "/api/cron/vitamin-reminder",
-      "schedule": "0 9 * * *"
-    },
-    {
-      "path": "/api/cron/agenda-reminders",
-      "schedule": "*/5 * * * *"
+      "path": "/api/cron/run-all",
+      "schedule": "0 * * * *"
     }
   ]
 }
