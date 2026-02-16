@@ -153,11 +153,20 @@ async function runVitaminReminders(): Promise<number> {
       .get();
 
     if (vitaminSnap.docs.length === 0) {
+      const reminderId = `vitamin_${family.id}_${today}`;
+      const sentDoc = await adminDb.collection("sentReminders").doc(reminderId).get();
+      if (sentDoc.exists) continue;
+
       await sendNotificationToFamily(family.id, {
         title: "Vitamine D herinnering",
         body: "Vergeet niet de vitamine D te geven vandaag!",
         url: "/feeding",
         type: "vitamin_reminder",
+      });
+
+      await adminDb.collection("sentReminders").doc(reminderId).set({
+        sentAt: new Date(),
+        familyId: family.id,
       });
       reminded++;
     }
