@@ -1411,6 +1411,7 @@ function WeekOverview({
   onEdit,
   onDelete,
   onTaskStatusChange,
+  onTaskEdit,
 }: {
   selectedDate: string;
   onSelectDate: (date: string) => void;
@@ -1420,6 +1421,7 @@ function WeekOverview({
   onEdit: (event: AgendaEvent) => void;
   onDelete: (id: string) => void;
   onTaskStatusChange?: (id: string, status: KlusjesStatus, completionDate?: string) => Promise<void>;
+  onTaskEdit?: (item: KlusjesItem) => void;
 }) {
   const today = getToday();
   const selected = new Date(selectedDate + "T00:00:00");
@@ -1627,7 +1629,7 @@ function WeekOverview({
                         <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Taken</p>
                         <div className="space-y-1">
                           {dayTasks.map((task) => (
-                            <TaskCard key={task.id} item={task} onStatusChange={onTaskStatusChange} />
+                            <TaskCard key={task.id} item={task} onStatusChange={onTaskStatusChange} onEdit={onTaskEdit} />
                           ))}
                         </div>
                       </div>
@@ -1740,20 +1742,30 @@ function QuickAddFAB({
   onGenericAdd,
   onAddTask,
   customCategories,
+  hiddenBuiltIn,
 }: {
   onQuickAdd: (category: AgendaCategory) => void;
   onGenericAdd: () => void;
   onAddTask: () => void;
   customCategories?: CustomCategory[];
+  hiddenBuiltIn?: string[];
 }) {
   const [isOpen, setIsOpen] = useState(false);
+
+  const visibleItems = useMemo(() => {
+    const hidden = hiddenBuiltIn ?? [];
+    return QUICK_ADD_ITEMS.filter((item) => {
+      if (item.type === "task") return true;
+      return !hidden.includes(item.category);
+    });
+  }, [hiddenBuiltIn]);
 
   return (
     <div className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-30 flex flex-col items-end">
       {/* Quick-add category buttons */}
       {isOpen && (
         <div className="mb-3 flex flex-col items-end gap-2">
-          {QUICK_ADD_ITEMS.map((item, i) => {
+          {visibleItems.map((item, i) => {
             if (item.type === "task") {
               return (
                 <button
@@ -1763,7 +1775,7 @@ function QuickAddFAB({
                     setIsOpen(false);
                   }}
                   className="flex items-center gap-2 animate-scaleIn"
-                  style={{ animationDelay: `${(QUICK_ADD_ITEMS.length - 1 - i) * 40}ms`, animationFillMode: "both" }}
+                  style={{ animationDelay: `${(visibleItems.length - 1 - i) * 40}ms`, animationFillMode: "both" }}
                   aria-label="Nieuwe taak toevoegen"
                 >
                   <span className="px-3 py-1.5 bg-white rounded-lg shadow-md text-xs font-medium text-gray-700 whitespace-nowrap">
@@ -1784,7 +1796,7 @@ function QuickAddFAB({
                   setIsOpen(false);
                 }}
                 className="flex items-center gap-2 animate-scaleIn"
-                style={{ animationDelay: `${(QUICK_ADD_ITEMS.length - 1 - i) * 40}ms`, animationFillMode: "both" }}
+                style={{ animationDelay: `${(visibleItems.length - 1 - i) * 40}ms`, animationFillMode: "both" }}
                 aria-label={`Nieuwe ${item.label.toLowerCase()} toevoegen`}
               >
                 <span className="px-3 py-1.5 bg-white rounded-lg shadow-md text-xs font-medium text-gray-700 whitespace-nowrap">
@@ -1874,7 +1886,7 @@ export default function AgendaPage() {
   const { user, isLoading: authLoading } = useAuthContext();
   const router = useRouter();
   const { events, isLoading, error, addEvent, updateEvent, deleteEvent, getEventsForDate, getEventsForMonth } = useAgenda(user?.familyId);
-  const { items: tasks, isLoading: tasksLoading, addItem: addTask, updateStatus: updateTaskStatus, getItemsForDate: getTasksForDate } = useKlusjes(user?.familyId);
+  const { items: tasks, isLoading: tasksLoading, addItem: addTask, updateItem: updateTask, updateStatus: updateTaskStatus, getItemsForDate: getTasksForDate } = useKlusjes(user?.familyId);
   const { categories: customCategories, hiddenBuiltIn, addCategory, deleteCategory, toggleBuiltIn } = useCustomCategories(user?.familyId);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
 
@@ -1889,6 +1901,7 @@ export default function AgendaPage() {
 
   const [selectedDate, setSelectedDate] = useState(getToday());
   const [showTaskModal, setShowTaskModal] = useState(false);
+  const [editingTask, setEditingTask] = useState<KlusjesItem | null>(null);
   const [viewMonth, setViewMonth] = useState(() => new Date().getMonth());
   const [viewYear, setViewYear] = useState(() => new Date().getFullYear());
   const [showCalendar, setShowCalendar] = useState(false);
@@ -1903,6 +1916,32 @@ export default function AgendaPage() {
     () => new Set(allCategories)
   );
   const [allDayOrder, setAllDayOrder] = useState<Map<string, string[]>>(new Map());
+
+  // Sync activeCategories when allCategories changes (e.g. after hiddenBuiltIn loads)
+  const prevAllCategoriesRef = useRef(allCategories);
+  useEffect(() => {
+    const prev = prevAllCategoriesRef.current;
+    if (prev !== allCategories) {
+      prevAllCategoriesRef.current = allCategories;
+      setActiveCategories((current) => {
+        const next = new Set<AgendaCategory>();
+        for (const cat of allCategories) {
+          // Keep existing filter state for categories that were already there
+          if (prev.includes(cat)) {
+            if (current.has(cat)) next.add(cat);
+          } else {
+            // New category: include by default
+            next.add(cat);
+          }
+        }
+        // Ensure at least one category is active
+        if (next.size === 0 && allCategories.length > 0) {
+          next.add(allCategories[0]);
+        }
+        return next;
+      });
+    }
+  }, [allCategories]);
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -2307,7 +2346,7 @@ export default function AgendaPage() {
                 </h3>
                 <div className="space-y-1.5">
                   {dayTasks.map((task) => (
-                    <TaskCard key={task.id} item={task} onStatusChange={updateTaskStatus} />
+                    <TaskCard key={task.id} item={task} onStatusChange={updateTaskStatus} onEdit={(t) => { setEditingTask(t); setShowTaskModal(true); }} />
                   ))}
                 </div>
               </div>
@@ -2331,6 +2370,7 @@ export default function AgendaPage() {
           onEdit={handleEdit}
           onDelete={handleDelete}
           onTaskStatusChange={updateTaskStatus}
+          onTaskEdit={(t) => { setEditingTask(t); setShowTaskModal(true); }}
         />
       )}
 
@@ -2338,8 +2378,9 @@ export default function AgendaPage() {
       <QuickAddFAB
         onQuickAdd={openNewEventWithCategory}
         onGenericAdd={openNewEvent}
-        onAddTask={() => setShowTaskModal(true)}
+        onAddTask={() => { setEditingTask(null); setShowTaskModal(true); }}
         customCategories={customCategories}
+        hiddenBuiltIn={hiddenBuiltIn}
       />
 
       {/* Modal */}
@@ -2363,8 +2404,16 @@ export default function AgendaPage() {
       {showTaskModal && (
         <AddTaskModal
           selectedDate={selectedDate}
-          onSave={addTask}
-          onClose={() => setShowTaskModal(false)}
+          task={editingTask}
+          onSave={async (data) => {
+            if (editingTask) {
+              const realId = editingTask.id.includes("_") ? editingTask.id.split("_")[0] : editingTask.id;
+              await updateTask(realId, data);
+            } else {
+              await addTask(data);
+            }
+          }}
+          onClose={() => { setShowTaskModal(false); setEditingTask(null); }}
         />
       )}
 

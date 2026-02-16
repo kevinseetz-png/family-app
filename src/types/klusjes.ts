@@ -10,6 +10,7 @@ export interface KlusjesItem {
   status: KlusjesStatus;
   priority: KlusjesPriority;
   date: string | null;
+  time: string | null; // "HH:mm" format
   endDate: string | null;
   recurrence: KlusjesRecurrence;
   recurrenceInterval: number; // 1 = elke week, 2 = elke 2 weken, etc.

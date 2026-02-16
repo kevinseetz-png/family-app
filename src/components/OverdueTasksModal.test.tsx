@@ -16,6 +16,7 @@ function makeOverdueItem(overrides: Partial<KlusjesItem> = {}): KlusjesItem {
     status: "todo",
     priority: 2,
     date: "2026-02-10",
+    time: null,
     endDate: null,
     reminder: null,
     recurrence: "none",

@@ -10,6 +10,7 @@ interface KlusjesResponse {
   status: KlusjesStatus;
   priority: KlusjesPriority;
   date: string | null;
+  time: string | null;
   endDate: string | null;
   recurrence: KlusjesRecurrence;
   recurrenceInterval: number;
@@ -23,6 +24,7 @@ interface KlusjesResponse {
 interface AddItemData {
   name: string;
   date: string | null;
+  time?: string | null;
   recurrence: KlusjesRecurrence;
   recurrenceInterval?: number;
   priority: KlusjesPriority;
@@ -30,12 +32,15 @@ interface AddItemData {
   reminder?: ReminderOption | null;
 }
 
+export type UpdateItemData = Partial<AddItemData>;
+
 interface UseKlusjesReturn {
   items: KlusjesItem[];
   isLoading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
   addItem: (data: AddItemData) => Promise<void>;
+  updateItem: (id: string, data: UpdateItemData) => Promise<void>;
   updateStatus: (id: string, status: KlusjesStatus, completionDate?: string) => Promise<void>;
   deleteItem: (id: string) => Promise<void>;
   getItemsForDate: (date: string) => KlusjesItem[];
@@ -130,6 +135,7 @@ export function useKlusjes(familyId: string | undefined): UseKlusjesReturn {
         status: item.status,
         priority: item.priority ?? 2,
         date: item.date,
+        time: item.time ?? null,
         endDate: item.endDate ?? null,
         recurrence: item.recurrence,
         recurrenceInterval: item.recurrenceInterval ?? 1,
@@ -161,6 +167,19 @@ export function useKlusjes(familyId: string | undefined): UseKlusjesReturn {
     if (!res.ok) {
       const body = await res.json().catch(() => ({}));
       throw new Error(body.message || "Failed to add item");
+    }
+    await fetchItems();
+  }, [fetchItems]);
+
+  const updateItem = useCallback(async (id: string, data: UpdateItemData) => {
+    const res = await fetch("/api/klusjes", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id, ...data }),
+    });
+    if (!res.ok) {
+      const body = await res.json().catch(() => ({}));
+      throw new Error(body.message || "Failed to update item");
     }
     await fetchItems();
   }, [fetchItems]);
@@ -220,5 +239,5 @@ export function useKlusjes(familyId: string | undefined): UseKlusjesReturn {
     await fetchItems();
   }, [fetchItems]);
 
-  return { items, isLoading, error, refetch: fetchItems, addItem, updateStatus, deleteItem, getItemsForDate, getOverdueTasks, rescheduleTask };
+  return { items, isLoading, error, refetch: fetchItems, addItem, updateItem, updateStatus, deleteItem, getItemsForDate, getOverdueTasks, rescheduleTask };
 }

@@ -46,6 +46,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           status,
           priority: data.priority ?? 2,
           date: data.date ?? null,
+          time: data.time ?? null,
           endDate: data.endDate ?? null,
           recurrence: data.recurrence ?? "none",
           recurrenceInterval: data.recurrenceInterval ?? 1,
@@ -93,7 +94,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { name, date, recurrence, recurrenceInterval, priority, endDate, reminder } = result.data;
+  const { name, date, time, recurrence, recurrenceInterval, priority, endDate, reminder } = result.data;
 
   try {
     const item = {
@@ -102,6 +103,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       status: "todo",
       priority: priority ?? 2,
       date: date ?? null,
+      time: time ?? null,
       endDate: endDate ?? null,
       recurrence: recurrence ?? "none",
       recurrenceInterval: recurrenceInterval ?? 1,
@@ -158,7 +160,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { id, status, completionDate, date, recurrence, recurrenceInterval, priority, endDate, reminder } = result.data;
+  const { id, name, status, completionDate, date, time, recurrence, recurrenceInterval, priority, endDate, reminder } = result.data;
 
   if (id.length > 128 || id.includes("/")) {
     return NextResponse.json({ message: "Invalid request" }, { status: 400 });
@@ -188,8 +190,10 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     } else {
       // Normal update
       const updateData: Record<string, unknown> = {};
+      if (name !== undefined) updateData.name = name;
       if (status !== undefined) updateData.status = status;
       if (date !== undefined) updateData.date = date;
+      if (time !== undefined) updateData.time = time;
       if (recurrence !== undefined) updateData.recurrence = recurrence;
       if (priority !== undefined) updateData.priority = priority;
       if (endDate !== undefined) updateData.endDate = endDate;

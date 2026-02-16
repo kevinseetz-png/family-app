@@ -156,6 +156,7 @@ const reminderField = z.enum(["0", "5", "15", "30", "60", "1440"]).nullable().op
 export const klusjesSchema = z.object({
   name: z.string().min(1, "Name is required").max(200, "Name is too long"),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat").nullable().optional().default(null),
+  time: z.string().regex(/^\d{2}:\d{2}$/, "Ongeldig tijdformaat").nullable().optional().default(null),
   recurrence: z.enum(["none", "daily", "weekly", "monthly"]).optional().default("none"),
   recurrenceInterval: z.number().int().min(1).max(52).optional().default(1),
   priority: z.union([z.literal(1), z.literal(2), z.literal(3)]).optional().default(2),
@@ -165,8 +166,10 @@ export const klusjesSchema = z.object({
 
 export const klusjesUpdateSchema = z.object({
   id: z.string().min(1, "Invalid request"),
+  name: z.string().min(1, "Name is required").max(200, "Name is too long").optional(),
   status: z.enum(["todo", "bezig", "klaar"]).optional(),
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat").nullable().optional(),
+  time: z.string().regex(/^\d{2}:\d{2}$/, "Ongeldig tijdformaat").nullable().optional(),
   recurrence: z.enum(["none", "daily", "weekly", "monthly"]).optional(),
   recurrenceInterval: z.number().int().min(1).max(52).optional(),
   completionDate: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "Ongeldig datumformaat").optional(),

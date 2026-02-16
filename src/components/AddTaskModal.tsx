@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, type FormEvent } from "react";
-import type { KlusjesRecurrence, KlusjesPriority, ReminderOption } from "@/types/klusjes";
+import type { KlusjesItem, KlusjesRecurrence, KlusjesPriority, ReminderOption } from "@/types/klusjes";
 import { RECURRENCE_LABELS, PRIORITY_CONFIG, REMINDER_OPTIONS } from "@/types/klusjes";
 
 interface AddTaskData {
   name: string;
   date: string | null;
+  time?: string | null;
   recurrence: KlusjesRecurrence;
   priority: KlusjesPriority;
   recurrenceInterval?: number;
@@ -18,17 +19,20 @@ interface AddTaskModalProps {
   selectedDate: string;
   onSave: (data: AddTaskData) => Promise<void>;
   onClose: () => void;
+  task?: KlusjesItem | null;
 }
 
-export function AddTaskModal({ selectedDate, onSave, onClose }: AddTaskModalProps) {
-  const [name, setName] = useState("");
-  const [date, setDate] = useState(selectedDate);
-  const [recurrence, setRecurrence] = useState<KlusjesRecurrence>("none");
-  const [priority, setPriority] = useState<KlusjesPriority>(2);
-  const [recurrenceInterval, setRecurrenceInterval] = useState(1);
-  const [endDate, setEndDate] = useState("");
+export function AddTaskModal({ selectedDate, onSave, onClose, task }: AddTaskModalProps) {
+  const isEditing = !!task;
+  const [name, setName] = useState(task?.name ?? "");
+  const [date, setDate] = useState(task?.date ?? selectedDate);
+  const [time, setTime] = useState(task?.time ?? "");
+  const [recurrence, setRecurrence] = useState<KlusjesRecurrence>(task?.recurrence ?? "none");
+  const [priority, setPriority] = useState<KlusjesPriority>(task?.priority ?? 2);
+  const [recurrenceInterval, setRecurrenceInterval] = useState(task?.recurrenceInterval ?? 1);
+  const [endDate, setEndDate] = useState(task?.endDate ?? "");
   const [weeks, setWeeks] = useState("");
-  const [reminder, setReminder] = useState<ReminderOption | "">("");
+  const [reminder, setReminder] = useState<ReminderOption | "">(task?.reminder ?? "");
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -56,6 +60,7 @@ export function AddTaskModal({ selectedDate, onSave, onClose }: AddTaskModalProp
       await onSave({
         name: name.trim(),
         date: date || null,
+        time: date && time ? time : null,
         recurrence,
         recurrenceInterval: recurrence !== "none" ? recurrenceInterval : 1,
         priority,
@@ -91,7 +96,7 @@ export function AddTaskModal({ selectedDate, onSave, onClose }: AddTaskModalProp
             Annuleren
           </button>
           <h2 className="font-semibold text-gray-900" id="task-modal-title">
-            Nieuwe taak
+            {isEditing ? "Taak bewerken" : "Nieuwe taak"}
           </h2>
           <button
             onClick={() => handleSubmit()}
@@ -127,6 +132,21 @@ export function AddTaskModal({ selectedDate, onSave, onClose }: AddTaskModalProp
               className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
           </div>
+
+          {date && (
+            <div>
+              <label htmlFor="task-time" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                Tijd
+              </label>
+              <input
+                id="task-time"
+                type="time"
+                value={time}
+                onChange={(e) => setTime(e.target.value)}
+                className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              />
+            </div>
+          )}
 
           <div>
             <label htmlFor="task-recurrence" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">

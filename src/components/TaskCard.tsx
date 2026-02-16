@@ -12,9 +12,10 @@ const NEXT_STATUS: Record<KlusjesStatus, KlusjesStatus> = {
 interface TaskCardProps {
   item: KlusjesItem;
   onStatusChange: (id: string, status: KlusjesStatus, completionDate?: string) => Promise<void>;
+  onEdit?: (item: KlusjesItem) => void;
 }
 
-export function TaskCard({ item, onStatusChange }: TaskCardProps) {
+export function TaskCard({ item, onStatusChange, onEdit }: TaskCardProps) {
   const handleClick = () => {
     const realId = item.id.includes("_") ? item.id.split("_")[0] : item.id;
     const completionDate = item.id.includes("_") ? item.date ?? undefined : undefined;
@@ -37,6 +38,11 @@ export function TaskCard({ item, onStatusChange }: TaskCardProps) {
           {item.name}
         </span>
         <div className="flex gap-1.5 mt-0.5">
+          {item.time && (
+            <span className="text-xs text-gray-500 bg-gray-100 px-1 py-0.5 rounded">
+              {item.time}
+            </span>
+          )}
           {item.priority !== undefined && item.priority !== 2 && (
             <span className={`text-xs ${PRIORITY_CONFIG[item.priority].color} ${PRIORITY_CONFIG[item.priority].bgColor} px-1 py-0.5 rounded`}>
               {PRIORITY_CONFIG[item.priority].label}
@@ -49,6 +55,17 @@ export function TaskCard({ item, onStatusChange }: TaskCardProps) {
           )}
         </div>
       </div>
+      {onEdit && (
+        <button
+          onClick={(e) => { e.stopPropagation(); onEdit(item); }}
+          className="flex-shrink-0 p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors"
+          aria-label={`Bewerk ${item.name}`}
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125" />
+          </svg>
+        </button>
+      )}
     </div>
   );
 }
