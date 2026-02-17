@@ -165,14 +165,16 @@ export function WeekMenuForm({ initialDays, initialIngredients, isSaving, onSave
           </div>
         );
       })}
-      {success && <p className="text-sm text-emerald-600">Opgeslagen!</p>}
-      <button
-        type="submit"
-        disabled={isSaving}
-        className="w-full rounded-lg bg-emerald-600 px-4 py-3 text-white font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none disabled:opacity-50"
-      >
-        {isSaving ? "Opslaan..." : "Opslaan"}
-      </button>
+      <div className="sticky bottom-4 z-10">
+        {success && <p className="text-sm text-emerald-600 mb-2 text-center">Opgeslagen!</p>}
+        <button
+          type="submit"
+          disabled={isSaving}
+          className="w-full rounded-lg bg-emerald-600 px-4 py-3 text-white font-medium hover:bg-emerald-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none disabled:opacity-50 shadow-lg"
+        >
+          {isSaving ? "Opslaan..." : "Weekmenu opslaan"}
+        </button>
+      </div>
     </form>
   );
 }
