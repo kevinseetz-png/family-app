@@ -23,6 +23,10 @@ vi.mock("@/lib/picnic-client", () => ({
   })),
 }));
 
+vi.mock("@/lib/encryption", () => ({
+  encrypt: vi.fn().mockImplementation((val: string) => `encrypted:${val}`),
+}));
+
 import { POST } from "./route";
 import { adminDb } from "@/lib/firebase-admin";
 import { verifyToken } from "@/lib/auth";
@@ -104,7 +108,11 @@ describe("POST /api/picnic/login", () => {
     expect(res.status).toBe(200);
     const data = await res.json();
     expect(data.connected).toBe(true);
-    expect(mockSet).toHaveBeenCalled();
+    expect(mockSet).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authKey: "encrypted:picnic-auth-key-123",
+      })
+    );
   });
 
   it("should return 401 when Picnic login fails", async () => {

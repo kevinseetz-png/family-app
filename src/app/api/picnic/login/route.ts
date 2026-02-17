@@ -3,6 +3,7 @@ import { requireAuth } from "@/lib/api-auth";
 import { picnicLoginSchema } from "@/lib/validation";
 import { adminDb } from "@/lib/firebase-admin";
 import { createPicnicClient } from "@/lib/picnic-client";
+import { encrypt } from "@/lib/encryption";
 
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const { user, error } = await requireAuth(request);
@@ -38,7 +39,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     }
 
     await adminDb.collection("picnic_connections").doc(user.familyId).set({
-      authKey,
+      authKey: encrypt(authKey),
       connectedBy: user.id,
       connectedByName: user.name,
       connectedAt: new Date(),

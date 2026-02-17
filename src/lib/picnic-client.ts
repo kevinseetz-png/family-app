@@ -1,5 +1,6 @@
 import PicnicApi from "picnic-api";
 import { adminDb } from "@/lib/firebase-admin";
+import { decrypt } from "@/lib/encryption";
 
 export function createPicnicClient(authKey?: string) {
   return new PicnicApi({
@@ -19,11 +20,12 @@ export async function getPicnicClientForFamily(familyId: string) {
     .get();
 
   const data = doc.data();
-  const authKey = typeof data?.authKey === "string" ? data.authKey : null;
-  if (!authKey) {
+  const encryptedKey = typeof data?.authKey === "string" ? data.authKey : null;
+  if (!encryptedKey) {
     return null;
   }
 
+  const authKey = decrypt(encryptedKey);
   return createPicnicClient(authKey);
 }
 

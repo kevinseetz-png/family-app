@@ -10,6 +10,7 @@ export default defineConfig({
     globals: true,
     env: {
       JWT_SECRET: "test-secret-for-vitest",
+      PICNIC_ENCRYPTION_KEY: "0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef",
     },
   },
   resolve: {
