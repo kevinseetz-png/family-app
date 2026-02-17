@@ -25,11 +25,17 @@ vi.mock("@/hooks/useMeals", () => ({
   useMeals: vi.fn(),
 }));
 
+vi.mock("@/hooks/useWeekMenu", () => ({
+  useWeekMenu: vi.fn(),
+}));
+
 import { useAuthContext } from "@/components/AuthProvider";
 import { useMeals } from "@/hooks/useMeals";
+import { useWeekMenu } from "@/hooks/useWeekMenu";
 
 const mockUseAuthContext = vi.mocked(useAuthContext);
 const mockUseMeals = vi.mocked(useMeals);
+const mockUseWeekMenu = vi.mocked(useWeekMenu);
 
 const mockAuthContextBase = {
   logout: vi.fn(),
@@ -50,9 +56,22 @@ const mockUseMealsBase = {
   refetch: vi.fn(),
 };
 
+const EMPTY_DAYS = { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
+const EMPTY_INGREDIENTS = { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
+
+const mockUseWeekMenuBase = {
+  days: EMPTY_DAYS,
+  ingredients: EMPTY_INGREDIENTS,
+  isLoading: false,
+  error: null,
+  isSaving: false,
+  saveMenu: vi.fn(),
+};
+
 describe("MaaltijdenPage", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockUseWeekMenu.mockReturnValue(mockUseWeekMenuBase);
   });
 
   it("should redirect to login when not authenticated", async () => {
@@ -352,5 +371,188 @@ describe("MaaltijdenPage", () => {
     render(<MaaltijdenPage />);
 
     expect(screen.getByText("Failed to load meals")).toBeInTheDocument();
+  });
+
+  it("should show 'Toevoegen aan weekmenu' button when a meal is selected", async () => {
+    mockUseAuthContext.mockReturnValue({
+      ...mockAuthContextBase,
+      user: {
+        id: "user1",
+        name: "Test User",
+        email: "test@example.com",
+        familyId: "fam1",
+        role: "member",
+      },
+      isLoading: false,
+    });
+
+    mockUseMeals.mockReturnValue({
+      ...mockUseMealsBase,
+      meals: [
+        {
+          id: "meal1",
+          familyId: "fam1",
+          name: "Spaghetti",
+          ingredients: "pasta, gehakt",
+          instructions: "",
+          createdBy: "user1",
+          createdByName: "Test User",
+          createdAt: new Date(),
+        },
+      ],
+    });
+
+    render(<MaaltijdenPage />);
+
+    // Click meal to select it
+    await userEvent.click(screen.getByText("Spaghetti"));
+
+    expect(screen.getByRole("button", { name: /toevoegen aan weekmenu/i })).toBeInTheDocument();
+  });
+
+  it("should show day picker when 'Toevoegen aan weekmenu' is clicked", async () => {
+    mockUseAuthContext.mockReturnValue({
+      ...mockAuthContextBase,
+      user: {
+        id: "user1",
+        name: "Test User",
+        email: "test@example.com",
+        familyId: "fam1",
+        role: "member",
+      },
+      isLoading: false,
+    });
+
+    mockUseMeals.mockReturnValue({
+      ...mockUseMealsBase,
+      meals: [
+        {
+          id: "meal1",
+          familyId: "fam1",
+          name: "Spaghetti",
+          ingredients: "pasta, gehakt",
+          instructions: "",
+          createdBy: "user1",
+          createdByName: "Test User",
+          createdAt: new Date(),
+        },
+      ],
+    });
+
+    render(<MaaltijdenPage />);
+
+    // Select meal
+    await userEvent.click(screen.getByText("Spaghetti"));
+
+    // Click add to weekmenu
+    await userEvent.click(screen.getByRole("button", { name: /toevoegen aan weekmenu/i }));
+
+    // Should show day buttons
+    expect(screen.getByText("Kies een dag:")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Ma" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Di" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Zo" })).toBeInTheDocument();
+  });
+
+  it("should call saveMenu with meal data when a day is selected", async () => {
+    const mockSaveMenu = vi.fn().mockResolvedValue(undefined);
+
+    mockUseAuthContext.mockReturnValue({
+      ...mockAuthContextBase,
+      user: {
+        id: "user1",
+        name: "Test User",
+        email: "test@example.com",
+        familyId: "fam1",
+        role: "member",
+      },
+      isLoading: false,
+    });
+
+    mockUseMeals.mockReturnValue({
+      ...mockUseMealsBase,
+      meals: [
+        {
+          id: "meal1",
+          familyId: "fam1",
+          name: "Spaghetti",
+          ingredients: "pasta, gehakt",
+          instructions: "",
+          createdBy: "user1",
+          createdByName: "Test User",
+          createdAt: new Date(),
+        },
+      ],
+    });
+
+    mockUseWeekMenu.mockReturnValue({
+      ...mockUseWeekMenuBase,
+      saveMenu: mockSaveMenu,
+    });
+
+    render(<MaaltijdenPage />);
+
+    // Select meal
+    await userEvent.click(screen.getByText("Spaghetti"));
+
+    // Open day picker
+    await userEvent.click(screen.getByRole("button", { name: /toevoegen aan weekmenu/i }));
+
+    // Pick Monday
+    await userEvent.click(screen.getByRole("button", { name: "Ma" }));
+
+    await waitFor(() => {
+      expect(mockSaveMenu).toHaveBeenCalledWith(
+        { ...EMPTY_DAYS, mon: "Spaghetti" },
+        { ...EMPTY_INGREDIENTS, mon: "pasta, gehakt" }
+      );
+    });
+  });
+
+  it("should show existing weekmenu entries in day picker", async () => {
+    mockUseAuthContext.mockReturnValue({
+      ...mockAuthContextBase,
+      user: {
+        id: "user1",
+        name: "Test User",
+        email: "test@example.com",
+        familyId: "fam1",
+        role: "member",
+      },
+      isLoading: false,
+    });
+
+    mockUseMeals.mockReturnValue({
+      ...mockUseMealsBase,
+      meals: [
+        {
+          id: "meal1",
+          familyId: "fam1",
+          name: "Spaghetti",
+          ingredients: "pasta",
+          instructions: "",
+          createdBy: "user1",
+          createdByName: "Test User",
+          createdAt: new Date(),
+        },
+      ],
+    });
+
+    mockUseWeekMenu.mockReturnValue({
+      ...mockUseWeekMenuBase,
+      days: { ...EMPTY_DAYS, mon: "Pizza", wed: "Stamppot" },
+    });
+
+    render(<MaaltijdenPage />);
+
+    // Select meal
+    await userEvent.click(screen.getByText("Spaghetti"));
+
+    // Open day picker
+    await userEvent.click(screen.getByRole("button", { name: /toevoegen aan weekmenu/i }));
+
+    // Should show existing meals for days that have them
+    expect(screen.getByText(/Pizza/)).toBeInTheDocument();
+    expect(screen.getByText(/Stamppot/)).toBeInTheDocument();
   });
 });
