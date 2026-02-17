@@ -4,7 +4,9 @@ let cachedKey: Buffer | null = null;
 
 function getKey(): Buffer {
   if (cachedKey) return cachedKey;
-  const raw = process.env.PICNIC_ENCRYPTION_KEY;
+  // Dynamic access prevents Next.js webpack from inlining as undefined at build time
+  const envKey = "PICNIC_ENCRYPTION_KEY";
+  const raw = process.env[envKey];
   if (!raw) {
     throw new Error("PICNIC_ENCRYPTION_KEY environment variable is required (32-byte hex string)");
   }
