@@ -45,9 +45,21 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     );
   }
 
+  let encryptedAuthKey: string;
+  try {
+    encryptedAuthKey = encrypt(authKey);
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.error("Encryption error:", errMsg);
+    return NextResponse.json(
+      { message: "Server configuratie fout: encryption key ontbreekt. Stel PICNIC_ENCRYPTION_KEY in als environment variable." },
+      { status: 500 }
+    );
+  }
+
   try {
     await adminDb.collection("picnic_connections").doc(user.familyId).set({
-      authKey: encrypt(authKey),
+      authKey: encryptedAuthKey,
       connectedBy: user.id,
       connectedByName: user.name,
       connectedAt: new Date(),
