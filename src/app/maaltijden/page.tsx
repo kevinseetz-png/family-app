@@ -1,17 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import { useAuthContext } from "@/components/AuthProvider";
 import { useMeals } from "@/hooks/useMeals";
+import { usePicnic } from "@/hooks/usePicnic";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
+import { PicnicAddToCartModal } from "@/components/PicnicAddToCartModal";
 import type { Meal } from "@/types/meal";
+import type { PicnicProduct, PicnicCartSelection } from "@/types/picnic";
+
+function parseIngredients(text: string): string[] {
+  return text
+    .split(/[,\n]/)
+    .map((s) => s.trim())
+    .filter((s) => s.length > 0);
+}
 
 export default function MaaltijdenPage() {
   const { user, isLoading: authLoading } = useAuthContext();
   const router = useRouter();
   const { meals, isLoading, error, updateMeal, deleteMeal, getRandomMeal } = useMeals(user?.familyId);
+  const { status: picnicStatus, search, addToCart } = usePicnic(user?.familyId);
 
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
   const [editingMeal, setEditingMeal] = useState<Meal | null>(null);
@@ -20,11 +30,47 @@ export default function MaaltijdenPage() {
   const [editInstructions, setEditInstructions] = useState("");
   const [isSaving, setIsSaving] = useState(false);
 
+  // Picnic modal state
+  const [showPicnicModal, setShowPicnicModal] = useState(false);
+  const [picnicIngredients, setPicnicIngredients] = useState<string[]>([]);
+  const [picnicSearchResults, setPicnicSearchResults] = useState<Record<string, PicnicProduct[]>>({});
+  const [isPicnicLoading, setIsPicnicLoading] = useState(false);
+
   useEffect(() => {
     if (!authLoading && !user) {
       router.replace("/login");
     }
   }, [authLoading, user, router]);
+
+  const handlePicnicSearch = useCallback(async (ingredient: string) => {
+    try {
+      const products = await search(ingredient);
+      setPicnicSearchResults((prev) => ({ ...prev, [ingredient]: products }));
+    } catch {
+      setPicnicSearchResults((prev) => ({ ...prev, [ingredient]: [] }));
+    }
+  }, [search]);
+
+  const handlePicnicConfirm = useCallback(async (selections: PicnicCartSelection[]) => {
+    setIsPicnicLoading(true);
+    try {
+      await Promise.allSettled(
+        selections.map((sel) => addToCart(sel.productId, sel.count))
+      );
+      setShowPicnicModal(false);
+      setPicnicSearchResults({});
+    } finally {
+      setIsPicnicLoading(false);
+    }
+  }, [addToCart]);
+
+  const handleOpenPicnicModal = useCallback((meal: Meal) => {
+    const parsed = parseIngredients(meal.ingredients);
+    if (parsed.length === 0) return;
+    setPicnicIngredients(parsed);
+    setPicnicSearchResults({});
+    setShowPicnicModal(true);
+  }, []);
 
   if (authLoading || isLoading) {
     return <LoadingSpinner />;
@@ -145,6 +191,18 @@ export default function MaaltijdenPage() {
               <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{selectedMeal.instructions}</p>
             </div>
           )}
+          {/* Picnic add-to-cart button */}
+          {picnicStatus === "connected" && selectedMeal.ingredients && (
+            <button
+              onClick={() => handleOpenPicnicModal(selectedMeal)}
+              className="mt-3 w-full py-2 px-4 bg-emerald-600 text-white rounded-lg text-sm font-medium hover:bg-emerald-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path d="M3 1a1 1 0 000 2h1.22l.305 1.222a.997.997 0 00.01.042l1.358 5.43-.893.892C3.74 11.846 4.632 14 6.414 14H15a1 1 0 000-2H6.414l1-1H14a1 1 0 00.894-.553l3-6A1 1 0 0017 3H6.28l-.31-1.243A1 1 0 005 1H3zM16 16.5a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zM6.5 18a1.5 1.5 0 100-3 1.5 1.5 0 000 3z" />
+              </svg>
+              Ingrediënten naar Picnic mandje
+            </button>
+          )}
         </div>
       )}
 
@@ -223,6 +281,21 @@ export default function MaaltijdenPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Picnic add-to-cart modal */}
+      {showPicnicModal && (
+        <PicnicAddToCartModal
+          ingredients={picnicIngredients}
+          searchResults={picnicSearchResults}
+          onSearch={handlePicnicSearch}
+          onConfirm={handlePicnicConfirm}
+          onCancel={() => {
+            setShowPicnicModal(false);
+            setPicnicSearchResults({});
+          }}
+          isLoading={isPicnicLoading}
+        />
       )}
 
       {/* Meal cards */}
