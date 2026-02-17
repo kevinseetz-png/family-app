@@ -1,6 +1,6 @@
 import PicnicApi from "picnic-api";
 import { adminDb } from "@/lib/firebase-admin";
-import { decrypt } from "@/lib/encryption";
+import { decrypt, encrypt } from "@/lib/encryption";
 
 export function createPicnicClient(authKey?: string) {
   return new PicnicApi({
@@ -20,12 +20,23 @@ export async function getPicnicClientForFamily(familyId: string) {
     .get();
 
   const data = doc.data();
-  const encryptedKey = typeof data?.authKey === "string" ? data.authKey : null;
-  if (!encryptedKey) {
+  const storedKey = typeof data?.authKey === "string" ? data.authKey : null;
+  if (!storedKey) {
     return null;
   }
 
-  const authKey = decrypt(encryptedKey);
+  let authKey: string;
+  try {
+    authKey = decrypt(storedKey);
+  } catch {
+    // Legacy plain-text key — migrate to encrypted
+    authKey = storedKey;
+    await adminDb
+      .collection("picnic_connections")
+      .doc(familyId)
+      .update({ authKey: encrypt(authKey) });
+  }
+
   return createPicnicClient(authKey);
 }
 
