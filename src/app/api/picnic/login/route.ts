@@ -52,9 +52,11 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       connectedByName: user.name,
       connectedAt: new Date(),
     });
-  } catch {
+  } catch (err) {
+    const errMsg = err instanceof Error ? err.message : String(err);
+    console.error("Picnic store error:", err);
     return NextResponse.json(
-      { message: "Kon verbinding niet opslaan" },
+      { message: "Kon verbinding niet opslaan", debug: errMsg },
       { status: 500 }
     );
   }
