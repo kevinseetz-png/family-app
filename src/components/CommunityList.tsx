@@ -27,11 +27,11 @@ function getRelativeTime(date: Date): string {
 
 export function CommunityList({ posts, isLoading }: CommunityListProps) {
   if (isLoading) {
-    return <p className="text-sm text-gray-500" role="status">Berichten laden...</p>;
+    return <p className="text-sm text-gray-500 dark:text-gray-400" role="status">Berichten laden...</p>;
   }
 
   if (posts.length === 0) {
-    return <p className="text-sm text-gray-500">Nog geen berichten</p>;
+    return <p className="text-sm text-gray-500 dark:text-gray-400">Nog geen berichten</p>;
   }
 
   return (
@@ -39,16 +39,16 @@ export function CommunityList({ posts, isLoading }: CommunityListProps) {
       {posts.map((post) => (
         <li
           key={post.id}
-          className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm"
+          className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4 shadow-sm"
         >
           <div className="flex items-start justify-between mb-2">
             <div>
-              <p className="font-medium text-gray-900">{post.authorName}</p>
-              <p className="text-sm text-gray-500">{post.familyName}</p>
+              <p className="font-medium text-gray-900 dark:text-gray-100">{post.authorName}</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">{post.familyName}</p>
             </div>
-            <p className="text-sm text-gray-500">{getRelativeTime(post.createdAt)}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{getRelativeTime(post.createdAt)}</p>
           </div>
-          <p className="text-gray-700 whitespace-pre-wrap">{post.content}</p>
+          <p className="text-gray-700 dark:text-gray-300 whitespace-pre-wrap">{post.content}</p>
         </li>
       ))}
     </ul>

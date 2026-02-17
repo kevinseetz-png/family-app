@@ -1,9 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import type { WeekMenuDays } from "@/types/weekmenu";
+import type { WeekMenuDays, WeekMenuIngredients, DayKey } from "@/types/weekmenu";
 
-const DAY_LABELS: { key: keyof WeekMenuDays; label: string; fullLabel: string }[] = [
+const DAY_LABELS: { key: DayKey; label: string; fullLabel: string }[] = [
   { key: "mon", label: "Ma", fullLabel: "Maandag" },
   { key: "tue", label: "Di", fullLabel: "Dinsdag" },
   { key: "wed", label: "Wo", fullLabel: "Woensdag" },
@@ -13,41 +13,63 @@ const DAY_LABELS: { key: keyof WeekMenuDays; label: string; fullLabel: string }[
   { key: "sun", label: "Zo", fullLabel: "Zondag" },
 ];
 
+const EMPTY_INGREDIENTS: WeekMenuIngredients = { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
+
 interface WeekMenuFormProps {
   initialDays: WeekMenuDays;
+  initialIngredients?: WeekMenuIngredients;
   isSaving: boolean;
-  onSave: (days: WeekMenuDays) => Promise<void>;
-  onSaveMeal?: (name: string, sourceDay: string) => Promise<void>;
+  onSave: (days: WeekMenuDays, ingredients: WeekMenuIngredients) => Promise<void>;
+  onSaveMeal?: (name: string, ingredients: string, sourceDay: string) => Promise<void>;
 }
 
-export function WeekMenuForm({ initialDays, isSaving, onSave, onSaveMeal }: WeekMenuFormProps) {
+export function WeekMenuForm({ initialDays, initialIngredients, isSaving, onSave, onSaveMeal }: WeekMenuFormProps) {
   const [days, setDays] = useState<WeekMenuDays>(initialDays);
+  const [ingredients, setIngredients] = useState<WeekMenuIngredients>(initialIngredients ?? EMPTY_INGREDIENTS);
+  const [expandedDays, setExpandedDays] = useState<Set<DayKey>>(new Set());
   const [success, setSuccess] = useState(false);
   const [savingMeal, setSavingMeal] = useState<string | null>(null);
   const [savedMeals, setSavedMeals] = useState<Set<string>>(new Set());
 
-  const handleChange = (key: keyof WeekMenuDays, value: string) => {
+  const handleChange = (key: DayKey, value: string) => {
     setDays((prev) => ({ ...prev, [key]: value }));
     setSuccess(false);
+  };
+
+  const handleIngredientsChange = (key: DayKey, value: string) => {
+    setIngredients((prev) => ({ ...prev, [key]: value }));
+    setSuccess(false);
+  };
+
+  const toggleExpand = (key: DayKey) => {
+    setExpandedDays((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) {
+        next.delete(key);
+      } else {
+        next.add(key);
+      }
+      return next;
+    });
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
-      await onSave(days);
+      await onSave(days, ingredients);
       setSuccess(true);
     } catch {
       // error handled by hook
     }
   };
 
-  const handleSaveMeal = async (key: keyof WeekMenuDays, fullLabel: string) => {
+  const handleSaveMeal = async (key: DayKey, fullLabel: string) => {
     const mealName = days[key].trim();
     if (!mealName || !onSaveMeal) return;
 
     setSavingMeal(key);
     try {
-      await onSaveMeal(mealName, fullLabel);
+      await onSaveMeal(mealName, ingredients[key] ?? "", fullLabel);
       setSavedMeals((prev) => new Set(prev).add(key));
     } catch {
       // error handled by parent
@@ -58,49 +80,91 @@ export function WeekMenuForm({ initialDays, isSaving, onSave, onSaveMeal }: Week
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      {DAY_LABELS.map(({ key, label, fullLabel }) => (
-        <div key={key}>
-          <label htmlFor={`day-${key}`} className="block text-sm font-medium text-gray-700 mb-1">
-            {label}
-          </label>
-          <div className="flex gap-2">
-            <input
-              id={`day-${key}`}
-              type="text"
-              maxLength={500}
-              value={days[key]}
-              onChange={(e) => handleChange(key, e.target.value)}
-              placeholder="Wat eten we?"
-              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
-            />
-            {onSaveMeal && (
-              <button
-                type="button"
-                onClick={() => handleSaveMeal(key, fullLabel)}
-                disabled={!days[key].trim() || savingMeal === key}
-                className="px-3 py-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                aria-label={`Bewaar ${days[key] || "maaltijd"} als kaart`}
-                title="Bewaar als maaltijdkaart"
-              >
-                {savingMeal === key ? (
-                  <svg className="w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                ) : savedMeals.has(key) ? (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                  </svg>
-                ) : (
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                    <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
-                  </svg>
+      {DAY_LABELS.map(({ key, label, fullLabel }) => {
+        const isExpanded = expandedDays.has(key);
+        const hasIngredients = !!ingredients[key]?.trim();
+
+        return (
+          <div key={key} className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <div className="p-3">
+              <label htmlFor={`day-${key}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                {label}
+              </label>
+              <div className="flex gap-2">
+                <input
+                  id={`day-${key}`}
+                  type="text"
+                  maxLength={500}
+                  value={days[key]}
+                  onChange={(e) => handleChange(key, e.target.value)}
+                  placeholder="Wat eten we?"
+                  className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                />
+                {onSaveMeal && (
+                  <button
+                    type="button"
+                    onClick={() => handleSaveMeal(key, fullLabel)}
+                    disabled={!days[key].trim() || savingMeal === key}
+                    className="px-3 py-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    aria-label={`Bewaar ${days[key] || "maaltijd"} als kaart`}
+                    title="Bewaar als maaltijdkaart"
+                  >
+                    {savingMeal === key ? (
+                      <svg className="w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                    ) : savedMeals.has(key) ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                      </svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M5 4a2 2 0 012-2h6a2 2 0 012 2v14l-5-2.5L5 18V4z" />
+                      </svg>
+                    )}
+                  </button>
                 )}
-              </button>
+              </div>
+
+              {/* Collapsible ingredients toggle */}
+              {days[key].trim() && (
+                <button
+                  type="button"
+                  onClick={() => toggleExpand(key)}
+                  className="mt-2 flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`h-3.5 w-3.5 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                    viewBox="0 0 20 20"
+                    fill="currentColor"
+                  >
+                    <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
+                  </svg>
+                  {hasIngredients ? "Ingrediënten bewerken" : "Ingrediënten toevoegen"}
+                </button>
+              )}
+            </div>
+
+            {/* Collapsible ingredients area */}
+            {isExpanded && (
+              <div className="px-3 pb-3">
+                <textarea
+                  id={`ingredients-${key}`}
+                  value={ingredients[key]}
+                  onChange={(e) => handleIngredientsChange(key, e.target.value)}
+                  placeholder="Bijv. 500g pasta, 2 uien, 400g gehakt..."
+                  rows={3}
+                  maxLength={2000}
+                  className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-sm text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none resize-none"
+                  aria-label={`Ingrediënten voor ${label}`}
+                />
+              </div>
             )}
           </div>
-        </div>
-      ))}
+        );
+      })}
       {success && <p className="text-sm text-emerald-600">Opgeslagen!</p>}
       <button
         type="submit"

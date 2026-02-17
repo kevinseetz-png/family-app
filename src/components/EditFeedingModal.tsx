@@ -63,15 +63,15 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
   return createPortal(
     <div className="fixed inset-0 z-50 bg-black/50" onClick={onClose}>
       <div
-        className="fixed bottom-0 left-0 right-0 z-50 bg-white rounded-t-xl shadow-xl p-4 max-h-[85vh] overflow-y-auto"
+        className="fixed bottom-0 left-0 right-0 z-50 bg-white dark:bg-gray-800 rounded-t-xl shadow-xl p-4 max-h-[85vh] overflow-y-auto"
         role="dialog"
         aria-label="Voeding bewerken"
         onClick={(e) => e.stopPropagation()}
       >
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Voeding bewerken</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Voeding bewerken</h2>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div>
-            <label htmlFor="edit-food-type" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="edit-food-type" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Soort voeding
             </label>
             <select
@@ -79,7 +79,7 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
               value={foodType}
               onChange={(e) => setFoodType(e.target.value as FoodType)}
               required
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             >
               {FOOD_TYPES.map((ft) => (
                 <option key={ft} value={ft}>{FOOD_TYPE_LABELS[ft]}</option>
@@ -88,7 +88,7 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
           </div>
           <div className="flex gap-3">
             <div className="flex-1">
-              <label htmlFor="edit-amount" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="edit-amount" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Hoeveelheid
               </label>
               <input
@@ -99,18 +99,18 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
                 value={amount}
                 onChange={(e) => setAmount(parseFloat(e.target.value) || 0)}
                 required
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               />
             </div>
             <div className="w-24">
-              <label htmlFor="edit-unit" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="edit-unit" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Eenheid
               </label>
               <select
                 id="edit-unit"
                 value={unit}
                 onChange={(e) => setUnit(e.target.value as FeedingUnit)}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+                className="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
               >
                 <option value="ml">ml</option>
                 <option value="g">g</option>
@@ -118,7 +118,7 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
             </div>
           </div>
           <div>
-            <label htmlFor="edit-timestamp" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="edit-timestamp" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Tijd
             </label>
             <input
@@ -127,7 +127,7 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
               value={timestamp}
               onChange={(e) => setTimestamp(e.target.value)}
               required
-              className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              className="w-full rounded-lg border border-gray-300 dark:border-gray-600 dark:bg-gray-700 px-3 py-2 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
           </div>
           {error && <p role="alert" className="text-sm text-red-600">{error}</p>}
@@ -135,7 +135,7 @@ export function EditFeedingModal({ feeding, onSave, onClose }: EditFeedingModalP
             <button
               type="button"
               onClick={onClose}
-              className="flex-1 rounded-lg border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             >
               Annuleren
             </button>

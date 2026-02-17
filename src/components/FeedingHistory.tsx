@@ -38,7 +38,7 @@ export function FeedingHistory({
   dayFeedingsLoading,
 }: FeedingHistoryProps) {
   if (isLoading) {
-    return <p className="text-gray-500 text-center py-4">Geschiedenis laden...</p>;
+    return <p className="text-gray-500 dark:text-gray-400 text-center py-4">Geschiedenis laden...</p>;
   }
 
   if (error) {
@@ -46,28 +46,28 @@ export function FeedingHistory({
   }
 
   if (history.length === 0) {
-    return <p className="text-gray-500 text-center py-4">Geen voedingsgeschiedenis</p>;
+    return <p className="text-gray-500 dark:text-gray-400 text-center py-4">Geen voedingsgeschiedenis</p>;
   }
 
   return (
-    <ul className="divide-y divide-gray-200">
+    <ul className="divide-y divide-gray-200 dark:divide-gray-700">
       {history.map((day) => (
         <li key={day.date}>
           <button
             onClick={() => onDayClick(day.date)}
-            className="w-full py-3 flex justify-between items-center text-left hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-emerald-500 rounded"
+            className="w-full py-3 flex justify-between items-center text-left hover:bg-gray-50 dark:hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-500 rounded"
           >
-            <span className="text-sm text-gray-700">{formatDate(day.date)}</span>
+            <span className="text-sm text-gray-700 dark:text-gray-300">{formatDate(day.date)}</span>
             <div className="flex items-center gap-4">
               <span className="font-semibold text-emerald-600">{day.totalMl} ml</span>
-              <span className="text-sm text-gray-400">
+              <span className="text-sm text-gray-400 dark:text-gray-500">
                 {day.count} {day.count === 1 ? "voeding" : "voedingen"}
               </span>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
                 viewBox="0 0 20 20"
                 fill="currentColor"
-                className={`w-4 h-4 text-gray-400 transition-transform ${selectedDate === day.date ? "rotate-180" : ""}`}
+                className={`w-4 h-4 text-gray-400 dark:text-gray-500 transition-transform ${selectedDate === day.date ? "rotate-180" : ""}`}
                 aria-hidden="true"
               >
                 <path fillRule="evenodd" d="M5.23 7.21a.75.75 0 011.06.02L10 11.168l3.71-3.938a.75.75 0 111.08 1.04l-4.25 4.5a.75.75 0 01-1.08 0l-4.25-4.5a.75.75 0 01.02-1.06z" clipRule="evenodd" />
@@ -77,7 +77,7 @@ export function FeedingHistory({
           {selectedDate === day.date && (
             <div className="pb-3 pl-4">
               {dayFeedingsLoading ? (
-                <p className="text-gray-500 text-sm py-2">Voedingen laden...</p>
+                <p className="text-gray-500 dark:text-gray-400 text-sm py-2">Voedingen laden...</p>
               ) : (
                 <FeedingList feedings={dayFeedings} />
               )}

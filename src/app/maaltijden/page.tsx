@@ -102,7 +102,7 @@ export default function MaaltijdenPage() {
 
   return (
     <main id="main-content" className="max-w-md mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Maaltijden</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Maaltijden</h1>
 
       {/* Random meal button */}
       {meals.length > 0 && (
@@ -132,17 +132,17 @@ export default function MaaltijdenPage() {
               </svg>
             </button>
           </div>
-          <p className="text-xl font-semibold text-gray-900 mb-3">{selectedMeal.name}</p>
+          <p className="text-xl font-semibold text-gray-900 dark:text-gray-100 mb-3">{selectedMeal.name}</p>
           {selectedMeal.ingredients && (
             <div className="mb-3">
-              <h3 className="text-sm font-medium text-gray-700 mb-1">Ingrediënten</h3>
-              <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedMeal.ingredients}</p>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Ingrediënten</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{selectedMeal.ingredients}</p>
             </div>
           )}
           {selectedMeal.instructions && (
             <div>
-              <h3 className="text-sm font-medium text-gray-700 mb-1">Instructies</h3>
-              <p className="text-sm text-gray-600 whitespace-pre-wrap">{selectedMeal.instructions}</p>
+              <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Instructies</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 whitespace-pre-wrap">{selectedMeal.instructions}</p>
             </div>
           )}
         </div>
@@ -158,13 +158,13 @@ export default function MaaltijdenPage() {
       {/* Edit modal */}
       {editingMeal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-4 border-b">
-              <h2 className="text-lg font-bold text-gray-900">Maaltijd bewerken</h2>
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b dark:border-gray-700">
+              <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100">Maaltijd bewerken</h2>
             </div>
             <div className="p-4 space-y-4">
               <div>
-                <label htmlFor="edit-name" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="edit-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Naam
                 </label>
                 <input
@@ -172,12 +172,12 @@ export default function MaaltijdenPage() {
                   type="text"
                   value={editName}
                   onChange={(e) => setEditName(e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   disabled={isSaving}
                 />
               </div>
               <div>
-                <label htmlFor="edit-ingredients" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="edit-ingredients" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Ingrediënten
                 </label>
                 <textarea
@@ -185,13 +185,13 @@ export default function MaaltijdenPage() {
                   value={editIngredients}
                   onChange={(e) => setEditIngredients(e.target.value)}
                   rows={4}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
                   disabled={isSaving}
                   placeholder="Bijv. pasta, gehakt, tomaten..."
                 />
               </div>
               <div>
-                <label htmlFor="edit-instructions" className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="edit-instructions" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Instructies
                 </label>
                 <textarea
@@ -199,13 +199,13 @@ export default function MaaltijdenPage() {
                   value={editInstructions}
                   onChange={(e) => setEditInstructions(e.target.value)}
                   rows={6}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
                   disabled={isSaving}
                   placeholder="Hoe bereid je dit gerecht?"
                 />
               </div>
             </div>
-            <div className="p-4 border-t flex gap-2">
+            <div className="p-4 border-t dark:border-gray-700 flex gap-2">
               <button
                 onClick={handleSaveEdit}
                 disabled={isSaving || !editName.trim()}
@@ -216,7 +216,7 @@ export default function MaaltijdenPage() {
               <button
                 onClick={handleCancelEdit}
                 disabled={isSaving}
-                className="flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                className="flex-1 py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
               >
                 Annuleren
               </button>
@@ -227,7 +227,7 @@ export default function MaaltijdenPage() {
 
       {/* Meal cards */}
       {meals.length === 0 && !error ? (
-        <p className="text-gray-500 text-center py-8">
+        <p className="text-gray-500 dark:text-gray-400 text-center py-8">
           Geen maaltijden opgeslagen. Sla eerst een maaltijd op vanuit het weekmenu.
         </p>
       ) : (
@@ -235,20 +235,20 @@ export default function MaaltijdenPage() {
           {meals.map((meal) => (
             <li
               key={meal.id}
-              className="p-4 bg-white rounded-lg shadow cursor-pointer hover:shadow-md transition-shadow"
+              className="p-4 bg-white dark:bg-gray-800 rounded-lg shadow cursor-pointer hover:shadow-md transition-shadow"
               onClick={() => handleSelectMeal(meal)}
             >
               <div className="flex items-start justify-between">
                 <div className="flex-1 min-w-0">
-                  <p className="font-medium text-gray-900">{meal.name}</p>
+                  <p className="font-medium text-gray-900 dark:text-gray-100">{meal.name}</p>
                   {meal.ingredients && (
-                    <p className="text-sm text-gray-500 truncate mt-1">{meal.ingredients}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400 truncate mt-1">{meal.ingredients}</p>
                   )}
                 </div>
                 <div className="flex gap-1 ml-2" onClick={(e) => e.stopPropagation()}>
                   <button
                     onClick={() => handleEdit(meal)}
-                    className="p-2 text-gray-400 hover:text-gray-600 transition-colors"
+                    className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 transition-colors"
                     aria-label={`Bewerk ${meal.name}`}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
@@ -257,7 +257,7 @@ export default function MaaltijdenPage() {
                   </button>
                   <button
                     onClick={() => handleDelete(meal.id)}
-                    className="p-2 text-gray-400 hover:text-red-600 transition-colors"
+                    className="p-2 text-gray-400 dark:text-gray-500 hover:text-red-600 transition-colors"
                     aria-label={`Verwijder ${meal.name}`}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">

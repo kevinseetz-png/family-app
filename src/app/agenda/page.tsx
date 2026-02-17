@@ -176,27 +176,27 @@ const MiniCalendar = memo(function MiniCalendar({
   const days = useMemo(() => getMonthDays(year, month), [year, month]);
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-3 sm:p-4 animate-expandDown">
+    <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-sm border border-gray-100 dark:border-gray-700 p-3 sm:p-4 animate-expandDown">
       {/* Month navigation */}
       <div className="flex items-center justify-between mb-4">
         <button
           onClick={onPrevMonth}
-          className="p-2 rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors"
+          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 transition-colors"
           aria-label="Vorige maand"
         >
-          <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
           {MONTHS_NL[month]} {year}
         </h2>
         <button
           onClick={onNextMonth}
-          className="p-2 rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors"
+          className="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 transition-colors"
           aria-label="Volgende maand"
         >
-          <svg className="w-5 h-5 text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+          <svg className="w-5 h-5 text-gray-600 dark:text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </button>
@@ -205,7 +205,7 @@ const MiniCalendar = memo(function MiniCalendar({
       {/* Day headers */}
       <div className="grid grid-cols-7 gap-0.5 sm:gap-1 mb-1">
         {DAYS_NL.map((day) => (
-          <div key={day} className="text-center text-[10px] sm:text-xs font-semibold text-gray-400 uppercase tracking-wide py-1">
+          <div key={day} className="text-center text-[10px] sm:text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wide py-1">
             {day}
           </div>
         ))}
@@ -225,10 +225,10 @@ const MiniCalendar = memo(function MiniCalendar({
               onClick={() => onSelectDate(date)}
               className={`
                 relative flex flex-col items-center justify-center rounded-lg sm:rounded-xl py-1.5 sm:py-2 text-xs sm:text-sm transition-all duration-200 min-h-[2.25rem] sm:min-h-[2.5rem]
-                ${!isCurrentMonth ? "text-gray-300" : "text-gray-700"}
-                ${isToday && !isSelected ? "bg-emerald-50 text-emerald-700 font-bold ring-1 ring-emerald-200" : ""}
+                ${!isCurrentMonth ? "text-gray-300 dark:text-gray-600" : "text-gray-700 dark:text-gray-300"}
+                ${isToday && !isSelected ? "bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 font-bold ring-1 ring-emerald-200 dark:ring-emerald-700" : ""}
                 ${isSelected ? "bg-emerald-600 text-white font-bold shadow-md shadow-emerald-200 scale-105" : ""}
-                ${!isSelected && isCurrentMonth ? "hover:bg-gray-50 active:bg-gray-100" : ""}
+                ${!isSelected && isCurrentMonth ? "hover:bg-gray-50 dark:hover:bg-gray-800 active:bg-gray-100" : ""}
               `}
               aria-label={`${day} ${MONTHS_NL[parseInt(date.slice(5, 7), 10) - 1]} ${date.slice(0, 4)}`}
               aria-pressed={isSelected}
@@ -246,7 +246,7 @@ const MiniCalendar = memo(function MiniCalendar({
                     />
                   ))}
                   {categories.length > 3 && (
-                    <span className={`block w-1.5 h-1.5 rounded-full ${isSelected ? "bg-white/50" : "bg-gray-300"}`} />
+                    <span className={`block w-1.5 h-1.5 rounded-full ${isSelected ? "bg-white/50" : "bg-gray-300 dark:bg-gray-600"}`} />
                   )}
                 </div>
               )}
@@ -258,7 +258,7 @@ const MiniCalendar = memo(function MiniCalendar({
       {/* Today button */}
       <button
         onClick={onGoToToday}
-        className="mt-3 w-full py-2 text-sm font-semibold text-emerald-600 hover:bg-emerald-50 active:bg-emerald-100 rounded-xl transition-colors"
+        className="mt-3 w-full py-2 text-sm font-semibold text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 active:bg-emerald-100 rounded-xl transition-colors"
         aria-label="Ga naar vandaag"
       >
         Vandaag
@@ -312,10 +312,10 @@ function DayHeader({
         {/* Previous day button */}
         <button
           onClick={onPrevDay}
-          className="p-1.5 rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors flex-shrink-0"
+          className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 transition-colors flex-shrink-0"
           aria-label="Vorige dag"
         >
-          <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
@@ -331,7 +331,7 @@ function DayHeader({
               Morgen
             </span>
           )}
-          <h2 className="text-xl font-bold text-gray-900 truncate">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-gray-100 truncate">
             <span className="capitalize">{dayName}</span> {dayNum} {monthName}
           </h2>
         </div>
@@ -339,16 +339,16 @@ function DayHeader({
         {/* Next day button */}
         <button
           onClick={onNextDay}
-          className="p-1.5 rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors flex-shrink-0"
+          className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 transition-colors flex-shrink-0"
           aria-label="Volgende dag"
         >
-          <svg className="w-5 h-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className="w-5 h-5 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </button>
       </div>
       {eventCount > 0 && (
-        <p className="text-xs text-gray-400 mt-1 ml-9">
+        <p className="text-xs text-gray-400 dark:text-gray-500 mt-1 ml-9">
           {eventCount} {eventCount === 1 ? "afspraak" : "afspraken"}
         </p>
       )}
@@ -437,8 +437,8 @@ const EventCard = memo(function EventCard({
 
           {/* Time */}
           {!event.allDay && event.startTime && (
-            <p className="text-xs text-gray-500 ml-8 flex items-center gap-1">
-              <svg className="w-3 h-3 text-gray-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <p className="text-xs text-gray-500 dark:text-gray-400 ml-8 flex items-center gap-1">
+              <svg className="w-3 h-3 text-gray-400 dark:text-gray-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
               {formatTimeDisplay(event.startTime)}
@@ -446,8 +446,8 @@ const EventCard = memo(function EventCard({
             </p>
           )}
           {event.allDay && (
-            <p className="text-xs text-gray-400 ml-8 flex items-center gap-1">
-              <svg className="w-3 h-3 text-gray-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <p className="text-xs text-gray-400 dark:text-gray-500 ml-8 flex items-center gap-1">
+              <svg className="w-3 h-3 text-gray-300 dark:text-gray-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" />
               </svg>
               Hele dag
@@ -468,7 +468,7 @@ const EventCard = memo(function EventCard({
 
           {/* Description preview */}
           {event.description && (
-            <p className="text-xs text-gray-500 mt-1.5 ml-8 line-clamp-2 leading-relaxed">{event.description}</p>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mt-1.5 ml-8 line-clamp-2 leading-relaxed">{event.description}</p>
           )}
 
           {/* Meta */}
@@ -479,7 +479,7 @@ const EventCard = memo(function EventCard({
               </span>
             )}
             {event.recurrence !== "none" && (
-              <span className="inline-flex items-center gap-1 text-[11px] text-gray-400 bg-white/60 px-1.5 py-0.5 rounded-md">
+              <span className="inline-flex items-center gap-1 text-[11px] text-gray-400 dark:text-gray-500 bg-white/60 dark:bg-gray-800/60 px-1.5 py-0.5 rounded-md">
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
                 </svg>
@@ -487,28 +487,28 @@ const EventCard = memo(function EventCard({
               </span>
             )}
             {event.assignedTo && (
-              <span className="inline-flex items-center gap-1 text-[11px] text-gray-400 bg-white/60 px-1.5 py-0.5 rounded-md">
+              <span className="inline-flex items-center gap-1 text-[11px] text-gray-400 dark:text-gray-500 bg-white/60 dark:bg-gray-800/60 px-1.5 py-0.5 rounded-md">
                 <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
                 </svg>
                 {event.assignedTo}
               </span>
             )}
-            <span className="text-[11px] text-gray-300">{event.createdByName}</span>
+            <span className="text-[11px] text-gray-300 dark:text-gray-600">{event.createdByName}</span>
           </div>
         </div>
       </div>
 
       {/* Action buttons */}
       {showActions && (
-        <div className="mt-3 pt-2.5 border-t border-gray-200/50 animate-fadeIn">
+        <div className="mt-3 pt-2.5 border-t border-gray-200/50 dark:border-gray-700/50 animate-fadeIn">
           {confirmingDelete ? (
             <div className="animate-confirmSlide">
-              <p className="text-xs text-gray-500 text-center mb-2">Weet je het zeker?</p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 text-center mb-2">Weet je het zeker?</p>
               <div className="flex gap-2">
                 <button
                   onClick={(e) => { e.stopPropagation(); setConfirmingDelete(false); }}
-                  className="flex-1 py-2 text-xs font-medium text-gray-600 bg-white rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors shadow-sm"
+                  className="flex-1 py-2 text-xs font-medium text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 transition-colors shadow-sm"
                   aria-label="Annuleer verwijderen"
                 >
                   Nee, terug
@@ -526,14 +526,14 @@ const EventCard = memo(function EventCard({
             <div className="flex gap-2">
               <button
                 onClick={(e) => { e.stopPropagation(); onEdit(event); }}
-                className="flex-1 py-2 text-xs font-medium text-gray-600 bg-white rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors shadow-sm"
+                className="flex-1 py-2 text-xs font-medium text-gray-600 dark:text-gray-400 bg-white dark:bg-gray-800 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 transition-colors shadow-sm"
                 aria-label={`Bewerk ${event.title}`}
               >
                 Bewerken
               </button>
               <button
                 onClick={(e) => { e.stopPropagation(); setConfirmingDelete(true); }}
-                className="flex-1 py-2 text-xs font-medium text-red-600 bg-white rounded-lg hover:bg-red-50 active:bg-red-100 transition-colors shadow-sm"
+                className="flex-1 py-2 text-xs font-medium text-red-600 bg-white dark:bg-gray-800 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 active:bg-red-100 transition-colors shadow-sm"
                 aria-label={`Verwijder ${event.title}`}
               >
                 Verwijderen
@@ -573,9 +573,9 @@ function EmptyStateIllustration() {
           <path d="M22 65L23.5 69L27.5 70.5L23.5 72L22 76L20.5 72L16.5 70.5L20.5 69Z" fill="#C4B5FD" opacity="0.6" />
         </svg>
       </div>
-      <h3 className="text-gray-700 font-semibold text-base mb-1.5">Vrije dag!</h3>
-      <p className="text-gray-400 text-sm mb-1">Geen afspraken gepland</p>
-      <p className="text-gray-300 text-xs">Tik op <span className="inline-flex items-center justify-center w-5 h-5 bg-emerald-100 text-emerald-600 rounded-full text-[10px] font-bold mx-0.5">+</span> om iets toe te voegen</p>
+      <h3 className="text-gray-700 dark:text-gray-300 font-semibold text-base mb-1.5">Vrije dag!</h3>
+      <p className="text-gray-400 dark:text-gray-500 text-sm mb-1">Geen afspraken gepland</p>
+      <p className="text-gray-300 dark:text-gray-600 text-xs">Tik op <span className="inline-flex items-center justify-center w-5 h-5 bg-emerald-100 text-emerald-600 rounded-full text-[10px] font-bold mx-0.5">+</span> om iets toe te voegen</p>
     </div>
   );
 }
@@ -600,7 +600,7 @@ const TodaySummary = memo(function TodaySummary({ events }: { events: AgendaEven
   if (totalCount === 0) return null;
 
   return (
-    <div className="mb-4 px-3.5 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-100 rounded-xl animate-fadeIn">
+    <div className="mb-4 px-3.5 py-3 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-100 dark:border-emerald-700 rounded-xl animate-fadeIn">
       <div className="flex items-center gap-3">
         <div className="w-9 h-9 flex items-center justify-center rounded-full bg-emerald-100 text-emerald-600 flex-shrink-0">
           <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -657,7 +657,7 @@ function SearchFilterBar({
           className={`p-2 rounded-xl transition-all duration-200 ${
             isExpanded || hasActiveFilters
               ? "bg-emerald-100 text-emerald-600 shadow-sm"
-              : "text-gray-400 hover:bg-gray-100 active:bg-gray-200"
+              : "text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200"
           }`}
           aria-label="Zoeken en filteren"
           aria-pressed={isExpanded}
@@ -674,7 +674,7 @@ function SearchFilterBar({
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
               placeholder="Zoek afspraken..."
-              className="w-full px-3 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full px-3 py-2 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
               autoFocus
               aria-label="Zoek afspraken"
             />
@@ -684,7 +684,7 @@ function SearchFilterBar({
         {isExpanded && searchQuery && (
           <button
             onClick={() => onSearchChange("")}
-            className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 active:bg-gray-200 transition-colors"
+            className="p-2 rounded-xl text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 transition-colors"
             aria-label="Wis zoekopdracht"
           >
             <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -707,7 +707,7 @@ function SearchFilterBar({
                 className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium transition-all duration-150 ${
                   isActive
                     ? `${config.bgColor} ${config.color} ring-1 ${config.borderColor.replace("border", "ring")}`
-                    : "bg-gray-100 text-gray-400 line-through"
+                    : "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 line-through"
                 }`}
               >
                 <span className="text-xs">{config.emoji}</span>
@@ -718,7 +718,7 @@ function SearchFilterBar({
           {onManageCategories && (
             <button
               onClick={onManageCategories}
-              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-gray-100 text-gray-500 hover:bg-gray-200 transition-colors"
+              className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[11px] font-medium bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors"
               aria-label="Categorieën beheren"
             >
               <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -822,7 +822,7 @@ function TimelineView({
       {/* All-day events */}
       {allDayEvents.length > 0 && (
         <div className="mb-5">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+          <p className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
             <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707" />
             </svg>
@@ -836,7 +836,7 @@ function TimelineView({
                     <button
                       onClick={() => onReorderAllDay(event.id, "up")}
                       disabled={idx === 0}
-                      className={`p-0.5 rounded transition-colors ${idx === 0 ? "text-gray-200" : "text-gray-400 hover:bg-gray-100 active:bg-gray-200"}`}
+                      className={`p-0.5 rounded transition-colors ${idx === 0 ? "text-gray-200 dark:text-gray-700" : "text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200"}`}
                       aria-label="Omhoog verplaatsen"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -846,7 +846,7 @@ function TimelineView({
                     <button
                       onClick={() => onReorderAllDay(event.id, "down")}
                       disabled={idx === allDayEvents.length - 1}
-                      className={`p-0.5 rounded transition-colors ${idx === allDayEvents.length - 1 ? "text-gray-200" : "text-gray-400 hover:bg-gray-100 active:bg-gray-200"}`}
+                      className={`p-0.5 rounded transition-colors ${idx === allDayEvents.length - 1 ? "text-gray-200 dark:text-gray-700" : "text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200"}`}
                       aria-label="Omlaag verplaatsen"
                     >
                       <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
@@ -863,7 +863,7 @@ function TimelineView({
             {hasMoreAllDay && (
               <button
                 onClick={() => setShowAllAllDay(!showAllAllDay)}
-                className="w-full py-1.5 text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 rounded-lg transition-colors"
+                className="w-full py-1.5 text-xs font-medium text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg transition-colors"
               >
                 {showAllAllDay
                   ? "Minder tonen"
@@ -876,7 +876,7 @@ function TimelineView({
 
       {/* Conflict summary banner */}
       {conflictIds.size > 0 && (
-        <div className="mb-4 px-3 py-2 bg-amber-50 border border-amber-200 rounded-xl flex items-center gap-2 animate-fadeIn">
+        <div className="mb-4 px-3 py-2 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-xl flex items-center gap-2 animate-fadeIn">
           <svg className="w-4 h-4 text-amber-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
           </svg>
@@ -898,12 +898,12 @@ function TimelineView({
             return (
               <div key={hour} className="flex min-h-[3.5rem]">
                 <div className={`w-14 flex-shrink-0 text-right pr-3 pt-0 text-xs font-medium transition-colors ${
-                  isCurrentHour ? "text-emerald-600 font-semibold" : isPastHour ? "text-gray-300" : "text-gray-400"
+                  isCurrentHour ? "text-emerald-600 font-semibold" : isPastHour ? "text-gray-300 dark:text-gray-600" : "text-gray-400 dark:text-gray-500"
                 }`}>
                   {String(hour).padStart(2, "0")}:00
                 </div>
                 <div className={`flex-1 border-t pt-1 pb-2 relative transition-colors ${
-                  isPastHour ? "border-gray-50" : "border-gray-100"
+                  isPastHour ? "border-gray-50 dark:border-gray-800" : "border-gray-100 dark:border-gray-700"
                 }`}>
                   {/* Current time line - more prominent */}
                   {isCurrentHour && (
@@ -915,7 +915,7 @@ function TimelineView({
                     >
                       <div className="w-3 h-3 rounded-full bg-red-500 -ml-1.5 shadow-md shadow-red-200 animate-timePulse" />
                       <div className="flex-1 h-0.5 bg-red-500 shadow-sm shadow-red-200" />
-                      <span className="ml-1 text-[10px] font-bold text-red-500 bg-white px-1 rounded">
+                      <span className="ml-1 text-[10px] font-bold text-red-500 bg-white dark:bg-gray-800 px-1 rounded">
                         {String(currentHour).padStart(2, "0")}:{String(currentMinute).padStart(2, "0")}
                       </span>
                     </div>
@@ -1057,25 +1057,25 @@ function EventModal({
     >
       <div
         ref={modalRef}
-        className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-slideUp"
+        className="bg-white dark:bg-gray-800 w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-y-auto shadow-2xl animate-slideUp"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header */}
-        <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-100 px-5 py-4 flex items-center justify-between rounded-t-2xl z-10">
+        <div className="sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-b border-gray-100 dark:border-gray-700 px-5 py-4 flex items-center justify-between rounded-t-2xl z-10">
           <button
             onClick={onClose}
-            className="text-sm text-gray-500 hover:text-gray-700 active:text-gray-900 transition-colors py-1 px-2 -ml-2 rounded-lg"
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 active:text-gray-900 transition-colors py-1 px-2 -ml-2 rounded-lg"
             aria-label="Annuleren"
           >
             Annuleren
           </button>
-          <h2 className="font-semibold text-gray-900" id="modal-title">
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100" id="modal-title">
             {event ? "Afspraak bewerken" : "Nieuwe afspraak"}
           </h2>
           <button
             onClick={handleSubmit}
             disabled={isSaving || !title.trim()}
-            className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 disabled:opacity-40 transition-all py-1 px-2 -mr-2 rounded-lg hover:bg-emerald-50"
+            className="text-sm font-semibold text-emerald-600 hover:text-emerald-700 disabled:opacity-40 transition-all py-1 px-2 -mr-2 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
             aria-label={isSaving ? "Opslaan..." : "Bewaar afspraak"}
           >
             {isSaving ? "..." : "Bewaar"}
@@ -1090,14 +1090,14 @@ function EventModal({
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               placeholder="Titel toevoegen"
-              className="w-full text-lg font-medium text-gray-900 placeholder-gray-300 border-0 border-b-2 border-gray-100 focus:border-emerald-500 focus:ring-0 pb-2 outline-none transition-colors"
+              className="w-full text-lg font-medium text-gray-900 dark:text-gray-100 placeholder-gray-300 dark:placeholder-gray-500 border-0 border-b-2 border-gray-100 dark:border-gray-700 bg-transparent focus:border-emerald-500 focus:ring-0 pb-2 outline-none transition-colors"
               autoFocus
             />
           </div>
 
           {/* Category chips */}
           <div>
-            <label className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+            <label className="block text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
               Categorie
             </label>
             <div className="flex flex-wrap gap-2">
@@ -1113,7 +1113,7 @@ function EventModal({
                       inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium transition-all
                       ${isActive
                         ? `${config.bgColor} ${config.color} ring-2 ring-offset-1 ${config.borderColor.replace("border", "ring")}`
-                        : "bg-gray-50 text-gray-500 hover:bg-gray-100"
+                        : "bg-gray-50 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700"
                       }
                     `}
                   >
@@ -1127,7 +1127,7 @@ function EventModal({
 
           {/* Date */}
           <div>
-            <label htmlFor="event-date" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+            <label htmlFor="event-date" className="block text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
               Datum
             </label>
             <input
@@ -1135,18 +1135,18 @@ function EventModal({
               type="date"
               value={date}
               onChange={(e) => setDate(e.target.value)}
-              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
           </div>
 
           {/* All day toggle */}
           <div className="flex items-center justify-between">
-            <label htmlFor="all-day-toggle" className="text-sm text-gray-700 cursor-pointer select-none">Hele dag</label>
+            <label htmlFor="all-day-toggle" className="text-sm text-gray-700 dark:text-gray-300 cursor-pointer select-none">Hele dag</label>
             <button
               id="all-day-toggle"
               type="button"
               onClick={() => setAllDay(!allDay)}
-              className={`relative w-11 h-6 rounded-full transition-colors ${allDay ? "bg-emerald-600" : "bg-gray-200"}`}
+              className={`relative w-11 h-6 rounded-full transition-colors ${allDay ? "bg-emerald-600" : "bg-gray-200 dark:bg-gray-600"}`}
               role="switch"
               aria-checked={allDay}
               aria-label="Hele dag"
@@ -1159,7 +1159,7 @@ function EventModal({
           {!allDay && (
             <div className="flex gap-3">
               <div className="flex-1">
-                <label htmlFor="start-time" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                <label htmlFor="start-time" className="block text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
                   Van
                 </label>
                 <input
@@ -1167,11 +1167,11 @@ function EventModal({
                   type="time"
                   value={startTime}
                   onChange={(e) => setStartTime(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
               </div>
               <div className="flex-1">
-                <label htmlFor="end-time" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                <label htmlFor="end-time" className="block text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
                   Tot
                 </label>
                 <input
@@ -1179,7 +1179,7 @@ function EventModal({
                   type="time"
                   value={endTime}
                   onChange={(e) => setEndTime(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
               </div>
             </div>
@@ -1187,14 +1187,14 @@ function EventModal({
 
           {/* Recurrence */}
           <div>
-            <label htmlFor="recurrence" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+            <label htmlFor="recurrence" className="block text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
               Herhaling
             </label>
             <select
               id="recurrence"
               value={recurrence}
               onChange={(e) => setRecurrence(e.target.value as RecurrenceType)}
-              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none"
+              className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none"
             >
               {(Object.entries(RECURRENCE_LABELS) as [RecurrenceType, string][]).map(([key, label]) => (
                 <option key={key} value={key}>{label}</option>
@@ -1205,7 +1205,7 @@ function EventModal({
           {/* Recurrence interval */}
           {recurrence !== "none" && (
             <div>
-              <label htmlFor="event-interval" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+              <label htmlFor="event-interval" className="block text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
                 Elke
               </label>
               <div className="flex items-center gap-2">
@@ -1216,9 +1216,9 @@ function EventModal({
                   max={52}
                   value={recurrenceInterval}
                   onChange={(e) => setRecurrenceInterval(Math.max(1, parseInt(e.target.value) || 1))}
-                  className="w-20 px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-20 px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
-                <span className="text-sm text-gray-600">
+                <span className="text-sm text-gray-600 dark:text-gray-400">
                   {recurrence === "daily" ? (recurrenceInterval === 1 ? "dag" : "dagen")
                     : recurrence === "weekly" ? (recurrenceInterval === 1 ? "week" : "weken")
                     : recurrence === "monthly" ? (recurrenceInterval === 1 ? "maand" : "maanden")
@@ -1230,14 +1230,14 @@ function EventModal({
 
           {/* Reminder / Alarm */}
           <div>
-            <label htmlFor="event-reminder" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+            <label htmlFor="event-reminder" className="block text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
               Herinnering
             </label>
             <select
               id="event-reminder"
               value={reminder}
               onChange={(e) => setReminder(e.target.value as ReminderOption | "")}
-              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none"
+              className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none"
             >
               <option value="">Geen</option>
               {REMINDER_OPTIONS.map((opt) => (
@@ -1250,7 +1250,7 @@ function EventModal({
 
           {/* Assigned to */}
           <div>
-            <label htmlFor="assigned-to" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+            <label htmlFor="assigned-to" className="block text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
               Toegewezen aan (optioneel)
             </label>
             <input
@@ -1259,7 +1259,7 @@ function EventModal({
               value={assignedTo}
               onChange={(e) => setAssignedTo(e.target.value)}
               placeholder="Naam familielid"
-              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+              className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-300 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
             />
           </div>
 
@@ -1267,14 +1267,14 @@ function EventModal({
           {category === "verjaardag" && (
             <>
               <div>
-                <label htmlFor="birthday-group" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                <label htmlFor="birthday-group" className="block text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
                   Groep
                 </label>
                 <select
                   id="birthday-group"
                   value={birthdayGroup}
                   onChange={(e) => setBirthdayGroup(e.target.value)}
-                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none"
+                  className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent appearance-none"
                 >
                   <option value="">Geen groep</option>
                   {DEFAULT_BIRTHDAY_GROUPS.map((group) => (
@@ -1284,7 +1284,7 @@ function EventModal({
               </div>
 
               <div>
-                <label htmlFor="birth-year" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+                <label htmlFor="birth-year" className="block text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
                   Geboortejaar
                 </label>
                 <input
@@ -1295,7 +1295,7 @@ function EventModal({
                   placeholder="bijv. 1990"
                   min={1900}
                   max={2100}
-                  className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-300 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
                 />
               </div>
             </>
@@ -1303,7 +1303,7 @@ function EventModal({
 
           {/* Description */}
           <div>
-            <label htmlFor="event-desc" className="block text-xs font-medium text-gray-400 uppercase tracking-wider mb-2">
+            <label htmlFor="event-desc" className="block text-xs font-medium text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2">
               Notities
             </label>
             <textarea
@@ -1312,7 +1312,7 @@ function EventModal({
               onChange={(e) => setDescription(e.target.value)}
               placeholder="Voeg extra details toe..."
               rows={3}
-              className="w-full px-3 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-900 placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+              className="w-full px-3 py-2.5 bg-gray-50 dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded-xl text-sm text-gray-900 dark:text-gray-100 placeholder-gray-300 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
             />
           </div>
 
@@ -1358,7 +1358,7 @@ const WeekStrip = memo(function WeekStrip({
   }, [selectedDate]);
 
   return (
-    <div className="flex gap-1 sm:gap-1.5 py-3 bg-white rounded-2xl px-1" role="tablist" aria-label="Weekdagen">
+    <div className="flex gap-1 sm:gap-1.5 py-3 bg-white dark:bg-gray-800 rounded-2xl px-1" role="tablist" aria-label="Weekdagen">
       {weekDays.map(({ date, dayName, dayFullName, dayNum, monthName }) => {
         const isToday = date === today;
         const isSelected = date === selectedDate;
@@ -1371,17 +1371,17 @@ const WeekStrip = memo(function WeekStrip({
             className={`
               flex-1 flex flex-col items-center py-2 sm:py-2.5 rounded-2xl transition-all duration-200 min-w-0
               ${isSelected ? "bg-emerald-600 text-white shadow-lg shadow-emerald-200 scale-105" : ""}
-              ${isToday && !isSelected ? "bg-emerald-50 ring-1 ring-emerald-200" : ""}
-              ${!isSelected ? "hover:bg-gray-50 active:bg-gray-100" : ""}
+              ${isToday && !isSelected ? "bg-emerald-50 dark:bg-emerald-900/20 ring-1 ring-emerald-200 dark:ring-emerald-700" : ""}
+              ${!isSelected ? "hover:bg-gray-50 dark:hover:bg-gray-800 active:bg-gray-100" : ""}
             `}
             role="tab"
             aria-selected={isSelected}
             aria-label={`${dayFullName} ${dayNum} ${monthName}${categories.length > 0 ? `, ${categories.length} afspraken` : ""}`}
           >
-            <span className={`text-[10px] font-semibold uppercase tracking-wider ${isSelected ? "text-emerald-100" : "text-gray-400"}`}>
+            <span className={`text-[10px] font-semibold uppercase tracking-wider ${isSelected ? "text-emerald-100" : "text-gray-400 dark:text-gray-500"}`}>
               {dayName}
             </span>
-            <span className={`text-base sm:text-lg font-bold mt-0.5 ${isSelected ? "text-white" : isToday ? "text-emerald-600" : "text-gray-700"}`}>
+            <span className={`text-base sm:text-lg font-bold mt-0.5 ${isSelected ? "text-white" : isToday ? "text-emerald-600" : "text-gray-700 dark:text-gray-300"}`}>
               {dayNum}
             </span>
             {categories.length > 0 && (
@@ -1485,22 +1485,22 @@ function WeekOverview({
       <div className="flex items-center justify-between mb-3">
         <button
           onClick={goToPrevWeek}
-          className="p-1.5 rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors"
+          className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 transition-colors"
           aria-label="Vorige week"
         >
-          <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
           </svg>
         </button>
-        <h3 className="text-sm font-semibold text-gray-600">
+        <h3 className="text-sm font-semibold text-gray-600 dark:text-gray-400">
           Week van {weekDays[0].dayNum} {weekDays[0].monthName.slice(0, 3)} - {weekDays[6].dayNum} {weekDays[6].monthName.slice(0, 3)}
         </h3>
         <button
           onClick={goToNextWeek}
-          className="p-1.5 rounded-full hover:bg-gray-100 active:bg-gray-200 transition-colors"
+          className="p-1.5 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200 transition-colors"
           aria-label="Volgende week"
         >
-          <svg className="w-4 h-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+          <svg className="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
           </svg>
         </button>
@@ -1520,10 +1520,10 @@ function WeekOverview({
               key={date}
               className={`rounded-xl border transition-all duration-200 animate-fadeInUp ${
                 isToday
-                  ? "border-emerald-300 bg-emerald-50/50 shadow-sm shadow-emerald-100 ring-1 ring-emerald-200/50"
+                  ? "border-emerald-300 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-900/20 shadow-sm shadow-emerald-100 ring-1 ring-emerald-200/50 dark:ring-emerald-700/50"
                   : isPast
-                    ? "border-gray-100 bg-gray-50/50"
-                    : "border-gray-100 bg-white"
+                    ? "border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-900/50"
+                    : "border-gray-100 dark:border-gray-700 bg-white dark:bg-gray-800"
               }`}
               style={{ animationDelay: `${i * 40}ms`, animationFillMode: "both" }}
             >
@@ -1539,8 +1539,8 @@ function WeekOverview({
                   isToday
                     ? "bg-emerald-600 text-white shadow-sm shadow-emerald-200"
                     : isPast
-                      ? "bg-gray-100 text-gray-400"
-                      : "bg-gray-100 text-gray-700"
+                      ? "bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500"
+                      : "bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300"
                 }`}>
                   {dayNum}
                 </div>
@@ -1548,7 +1548,7 @@ function WeekOverview({
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <span className={`text-sm font-semibold capitalize ${
-                      isToday ? "text-emerald-700" : isPast ? "text-gray-400" : "text-gray-700"
+                      isToday ? "text-emerald-700" : isPast ? "text-gray-400 dark:text-gray-500" : "text-gray-700 dark:text-gray-300"
                     }`}>
                       {dayName}
                     </span>
@@ -1569,13 +1569,13 @@ function WeekOverview({
                           />
                         ))}
                       </div>
-                      <span className="text-xs text-gray-400 truncate">
+                      <span className="text-xs text-gray-400 dark:text-gray-500 truncate">
                         {dayEvents.length} {dayEvents.length === 1 ? "afspraak" : "afspraken"}
                       </span>
                     </div>
                   )}
                   {!isExpanded && dayEvents.length === 0 && (
-                    <span className="text-xs text-gray-300 mt-0.5 block">Geen afspraken</span>
+                    <span className="text-xs text-gray-300 dark:text-gray-600 mt-0.5 block">Geen afspraken</span>
                   )}
                 </div>
 
@@ -1585,12 +1585,12 @@ function WeekOverview({
                     <span className={`w-5 h-5 flex items-center justify-center rounded-full text-[10px] font-bold ${
                       isToday
                         ? "bg-emerald-100 text-emerald-700"
-                        : "bg-gray-100 text-gray-500"
+                        : "bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400"
                     }`}>
                       {dayEvents.length}
                     </span>
                   )}
-                  <svg className={`w-4 h-4 text-gray-300 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                  <svg className={`w-4 h-4 text-gray-300 dark:text-gray-600 transition-transform duration-200 ${isExpanded ? "rotate-180" : ""}`} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
                   </svg>
                 </div>
@@ -1618,7 +1618,7 @@ function WeekOverview({
                       ))}
                     </div>
                   ) : (
-                    <p className="text-xs text-gray-300 ml-12 py-1">Vrije dag!</p>
+                    <p className="text-xs text-gray-300 dark:text-gray-600 ml-12 py-1">Vrije dag!</p>
                   )}
                   {/* Tasks for this day */}
                   {getTasksForDate && onTaskStatusChange && (() => {
@@ -1626,7 +1626,7 @@ function WeekOverview({
                     if (dayTasks.length === 0) return null;
                     return (
                       <div className="ml-12 mt-2">
-                        <p className="text-[10px] font-semibold text-gray-400 uppercase tracking-wider mb-1">Taken</p>
+                        <p className="text-[10px] font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">Taken</p>
                         <div className="space-y-1">
                           {dayTasks.map((task) => (
                             <TaskCard key={task.id} item={task} onStatusChange={onTaskStatusChange} onEdit={onTaskEdit} />
@@ -1682,13 +1682,13 @@ const UpcomingEvents = memo(function UpcomingEvents({
 
   return (
     <div className="mt-8 mb-20">
-      <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
+      <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3 flex items-center gap-1.5">
         <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
           <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
         </svg>
         Binnenkort
       </h3>
-      <div className="space-y-1.5 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+      <div className="space-y-1.5 bg-white dark:bg-gray-800 rounded-2xl border border-gray-100 dark:border-gray-700 shadow-sm overflow-hidden">
         {upcoming.map((event, i) => {
           const config = getCategoryConfig(event.category, customCategories);
           const d = new Date(event.date + "T00:00:00");
@@ -1698,8 +1698,8 @@ const UpcomingEvents = memo(function UpcomingEvents({
             <button
               key={event.id}
               onClick={() => onSelectDate(event.date)}
-              className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 active:bg-gray-100 transition-colors text-left ${
-                i > 0 ? "border-t border-gray-100" : ""
+              className={`w-full flex items-center gap-3 p-3 hover:bg-gray-50 dark:hover:bg-gray-800 active:bg-gray-100 transition-colors text-left ${
+                i > 0 ? "border-t border-gray-100 dark:border-gray-700" : ""
               }`}
               aria-label={`${event.title}, ${dateLabel}${!event.allDay && event.startTime ? ` om ${event.startTime}` : ""}`}
             >
@@ -1707,13 +1707,13 @@ const UpcomingEvents = memo(function UpcomingEvents({
                 {config.emoji}
               </span>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-gray-900 truncate">{event.title}</p>
-                <p className="text-xs text-gray-400 mt-0.5">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">{event.title}</p>
+                <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
                   {dateLabel}
                   {!event.allDay && event.startTime && ` om ${event.startTime}`}
                 </p>
               </div>
-              <svg className="w-4 h-4 text-gray-300 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <svg className="w-4 h-4 text-gray-300 dark:text-gray-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9 5l7 7-7 7" />
               </svg>
             </button>
@@ -1786,10 +1786,10 @@ function QuickAddFAB({
                   style={{ animationDelay: `${(visibleItems.length - 1 - i) * 40}ms`, animationFillMode: "both" }}
                   aria-label="Nieuwe taak toevoegen"
                 >
-                  <span className="px-3 py-1.5 bg-white rounded-lg shadow-md text-xs font-medium text-gray-700 whitespace-nowrap">
+                  <span className="px-3 py-1.5 bg-white dark:bg-gray-800 rounded-lg shadow-md text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
                     {item.label}
                   </span>
-                  <span className="w-10 h-10 flex items-center justify-center rounded-full bg-emerald-50 shadow-md text-base">
+                  <span className="w-10 h-10 flex items-center justify-center rounded-full bg-emerald-50 dark:bg-emerald-900/20 shadow-md text-base">
                     &#9745;
                   </span>
                 </button>
@@ -1807,7 +1807,7 @@ function QuickAddFAB({
                 style={{ animationDelay: `${(visibleItems.length - 1 - i) * 40}ms`, animationFillMode: "both" }}
                 aria-label={`Nieuwe ${item.label.toLowerCase()} toevoegen`}
               >
-                <span className="px-3 py-1.5 bg-white rounded-lg shadow-md text-xs font-medium text-gray-700 whitespace-nowrap">
+                <span className="px-3 py-1.5 bg-white dark:bg-gray-800 rounded-lg shadow-md text-xs font-medium text-gray-700 dark:text-gray-300 whitespace-nowrap">
                   {item.label}
                 </span>
                 <span className={`w-10 h-10 flex items-center justify-center rounded-full ${config.bgColor} shadow-md text-base`}>
@@ -2090,12 +2090,12 @@ export default function AgendaPage() {
     return (
       <main className="max-w-md mx-auto px-4 py-16 text-center">
         <div className="mb-6">
-          <svg className="w-16 h-16 mx-auto text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+          <svg className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z" />
           </svg>
         </div>
-        <h2 className="text-lg font-semibold text-gray-700 mb-2">Geen familie gevonden</h2>
-        <p className="text-sm text-gray-400 mb-6">Je bent nog niet gekoppeld aan een familie. Vraag een uitnodiging aan of maak een familie aan.</p>
+        <h2 className="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">Geen familie gevonden</h2>
+        <p className="text-sm text-gray-400 dark:text-gray-500 mb-6">Je bent nog niet gekoppeld aan een familie. Vraag een uitnodiging aan of maak een familie aan.</p>
         <button
           onClick={() => router.push("/instellingen")}
           className="px-6 py-2.5 bg-emerald-600 text-white text-sm font-semibold rounded-xl hover:bg-emerald-700 active:bg-emerald-800 transition-colors shadow-sm"
@@ -2198,14 +2198,14 @@ export default function AgendaPage() {
       {/* Header */}
       <div className="flex items-center justify-between mb-5">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Agenda</h1>
-          <p className="text-xs text-gray-400 mt-0.5">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Agenda</h1>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-0.5">
             {events.length} {events.length === 1 ? "afspraak" : "afspraken"} totaal
           </p>
         </div>
         <div className="flex gap-2 items-center">
           {/* Dag / Week toggle */}
-          <div className="flex bg-gray-100 rounded-xl p-0.5" role="tablist" aria-label="Weergave">
+          <div className="flex bg-gray-100 dark:bg-gray-700 rounded-xl p-0.5" role="tablist" aria-label="Weergave">
             <button
               onClick={() => setViewMode("dag")}
               role="tab"
@@ -2213,8 +2213,8 @@ export default function AgendaPage() {
               aria-label="Dagweergave"
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 ${
                 viewMode === "dag"
-                  ? "bg-white text-emerald-700 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-white dark:bg-gray-800 text-emerald-700 shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
               }`}
             >
               Dag
@@ -2226,8 +2226,8 @@ export default function AgendaPage() {
               aria-label="Weekweergave"
               className={`px-3 py-1.5 text-xs font-semibold rounded-lg transition-all duration-200 ${
                 viewMode === "week"
-                  ? "bg-white text-emerald-700 shadow-sm"
-                  : "text-gray-500 hover:text-gray-700"
+                  ? "bg-white dark:bg-gray-800 text-emerald-700 shadow-sm"
+                  : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300"
               }`}
             >
               Week
@@ -2238,14 +2238,14 @@ export default function AgendaPage() {
           {selectedDate !== getToday() && (
             <button
               onClick={() => handleSelectDate(getToday())}
-              className="px-3 py-2 text-xs font-semibold text-emerald-600 bg-emerald-50 hover:bg-emerald-100 active:bg-emerald-200 rounded-xl transition-colors"
+              className="px-3 py-2 text-xs font-semibold text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20 hover:bg-emerald-100 active:bg-emerald-200 rounded-xl transition-colors"
             >
               Vandaag
             </button>
           )}
           <button
             onClick={() => setShowCalendar(!showCalendar)}
-            className={`p-2 rounded-xl transition-all duration-200 ${showCalendar ? "bg-emerald-100 text-emerald-600 shadow-sm" : "text-gray-400 hover:bg-gray-100 active:bg-gray-200"}`}
+            className={`p-2 rounded-xl transition-all duration-200 ${showCalendar ? "bg-emerald-100 text-emerald-600 shadow-sm" : "text-gray-400 dark:text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700 active:bg-gray-200"}`}
             aria-label="Toon kalender"
             aria-pressed={showCalendar}
           >
@@ -2295,7 +2295,7 @@ export default function AgendaPage() {
       {/* Error */}
       <div aria-live="polite">
         {error && (
-          <div className="mb-4 p-3 bg-red-50 border border-red-100 rounded-xl animate-fadeIn">
+          <div className="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-100 dark:border-red-700 rounded-xl animate-fadeIn">
             <p className="text-red-600 text-sm" role="alert">{error}</p>
           </div>
         )}
@@ -2310,7 +2310,7 @@ export default function AgendaPage() {
           <span className="font-medium">Filter actief</span>
           <button
             onClick={() => { setSearchQuery(""); setActiveCategories(new Set(allCategories)); }}
-            className="ml-auto text-gray-400 hover:text-gray-600 transition-colors"
+            className="ml-auto text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
             aria-label="Wis alle filters"
           >
             Wis filters
@@ -2348,7 +2348,7 @@ export default function AgendaPage() {
             if (dayTasks.length === 0) return null;
             return (
               <div className="mt-6 mb-4">
-                <h3 className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
+                <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-2.5 flex items-center gap-1.5">
                   <span>&#9745;</span>
                   Taken ({dayTasks.length})
                 </h3>
@@ -2435,14 +2435,14 @@ export default function AgendaPage() {
           aria-label="Categorieën beheren"
         >
           <div
-            className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto shadow-2xl"
+            className="bg-white dark:bg-gray-800 w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[85vh] overflow-y-auto shadow-2xl"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-100 px-5 py-4 flex items-center justify-between rounded-t-2xl z-10">
-              <h2 className="font-semibold text-gray-900">Categorieën beheren</h2>
+            <div className="sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-b border-gray-100 dark:border-gray-700 px-5 py-4 flex items-center justify-between rounded-t-2xl z-10">
+              <h2 className="font-semibold text-gray-900 dark:text-gray-100">Categorieën beheren</h2>
               <button
                 onClick={() => setShowCategoryManager(false)}
-                className="text-sm text-gray-500 hover:text-gray-700 transition-colors py-1 px-2 -mr-2 rounded-lg"
+                className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 transition-colors py-1 px-2 -mr-2 rounded-lg"
                 aria-label="Sluiten"
               >
                 Sluiten

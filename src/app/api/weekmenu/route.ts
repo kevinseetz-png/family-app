@@ -4,6 +4,7 @@ import { weekMenuSchema } from "@/lib/validation";
 import { adminDb } from "@/lib/firebase-admin";
 
 const EMPTY_DAYS = { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
+const EMPTY_INGREDIENTS = { mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" };
 
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const token = request.cookies.get("auth_token")?.value;
@@ -24,7 +25,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       .get();
 
     if (snapshot.empty) {
-      return NextResponse.json({ menu: { days: EMPTY_DAYS } });
+      return NextResponse.json({ menu: { days: EMPTY_DAYS, ingredients: EMPTY_INGREDIENTS } });
     }
 
     const doc = snapshot.docs[0];
@@ -34,6 +35,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         id: doc.id,
         familyId: data.familyId,
         days: data.days,
+        ingredients: data.ingredients ?? EMPTY_INGREDIENTS,
         updatedBy: data.updatedBy,
         updatedByName: data.updatedByName,
         updatedAt: data.updatedAt.toDate().toISOString(),
@@ -71,7 +73,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     );
   }
 
-  const { days } = result.data;
+  const { days, ingredients } = result.data;
 
   try {
     const snapshot = await adminDb
@@ -84,6 +86,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
       await adminDb.collection("weekmenus").add({
         familyId: user.familyId,
         days,
+        ingredients,
         updatedBy: user.id,
         updatedByName: user.name,
         updatedAt: new Date(),
@@ -91,6 +94,7 @@ export async function PUT(request: NextRequest): Promise<NextResponse> {
     } else {
       await snapshot.docs[0].ref.update({
         days,
+        ingredients,
         updatedBy: user.id,
         updatedByName: user.name,
         updatedAt: new Date(),

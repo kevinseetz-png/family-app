@@ -77,6 +77,8 @@ export const groceryDeleteSchema = z.object({
   id: z.string().min(1, "Invalid request"),
 });
 
+const ingredientField = z.string().max(2000, "Max 2000 characters per day").optional().default("");
+
 export const weekMenuSchema = z.object({
   days: z.object({
     mon: dayField,
@@ -87,6 +89,15 @@ export const weekMenuSchema = z.object({
     sat: dayField,
     sun: dayField,
   }),
+  ingredients: z.object({
+    mon: ingredientField,
+    tue: ingredientField,
+    wed: ingredientField,
+    thu: ingredientField,
+    fri: ingredientField,
+    sat: ingredientField,
+    sun: ingredientField,
+  }).optional().default({ mon: "", tue: "", wed: "", thu: "", fri: "", sat: "", sun: "" }),
 });
 
 export const moveUserSchema = z.object({
