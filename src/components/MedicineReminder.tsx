@@ -37,23 +37,23 @@ export function MedicineReminder() {
   if (!user || dismissed || unchecked.length === 0) return null;
 
   return (
-    <div className="mx-4 mt-3 p-3 bg-amber-50 border border-amber-200 rounded-lg" role="alert">
+    <div className="mx-4 mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-700 rounded-lg" role="alert">
       <div className="flex items-start gap-3">
-        <span className="text-amber-600 text-xl leading-none" aria-hidden="true">!</span>
+        <span className="text-amber-600 dark:text-amber-400 text-xl leading-none" aria-hidden="true">!</span>
         <div className="flex-1 min-w-0">
-          <p className="text-sm font-medium text-amber-800">
+          <p className="text-sm font-medium text-amber-800 dark:text-amber-200">
             {unchecked.length === 1
               ? `Vergeet niet: ${unchecked[0].name}`
               : `${unchecked.length} medicijnen nog niet genomen`}
           </p>
           {unchecked.length > 1 && (
-            <p className="text-xs text-amber-700 mt-0.5">
+            <p className="text-xs text-amber-700 dark:text-amber-300 mt-0.5">
               {unchecked.map((m) => m.name).join(", ")}
             </p>
           )}
           <Link
             href="/medicijn"
-            className="text-xs text-amber-700 underline hover:text-amber-900 mt-1 inline-block"
+            className="text-xs text-amber-700 dark:text-amber-300 underline hover:text-amber-900 mt-1 inline-block"
           >
             Bekijk medicijnen
           </Link>

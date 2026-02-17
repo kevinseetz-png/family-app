@@ -37,13 +37,13 @@ export default function KlusjesPage() {
     <main id="main-content" className="min-h-screen p-4 max-w-lg mx-auto">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-bold text-emerald-600">Taken</h1>
-        <div className="flex rounded-lg border border-gray-300 overflow-hidden">
+        <div className="flex rounded-lg border border-gray-300 dark:border-gray-600 overflow-hidden">
           <button
             onClick={() => setView("list")}
             className={`px-3 py-1 text-sm font-medium ${
               view === "list"
                 ? "bg-emerald-600 text-white"
-                : "bg-white text-gray-600 hover:bg-gray-50"
+                : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
             }`}
           >
             Lijst
@@ -53,7 +53,7 @@ export default function KlusjesPage() {
             className={`px-3 py-1 text-sm font-medium ${
               view === "week"
                 ? "bg-emerald-600 text-white"
-                : "bg-white text-gray-600 hover:bg-gray-50"
+                : "bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
             }`}
           >
             Week

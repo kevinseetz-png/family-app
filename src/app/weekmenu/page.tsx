@@ -39,7 +39,7 @@ export default function WeekMenuPage() {
   };
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-900 p-4">
       <div className="mx-auto max-w-md">
         <h1 className="text-2xl font-bold text-emerald-600 mb-6">Weekmenu</h1>
         {error && <p role="alert" className="mb-4 text-sm text-red-600">{error}</p>}

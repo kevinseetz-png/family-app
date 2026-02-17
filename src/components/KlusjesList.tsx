@@ -45,7 +45,7 @@ export function KlusjesList({ items, onStatusChange, onDelete, onReschedule }: K
   const sorted = [...notDone, ...done];
 
   if (sorted.length === 0) {
-    return <p className="text-sm text-gray-500">Geen taken op de lijst.</p>;
+    return <p className="text-sm text-gray-500 dark:text-gray-400">Geen taken op de lijst.</p>;
   }
 
   return (
@@ -53,11 +53,11 @@ export function KlusjesList({ items, onStatusChange, onDelete, onReschedule }: K
       {sorted.map((item) => (
         <li
           key={item.id}
-          className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-200 bg-white p-3"
+          className="flex flex-wrap items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3"
         >
           <button
             onClick={() => onStatusChange(item.id, NEXT_STATUS[item.status], undefined)}
-            className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full border-2 border-gray-300 text-sm"
+            className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full border-2 border-gray-300 dark:border-gray-600 text-sm"
             aria-label={`Status ${item.name}: ${STATUS_LABELS[item.status]}, klik voor ${STATUS_LABELS[NEXT_STATUS[item.status]]}`}
           >
             {item.status === "todo" && <span className="text-gray-400" aria-hidden="true">&#9675;</span>}
@@ -67,7 +67,7 @@ export function KlusjesList({ items, onStatusChange, onDelete, onReschedule }: K
           <div className="flex-1 min-w-0">
             <span
               className={`block ${
-                item.status === "klaar" ? "line-through text-gray-400" : "text-gray-900"
+                item.status === "klaar" ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-900 dark:text-gray-100"
               }`}
             >
               {item.name}
@@ -80,7 +80,7 @@ export function KlusjesList({ items, onStatusChange, onDelete, onReschedule }: K
               )}
               {item.date && (
                 <span className={`text-xs px-1.5 py-0.5 rounded ${
-                  isOverdue(item) ? "text-red-600 bg-red-50" : "text-gray-500 bg-gray-100"
+                  isOverdue(item) ? "text-red-600 bg-red-50" : "text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700"
                 }`}>
                   {formatDate(item.date)}
                 </span>
@@ -97,7 +97,7 @@ export function KlusjesList({ items, onStatusChange, onDelete, onReschedule }: K
               setEditingId(editingId === item.id ? null : item.id);
               setEditDate(item.date || "");
             }}
-            className="text-gray-400 hover:text-emerald-600 text-sm"
+            className="text-gray-400 dark:text-gray-500 hover:text-emerald-600 text-sm"
             aria-label={`Datum wijzigen ${item.name}`}
           >
             &#x1F4C5;
@@ -110,7 +110,7 @@ export function KlusjesList({ items, onStatusChange, onDelete, onReschedule }: K
             &#x2715;
           </button>
           {editingId === item.id && (
-            <div className="w-full mt-2 pt-2 border-t border-gray-100 flex flex-wrap gap-2 items-center">
+            <div className="w-full mt-2 pt-2 border-t border-gray-100 dark:border-gray-700 flex flex-wrap gap-2 items-center">
               <label htmlFor={`date-edit-${item.id}`} className="sr-only">Nieuwe datum</label>
               <input
                 id={`date-edit-${item.id}`}
@@ -118,7 +118,7 @@ export function KlusjesList({ items, onStatusChange, onDelete, onReschedule }: K
                 value={editDate}
                 onChange={(e) => setEditDate(e.target.value)}
                 aria-label="Nieuwe datum"
-                className="flex-1 min-w-0 rounded border border-gray-300 px-2 py-1 text-sm text-gray-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
+                className="flex-1 min-w-0 rounded border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 px-2 py-1 text-sm text-gray-900 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500 focus:outline-none"
               />
               <button
                 onClick={async () => {

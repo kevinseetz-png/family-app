@@ -41,14 +41,14 @@ export function FeedingSummary({ feedingCount, lastFeedingTimestamp }: FeedingSu
 
   return (
     <div className="grid grid-cols-2 gap-4">
-      <div className="rounded-lg bg-emerald-50 p-4 text-center">
-        <p className="text-sm text-gray-600">Voedingen vandaag</p>
+      <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 p-4 text-center">
+        <p className="text-sm text-gray-600 dark:text-gray-400">Voedingen vandaag</p>
         <p className="text-2xl font-bold text-emerald-600">
           {feedingCount} {feedingCount === 1 ? "voeding" : "voedingen"}
         </p>
       </div>
-      <div className="rounded-lg bg-emerald-50 p-4 text-center" role="status" aria-live="polite">
-        <p className="text-sm text-gray-600">Laatste voeding</p>
+      <div className="rounded-lg bg-emerald-50 dark:bg-emerald-900/20 p-4 text-center" role="status" aria-live="polite">
+        <p className="text-sm text-gray-600 dark:text-gray-400">Laatste voeding</p>
         <p className="text-2xl font-bold text-emerald-600">
           {minutesAgo !== null ? formatDuration(minutesAgo) : <span aria-label="Geen voeding geregistreerd">{"\u2014"}</span>}
         </p>

@@ -60,7 +60,7 @@ export function WeekMenuForm({ initialDays, isSaving, onSave, onSaveMeal }: Week
     <form onSubmit={handleSubmit} className="space-y-4">
       {DAY_LABELS.map(({ key, label, fullLabel }) => (
         <div key={key}>
-          <label htmlFor={`day-${key}`} className="block text-sm font-medium text-gray-700 mb-1">
+          <label htmlFor={`day-${key}`} className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
             {label}
           </label>
           <div className="flex gap-2">
@@ -71,7 +71,7 @@ export function WeekMenuForm({ initialDays, isSaving, onSave, onSaveMeal }: Week
               value={days[key]}
               onChange={(e) => handleChange(key, e.target.value)}
               placeholder="Wat eten we?"
-              className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+              className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
             />
             {onSaveMeal && (
               <button

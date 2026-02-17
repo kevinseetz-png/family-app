@@ -71,16 +71,16 @@ export function OverdueTasksModal({ tasks, onReschedule, onRemoveDate, onClose }
       aria-labelledby="overdue-modal-title"
     >
       <div
-        className="bg-white w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-y-auto shadow-2xl"
+        className="bg-white dark:bg-gray-800 w-full sm:max-w-lg sm:rounded-2xl rounded-t-2xl max-h-[90vh] overflow-y-auto shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 bg-white/95 backdrop-blur-md border-b border-gray-100 px-5 py-4 flex items-center justify-between rounded-t-2xl z-10">
-          <h2 className="font-semibold text-gray-900" id="overdue-modal-title">
+        <div className="sticky top-0 bg-white/95 dark:bg-gray-800/95 backdrop-blur-md border-b border-gray-100 dark:border-gray-700 px-5 py-4 flex items-center justify-between rounded-t-2xl z-10">
+          <h2 className="font-semibold text-gray-900 dark:text-gray-100" id="overdue-modal-title">
             Verlopen taken
           </h2>
           <button
             onClick={onClose}
-            className="text-sm text-gray-500 hover:text-gray-700 transition-colors py-1 px-2 -mr-2 rounded-lg"
+            className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 transition-colors py-1 px-2 -mr-2 rounded-lg"
             aria-label="Sluiten"
           >
             Sluiten
@@ -89,15 +89,15 @@ export function OverdueTasksModal({ tasks, onReschedule, onRemoveDate, onClose }
 
         <div className="p-5 space-y-3">
           {tasks.map((task) => (
-            <div key={task.id} className="border border-amber-200 rounded-xl p-3 bg-amber-50/50">
+            <div key={task.id} className="border border-amber-200 dark:border-amber-700 rounded-xl p-3 bg-amber-50/50 dark:bg-amber-900/20">
               <div className="flex items-center justify-between mb-2">
-                <span className="font-medium text-gray-900 text-sm">{task.name}</span>
+                <span className="font-medium text-gray-900 dark:text-gray-100 text-sm">{task.name}</span>
                 <span className="text-xs text-amber-600">{task.date ? formatDate(task.date) : ""}</span>
               </div>
 
               {reschedulingId === task.id ? (
                 <div className="space-y-2">
-                  <label htmlFor={`reschedule-${task.id}`} className="block text-xs text-gray-500">
+                  <label htmlFor={`reschedule-${task.id}`} className="block text-xs text-gray-500 dark:text-gray-400">
                     Nieuwe datum
                   </label>
                   <input
@@ -105,7 +105,7 @@ export function OverdueTasksModal({ tasks, onReschedule, onRemoveDate, onClose }
                     type="date"
                     value={newDate}
                     onChange={(e) => setNewDate(e.target.value)}
-                    className="w-full px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 dark:text-gray-100 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                   <div className="flex gap-2">
                     <button
@@ -117,7 +117,7 @@ export function OverdueTasksModal({ tasks, onReschedule, onRemoveDate, onClose }
                     </button>
                     <button
                       onClick={() => setReschedulingId(null)}
-                      className="px-3 py-1.5 text-gray-500 text-xs font-medium rounded-lg hover:bg-gray-100 transition-colors"
+                      className="px-3 py-1.5 text-gray-500 dark:text-gray-400 text-xs font-medium rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
                     >
                       Annuleren
                     </button>
@@ -130,7 +130,7 @@ export function OverdueTasksModal({ tasks, onReschedule, onRemoveDate, onClose }
                       setReschedulingId(task.id);
                       setNewDate(getToday());
                     }}
-                    className="flex-1 px-3 py-1.5 bg-white border border-gray-200 text-xs font-medium text-gray-700 rounded-lg hover:bg-gray-50 transition-colors"
+                    className="flex-1 px-3 py-1.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-xs font-medium text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
                     aria-label={`${task.name} verzetten`}
                   >
                     Verzetten
@@ -138,7 +138,7 @@ export function OverdueTasksModal({ tasks, onReschedule, onRemoveDate, onClose }
                   <button
                     onClick={() => handleRemoveDate(task.id)}
                     disabled={busy}
-                    className="flex-1 px-3 py-1.5 bg-white border border-gray-200 text-xs font-medium text-gray-700 rounded-lg hover:bg-gray-50 transition-colors disabled:opacity-50"
+                    className="flex-1 px-3 py-1.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 text-xs font-medium text-gray-700 dark:text-gray-200 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors disabled:opacity-50"
                     aria-label={`Datum verwijderen voor ${task.name}`}
                   >
                     Datum verwijderen

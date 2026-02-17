@@ -43,7 +43,7 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <div>
-        <label htmlFor="note-title" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="note-title" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Titel
         </label>
         <input
@@ -52,13 +52,13 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
           required
           value={title}
           onChange={(e) => setTitle(e.target.value)}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
           placeholder="Titel van notitie"
         />
       </div>
 
       <div>
-        <label htmlFor="note-content" className="block text-sm font-medium text-gray-700 mb-1">
+        <label htmlFor="note-content" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
           Inhoud
         </label>
         <textarea
@@ -67,7 +67,7 @@ export function NoteForm({ onSuccess }: NoteFormProps) {
           value={content}
           onChange={(e) => setContent(e.target.value)}
           rows={4}
-          className="w-full rounded-lg border border-gray-300 px-3 py-2 text-gray-900 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
+          className="w-full rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
           placeholder="Schrijf je notitie..."
         />
       </div>

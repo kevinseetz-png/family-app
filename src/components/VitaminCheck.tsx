@@ -17,8 +17,8 @@ export function VitaminCheck({ familyId }: VitaminCheckProps) {
       disabled={isToggling}
       className={`w-full rounded-lg border-2 p-4 text-left transition-colors disabled:opacity-50 ${
         checked
-          ? "border-emerald-500 bg-emerald-50 text-emerald-800"
-          : "border-gray-300 bg-white text-gray-600 hover:border-gray-400"
+          ? "border-emerald-500 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-800 dark:text-emerald-200"
+          : "border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:border-gray-400 dark:hover:border-gray-500"
       }`}
       aria-pressed={checked}
     >

@@ -20,7 +20,7 @@ export default function CommunityPage() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center">
         <p>Laden...</p>
       </div>
     );
@@ -31,9 +31,9 @@ export default function CommunityPage() {
   }
 
   return (
-    <main className="min-h-screen bg-gray-50">
+    <main className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <div className="mx-auto max-w-md px-4 py-6">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Community</h1>
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100 mb-6">Community</h1>
 
         <section aria-labelledby="new-post-heading" className="mb-6">
           <h2 id="new-post-heading" className="sr-only">Nieuw bericht maken</h2>
@@ -41,7 +41,7 @@ export default function CommunityPage() {
         </section>
 
         {error && (
-          <div className="mb-4 p-4 bg-red-50 text-red-700 rounded-lg">
+          <div className="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-700 rounded-lg">
             {error}
           </div>
         )}

@@ -108,13 +108,13 @@ export default function MedicijnPage() {
 
   return (
     <main id="main-content" className="max-w-md mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-gray-900 mb-6">Medicijnen</h1>
+      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Medicijnen</h1>
 
       {/* Add medicine form */}
-      <form onSubmit={handleAdd} className="mb-6 p-4 bg-white rounded-lg shadow">
+      <form onSubmit={handleAdd} className="mb-6 p-4 bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/20">
         <div className="space-y-3">
           <div>
-            <label htmlFor="medicine-name" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="medicine-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Nieuw medicijn
             </label>
             <input
@@ -123,14 +123,14 @@ export default function MedicijnPage() {
               value={newName}
               onChange={(e) => setNewName(e.target.value)}
               placeholder="Medicijn naam"
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+              className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
               disabled={isAdding}
             />
           </div>
 
           <div className="flex gap-3">
             <div className="flex-1">
-              <label htmlFor="reminder-hour" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="reminder-hour" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Uur
               </label>
               <select
@@ -138,7 +138,7 @@ export default function MedicijnPage() {
                 value={newHour}
                 onChange={(e) => setNewHour(Number(e.target.value))}
                 disabled={isAdding}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 {Array.from({ length: 24 }, (_, h) => (
                   <option key={h} value={h}>
@@ -148,7 +148,7 @@ export default function MedicijnPage() {
               </select>
             </div>
             <div className="flex-1">
-              <label htmlFor="reminder-minute" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="reminder-minute" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Minuut
               </label>
               <select
@@ -156,7 +156,7 @@ export default function MedicijnPage() {
                 value={newMinute}
                 onChange={(e) => setNewMinute(Number(e.target.value))}
                 disabled={isAdding}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
               >
                 {[0, 15, 30, 45].map((m) => (
                   <option key={m} value={m}>
@@ -192,7 +192,7 @@ export default function MedicijnPage() {
 
       {/* Medicine list */}
       {medicines.length === 0 && !error ? (
-        <p className="text-gray-500 text-center py-8">
+        <p className="text-gray-500 dark:text-gray-400 text-center py-8">
           Geen medicijnen toegevoegd. Voeg hierboven je eerste medicijn toe.
         </p>
       ) : (
@@ -200,7 +200,7 @@ export default function MedicijnPage() {
           {medicines.map((medicine) => (
             <li
               key={medicine.id}
-              className={`p-4 bg-white rounded-lg shadow ${
+              className={`p-4 bg-white dark:bg-gray-800 rounded-lg shadow dark:shadow-gray-900/20 ${
                 medicine.checkedToday ? "border-l-4 border-emerald-500" : ""
               } ${!medicine.active ? "opacity-60" : ""}`}
             >
@@ -211,14 +211,14 @@ export default function MedicijnPage() {
                     type="text"
                     value={editName}
                     onChange={(e) => setEditName(e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     aria-label="Medicijn naam bewerken"
                   />
                   <div className="flex gap-3">
                     <select
                       value={editHour}
                       onChange={(e) => setEditHour(Number(e.target.value))}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       aria-label="Herinneringsuur"
                     >
                       {Array.from({ length: 24 }, (_, h) => (
@@ -230,7 +230,7 @@ export default function MedicijnPage() {
                     <select
                       value={editMinute}
                       onChange={(e) => setEditMinute(Number(e.target.value))}
-                      className="flex-1 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
                       aria-label="Herinneringsminuut"
                     >
                       {[0, 15, 30, 45].map((m) => (
@@ -258,7 +258,7 @@ export default function MedicijnPage() {
                     </button>
                     <button
                       onClick={cancelEdit}
-                      className="flex-1 py-2 px-4 bg-gray-200 text-gray-700 rounded-lg font-medium hover:bg-gray-300 transition-colors"
+                      className="flex-1 py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
                     >
                       Annuleren
                     </button>
@@ -275,10 +275,10 @@ export default function MedicijnPage() {
                     aria-label={`${medicine.name} ${medicine.checkedToday ? "afvinken" : "aankruisen"}`}
                   />
                   <div className="flex-1 min-w-0">
-                    <p className={`font-medium text-gray-900 ${medicine.checkedToday ? "line-through" : ""}`}>
+                    <p className={`font-medium text-gray-900 dark:text-gray-100 ${medicine.checkedToday ? "line-through" : ""}`}>
                       {medicine.name}
                     </p>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-500 dark:text-gray-400">
                       {formatTime(medicine.reminderHour, medicine.reminderMinute)}
                       {medicine.checkedToday && medicine.checkedByName && (
                         <span className="ml-2">• Genomen door {medicine.checkedByName}</span>

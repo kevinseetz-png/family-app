@@ -23,23 +23,23 @@ export function TaskCard({ item, onStatusChange, onEdit }: TaskCardProps) {
   };
 
   return (
-    <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-emerald-50 border border-emerald-200">
+    <div className="flex items-center gap-2.5 p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700">
       <button
         onClick={handleClick}
         className="flex-shrink-0 h-6 w-6 flex items-center justify-center rounded-full border-2 border-emerald-300 text-sm"
         aria-label={`Status ${item.name}: ${STATUS_CONFIG[item.status].label}, klik voor ${STATUS_CONFIG[NEXT_STATUS[item.status]].label}`}
       >
-        {item.status === "todo" && <span className="text-gray-400" aria-hidden="true">&#9675;</span>}
+        {item.status === "todo" && <span className="text-gray-400 dark:text-gray-500" aria-hidden="true">&#9675;</span>}
         {item.status === "bezig" && <span className="text-amber-500" aria-hidden="true">&#9201;</span>}
         {item.status === "klaar" && <span className="text-green-600" aria-hidden="true">&#10003;</span>}
       </button>
       <div className="flex-1 min-w-0">
-        <span className={`block text-sm ${item.status === "klaar" ? "line-through text-gray-400" : "text-gray-900"}`}>
+        <span className={`block text-sm ${item.status === "klaar" ? "line-through text-gray-400 dark:text-gray-500" : "text-gray-900 dark:text-gray-100"}`}>
           {item.name}
         </span>
         <div className="flex gap-1.5 mt-0.5">
           {item.time && (
-            <span className="text-xs text-gray-500 bg-gray-100 px-1 py-0.5 rounded">
+            <span className="text-xs text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-1 py-0.5 rounded">
               {item.time}
             </span>
           )}
@@ -58,7 +58,7 @@ export function TaskCard({ item, onStatusChange, onEdit }: TaskCardProps) {
       {onEdit && (
         <button
           onClick={(e) => { e.stopPropagation(); onEdit(item); }}
-          className="flex-shrink-0 p-1.5 text-gray-400 hover:text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors"
+          className="flex-shrink-0 p-1.5 text-gray-400 dark:text-gray-500 hover:text-emerald-600 hover:bg-emerald-100 rounded-lg transition-colors"
           aria-label={`Bewerk ${item.name}`}
         >
           <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>

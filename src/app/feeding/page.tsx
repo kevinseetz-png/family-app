@@ -67,12 +67,12 @@ export default function FeedingPage() {
       />
 
       <div className="mt-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Voeding toevoegen</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Voeding toevoegen</h2>
         <FeedingForm onSuccess={refetch} />
       </div>
 
       <div className="mt-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-3">Voedingen vandaag</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Voedingen vandaag</h2>
         {error && (
           <p role="alert" className="text-sm text-red-600 mb-3">{error}</p>
         )}
@@ -85,7 +85,7 @@ export default function FeedingPage() {
 
       {(historyLoading || history.length > 0 || historyError) && (
         <div className="mt-6">
-          <h2 className="text-lg font-semibold text-gray-900 mb-3">Afgelopen 30 dagen</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-3">Afgelopen 30 dagen</h2>
           <FeedingHistory
             history={history}
             isLoading={historyLoading}

@@ -180,7 +180,7 @@ export default function AdminDashboard(): ReactElement {
             value={newFamilyName}
             onChange={(e) => setNewFamilyName(e.target.value)}
             placeholder="Nieuwe familie"
-            className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+            className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm"
           />
           <button
             type="submit"
@@ -191,22 +191,22 @@ export default function AdminDashboard(): ReactElement {
           </button>
         </form>
 
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <table className="min-w-full divide-y divide-gray-200">
-            <thead className="bg-gray-50">
+        <div className="bg-white dark:bg-gray-800 shadow rounded-lg overflow-hidden">
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+            <thead className="bg-gray-50 dark:bg-gray-700">
               <tr>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Naam
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Leden
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
                   Uitnodigen
                 </th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
               {families.map((family) => (
                 <tr key={family.id}>
                   <td className="px-4 py-3 whitespace-nowrap text-sm">{family.name}</td>
@@ -243,11 +243,11 @@ export default function AdminDashboard(): ReactElement {
         <h2 className="text-2xl font-semibold mb-4">Gebruikers</h2>
         <div className="space-y-4">
           {users.map((u) => (
-            <div key={u.id} className="bg-white shadow rounded-lg p-4">
+            <div key={u.id} className="bg-white dark:bg-gray-800 shadow rounded-lg p-4">
               <div className="mb-2">
                 <div className="font-semibold">{u.name}</div>
-                <div className="text-sm text-gray-600">{u.email}</div>
-                <div className="text-sm text-gray-500">
+                <div className="text-sm text-gray-600 dark:text-gray-400">{u.email}</div>
+                <div className="text-sm text-gray-500 dark:text-gray-400">
                   {families.find((f) => f.id === u.familyId)?.name || u.familyId} • {u.role}
                 </div>
               </div>
@@ -259,7 +259,7 @@ export default function AdminDashboard(): ReactElement {
                   onChange={(e) =>
                     setSelectedFamilies({ ...selectedFamilies, [u.id]: e.target.value })
                   }
-                  className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+                  className="flex-1 px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-md text-sm"
                 >
                   {families.map((family) => (
                     <option key={family.id} value={family.id}>
