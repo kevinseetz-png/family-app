@@ -241,3 +241,23 @@ export const customCategorySchema = z.object({
 export const customCategoryDeleteSchema = z.object({
   id: z.string().min(1, "Invalid request"),
 });
+
+// Picnic integration schemas
+export const picnicLoginSchema = z.object({
+  username: z.string().min(1, "E-mailadres is verplicht"),
+  password: z.string().min(1, "Wachtwoord is verplicht"),
+});
+
+export const picnicSearchSchema = z.object({
+  query: z.string().min(1, "Zoekterm is verplicht").max(100, "Zoekterm is te lang"),
+});
+
+export const picnicCartAddSchema = z.object({
+  productId: z.string().min(1, "Product ID is verplicht"),
+  count: z.number().int().min(1).max(99).optional().default(1),
+});
+
+export const picnicCartRemoveSchema = z.object({
+  productId: z.string().min(1, "Product ID is verplicht"),
+  count: z.number().int().min(1).max(99).optional().default(1),
+});
