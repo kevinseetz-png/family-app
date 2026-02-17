@@ -4,11 +4,23 @@ import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { useAuthContext } from "@/components/AuthProvider";
 import { useMeals } from "@/hooks/useMeals";
+import { useWeekMenu } from "@/hooks/useWeekMenu";
 import { usePicnic } from "@/hooks/usePicnic";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
 import { PicnicAddToCartModal } from "@/components/PicnicAddToCartModal";
 import type { Meal } from "@/types/meal";
+import type { DayKey } from "@/types/weekmenu";
 import type { PicnicProduct, PicnicCartSelection } from "@/types/picnic";
+
+const DAY_LABELS: { key: DayKey; label: string }[] = [
+  { key: "mon", label: "Ma" },
+  { key: "tue", label: "Di" },
+  { key: "wed", label: "Wo" },
+  { key: "thu", label: "Do" },
+  { key: "fri", label: "Vr" },
+  { key: "sat", label: "Za" },
+  { key: "sun", label: "Zo" },
+];
 
 function parseIngredients(text: string): string[] {
   return text
@@ -21,6 +33,7 @@ export default function MaaltijdenPage() {
   const { user, isLoading: authLoading } = useAuthContext();
   const router = useRouter();
   const { meals, isLoading, error, updateMeal, deleteMeal, getRandomMeal } = useMeals(user?.familyId);
+  const { days: weekMenuDays, ingredients: weekMenuIngredients, isSaving: isWeekMenuSaving, saveMenu } = useWeekMenu(user?.familyId);
   const { status: picnicStatus, search, addToCart } = usePicnic(user?.familyId);
 
   const [selectedMeal, setSelectedMeal] = useState<Meal | null>(null);
@@ -29,6 +42,8 @@ export default function MaaltijdenPage() {
   const [editIngredients, setEditIngredients] = useState("");
   const [editInstructions, setEditInstructions] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+  const [showDayPicker, setShowDayPicker] = useState(false);
+  const [addedToDay, setAddedToDay] = useState<string | null>(null);
 
   // Picnic modal state
   const [showPicnicModal, setShowPicnicModal] = useState(false);
@@ -63,6 +78,20 @@ export default function MaaltijdenPage() {
       setIsPicnicLoading(false);
     }
   }, [addToCart]);
+
+  const handleAddToWeekMenu = useCallback(async (meal: Meal, dayKey: DayKey) => {
+    try {
+      const updatedDays = { ...weekMenuDays, [dayKey]: meal.name };
+      const updatedIngredients = { ...weekMenuIngredients, [dayKey]: meal.ingredients };
+      await saveMenu(updatedDays, updatedIngredients);
+      const dayLabel = DAY_LABELS.find((d) => d.key === dayKey)?.label ?? dayKey;
+      setAddedToDay(dayLabel);
+      setShowDayPicker(false);
+      setTimeout(() => setAddedToDay(null), 2000);
+    } catch {
+      // error handled by hook
+    }
+  }, [weekMenuDays, weekMenuIngredients, saveMenu]);
 
   const handleOpenPicnicModal = useCallback((meal: Meal) => {
     const parsed = parseIngredients(meal.ingredients);
@@ -202,6 +231,63 @@ export default function MaaltijdenPage() {
               </svg>
               Ingrediënten naar Picnic mandje
             </button>
+          )}
+
+          {/* Add to weekmenu button */}
+          {!showDayPicker ? (
+            <button
+              onClick={() => setShowDayPicker(true)}
+              className="mt-3 w-full py-2 px-4 bg-blue-600 text-white rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors flex items-center justify-center gap-2"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M6 2a1 1 0 00-1 1v1H4a2 2 0 00-2 2v10a2 2 0 002 2h12a2 2 0 002-2V6a2 2 0 00-2-2h-1V3a1 1 0 10-2 0v1H7V3a1 1 0 00-1-1zm0 5a1 1 0 000 2h8a1 1 0 100-2H6z" clipRule="evenodd" />
+              </svg>
+              Toevoegen aan weekmenu
+            </button>
+          ) : (
+            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+              <div className="flex justify-between items-center mb-2">
+                <p className="text-sm font-medium text-blue-800 dark:text-blue-200">Kies een dag:</p>
+                <button
+                  onClick={() => setShowDayPicker(false)}
+                  className="text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-200"
+                  aria-label="Sluiten"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                  </svg>
+                </button>
+              </div>
+              <div className="grid grid-cols-7 gap-1">
+                {DAY_LABELS.map(({ key, label }) => (
+                  <button
+                    key={key}
+                    onClick={() => handleAddToWeekMenu(selectedMeal, key)}
+                    disabled={isWeekMenuSaving}
+                    className="py-2 px-1 text-xs font-medium rounded-md bg-blue-600 text-white hover:bg-blue-700 disabled:opacity-50 transition-colors"
+                    title={weekMenuDays[key] ? `Nu: ${weekMenuDays[key]}` : "Leeg"}
+                  >
+                    {label}
+                  </button>
+                ))}
+              </div>
+              {DAY_LABELS.some(({ key }) => weekMenuDays[key]) && (
+                <div className="mt-2 space-y-1">
+                  {DAY_LABELS.filter(({ key }) => weekMenuDays[key]).map(({ key, label }) => (
+                    <p key={key} className="text-xs text-gray-500 dark:text-gray-400">
+                      <span className="font-medium">{label}:</span> {weekMenuDays[key]}
+                    </p>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* Success feedback for adding to weekmenu */}
+          {addedToDay && (
+            <p className="mt-2 text-sm text-blue-600 dark:text-blue-400 font-medium">
+              Toegevoegd aan {addedToDay}!
+            </p>
           )}
         </div>
       )}
