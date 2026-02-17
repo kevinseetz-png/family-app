@@ -1,17 +1,25 @@
 import { createCipheriv, createDecipheriv, randomBytes } from "crypto";
 
-const ENCRYPTION_KEY = process.env.PICNIC_ENCRYPTION_KEY;
-if (!ENCRYPTION_KEY) {
-  throw new Error("PICNIC_ENCRYPTION_KEY environment variable is required (32-byte hex string)");
-}
+let cachedKey: Buffer | null = null;
 
-const key = Buffer.from(ENCRYPTION_KEY, "hex");
-
-if (key.length !== 32) {
-  throw new Error("PICNIC_ENCRYPTION_KEY must be exactly 32 bytes (64 hex characters)");
+function getKey(): Buffer {
+  if (cachedKey) return cachedKey;
+  // Dynamic access prevents Next.js webpack from inlining as undefined at build time
+  const envKey = "PICNIC_ENCRYPTION_KEY";
+  const raw = process.env[envKey];
+  if (!raw) {
+    throw new Error("PICNIC_ENCRYPTION_KEY environment variable is required (32-byte hex string)");
+  }
+  const key = Buffer.from(raw, "hex");
+  if (key.length !== 32) {
+    throw new Error("PICNIC_ENCRYPTION_KEY must be exactly 32 bytes (64 hex characters)");
+  }
+  cachedKey = key;
+  return key;
 }
 
 export function encrypt(text: string): string {
+  const key = getKey();
   const iv = randomBytes(12);
   const cipher = createCipheriv("aes-256-gcm", key, iv);
   const encrypted = Buffer.concat([cipher.update(text, "utf8"), cipher.final()]);
@@ -20,6 +28,7 @@ export function encrypt(text: string): string {
 }
 
 export function decrypt(data: string): string {
+  const key = getKey();
   const [ivHex, tagHex, encHex] = data.split(":");
   const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(ivHex, "hex"));
   decipher.setAuthTag(Buffer.from(tagHex, "hex"));
