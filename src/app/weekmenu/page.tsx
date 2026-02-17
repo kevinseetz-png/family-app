@@ -13,7 +13,7 @@ export default function WeekMenuPage() {
   const { user, isLoading: authLoading } = useAuthContext();
   const router = useRouter();
   const { days, ingredients, isLoading, error, isSaving, saveMenu } = useWeekMenu(user?.familyId);
-  const { addMeal } = useMeals(user?.familyId);
+  const { meals, addMeal, refetch: refetchMeals } = useMeals(user?.familyId);
   const [mealError, setMealError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -32,6 +32,7 @@ export default function WeekMenuPage() {
     setMealError(null);
     try {
       await addMeal(name, mealIngredients, "", sourceDay);
+      await refetchMeals();
     } catch (err) {
       setMealError(err instanceof Error ? err.message : "Kon maaltijd niet opslaan");
       throw err;
@@ -47,6 +48,7 @@ export default function WeekMenuPage() {
         <WeekMenuForm
           initialDays={days}
           initialIngredients={ingredients}
+          meals={meals}
           isSaving={isSaving}
           onSave={saveMenu}
           onSaveMeal={handleSaveMeal}

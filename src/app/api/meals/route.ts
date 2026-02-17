@@ -76,6 +76,44 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
   const { name, ingredients, instructions, sourceDay } = result.data;
 
   try {
+    // Check for existing meal with same name (case-insensitive) to prevent duplicates
+    const existingSnap = await adminDb
+      .collection("meals")
+      .where("familyId", "==", user.familyId)
+      .get();
+
+    const existingDoc = existingSnap.docs.find(
+      (doc) => doc.data().name.toLowerCase().trim() === name.toLowerCase().trim()
+    );
+
+    if (existingDoc) {
+      // Update existing meal with new ingredients if provided
+      const updates: Record<string, unknown> = { updatedAt: new Date() };
+      if (ingredients) updates.ingredients = ingredients;
+      if (instructions) updates.instructions = instructions;
+      await existingDoc.ref.update(updates);
+
+      const data = existingDoc.data();
+      return NextResponse.json(
+        {
+          meal: {
+            id: existingDoc.id,
+            familyId: data.familyId,
+            name: data.name,
+            ingredients: ingredients || data.ingredients || "",
+            instructions: instructions || data.instructions || "",
+            sourceDay: data.sourceDay,
+            createdBy: data.createdBy,
+            createdByName: data.createdByName,
+            createdAt: data.createdAt.toDate().toISOString(),
+            updatedAt: new Date().toISOString(),
+          },
+          updated: true,
+        },
+        { status: 200 }
+      );
+    }
+
     const docRef = await adminDb.collection("meals").add({
       familyId: user.familyId,
       name,
