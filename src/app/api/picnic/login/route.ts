@@ -26,30 +26,38 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
 
   const { username, password } = result.data;
 
+  const picnicClient = createPicnicClient();
+
   try {
-    const picnicClient = createPicnicClient();
     await picnicClient.login(username, password);
-
-    const authKey = picnicClient.authKey;
-    if (!authKey) {
-      return NextResponse.json(
-        { message: "Picnic login mislukt" },
-        { status: 401 }
-      );
-    }
-
-    await adminDb.collection("picnic_connections").doc(user.familyId).set({
-      authKey: encrypt(authKey),
-      connectedBy: user.id,
-      connectedByName: user.name,
-      connectedAt: new Date(),
-    });
-
-    return NextResponse.json({ connected: true });
   } catch {
     return NextResponse.json(
       { message: "Picnic inloggegevens zijn onjuist" },
       { status: 401 }
     );
   }
+
+  const authKey = picnicClient.authKey;
+  if (!authKey) {
+    return NextResponse.json(
+      { message: "Picnic login mislukt" },
+      { status: 401 }
+    );
+  }
+
+  try {
+    await adminDb.collection("picnic_connections").doc(user.familyId).set({
+      authKey: encrypt(authKey),
+      connectedBy: user.id,
+      connectedByName: user.name,
+      connectedAt: new Date(),
+    });
+  } catch {
+    return NextResponse.json(
+      { message: "Kon verbinding niet opslaan" },
+      { status: 500 }
+    );
+  }
+
+  return NextResponse.json({ connected: true });
 }

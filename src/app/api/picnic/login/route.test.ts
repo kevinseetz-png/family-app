@@ -115,6 +115,32 @@ describe("POST /api/picnic/login", () => {
     );
   });
 
+  it("should return 500 when storing connection fails", async () => {
+    mockVerifyToken.mockResolvedValue({
+      id: "user1",
+      name: "Test User",
+      email: "test@example.com",
+      familyId: "fam1",
+      role: "member",
+    });
+
+    mockState.login.mockImplementation(async () => {
+      mockState.authKey = "picnic-auth-key-123";
+    });
+
+    const mockSet = vi.fn().mockRejectedValue(new Error("Firestore write failed"));
+    mockCollection.mockReturnValue({
+      doc: vi.fn().mockReturnValue({
+        set: mockSet,
+      }),
+    } as never);
+
+    const res = await POST(makeRequest({ username: "user@picnic.nl", password: "picnicpass" }));
+    expect(res.status).toBe(500);
+    const data = await res.json();
+    expect(data.message).toBe("Kon verbinding niet opslaan");
+  });
+
   it("should return 401 when Picnic login fails", async () => {
     mockVerifyToken.mockResolvedValue({
       id: "user1",
