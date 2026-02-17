@@ -209,11 +209,18 @@ async function runAgendaReminders(): Promise<number> {
 }
 
 async function runVitaminReminders(): Promise<number> {
-  const { date: today } = getNow();
+  const { date: today, minutesOfDay: currentMinutes } = getNow();
   const families = await adminDb.collection("families").get();
   let reminded = 0;
 
   for (const family of families.docs) {
+    const familyData = family.data();
+    const reminderHour = typeof familyData.vitaminReminderHour === "number" ? familyData.vitaminReminderHour : 10;
+    const targetMinutes = reminderHour * 60;
+
+    // Only send within 5-minute window of configured reminder time
+    if (currentMinutes < targetMinutes || currentMinutes - targetMinutes >= 5) continue;
+
     const vitaminSnap = await adminDb
       .collection("vitamins")
       .where("familyId", "==", family.id)
@@ -243,6 +250,54 @@ async function runVitaminReminders(): Promise<number> {
   return reminded;
 }
 
+async function runMedicineReminders(): Promise<number> {
+  const { date: today, minutesOfDay: currentMinutes } = getNow();
+  let reminded = 0;
+
+  // Get all active medicines
+  const medicinesSnap = await adminDb
+    .collection("medicines")
+    .where("active", "==", true)
+    .get();
+
+  for (const doc of medicinesSnap.docs) {
+    const data = doc.data();
+    const targetMinutes = (data.reminderHour ?? 9) * 60 + (data.reminderMinute ?? 0);
+
+    // Only send within 5-minute window of configured reminder time
+    if (currentMinutes < targetMinutes || currentMinutes - targetMinutes >= 5) continue;
+
+    // Check if already taken today
+    const checksSnap = await adminDb
+      .collection("medicine_checks")
+      .where("medicineId", "==", doc.id)
+      .where("date", "==", today)
+      .get();
+
+    if (checksSnap.docs.length > 0) continue;
+
+    // Dedup
+    const reminderId = `medicine_${doc.id}_${today}`;
+    const sentDoc = await adminDb.collection("sentReminders").doc(reminderId).get();
+    if (sentDoc.exists) continue;
+
+    await sendNotificationToFamily(data.familyId, {
+      title: "Medicijn herinnering",
+      body: `Vergeet niet: ${data.name}`,
+      url: "/medicijn",
+      type: "medicine_reminder",
+    });
+
+    await adminDb.collection("sentReminders").doc(reminderId).set({
+      sentAt: new Date(),
+      medicineId: doc.id,
+    });
+    reminded++;
+  }
+
+  return reminded;
+}
+
 export async function GET(request: NextRequest): Promise<NextResponse> {
   const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
@@ -252,12 +307,13 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
   }
 
   try {
-    const [agendaReminded, vitaminReminded] = await Promise.all([
+    const [agendaReminded, vitaminReminded, medicineReminded] = await Promise.all([
       runAgendaReminders(),
       runVitaminReminders(),
+      runMedicineReminders(),
     ]);
 
-    return NextResponse.json({ agendaReminded, vitaminReminded });
+    return NextResponse.json({ agendaReminded, vitaminReminded, medicineReminded });
   } catch (err) {
     console.error("Failed to run cron jobs:", err);
     return NextResponse.json({ message: "Failed to run cron jobs" }, { status: 500 });
