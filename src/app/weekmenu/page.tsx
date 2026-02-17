@@ -12,7 +12,7 @@ import { WeekMenuForm } from "@/components/WeekMenuForm";
 export default function WeekMenuPage() {
   const { user, isLoading: authLoading } = useAuthContext();
   const router = useRouter();
-  const { days, isLoading, error, isSaving, saveMenu } = useWeekMenu(user?.familyId);
+  const { days, ingredients, isLoading, error, isSaving, saveMenu } = useWeekMenu(user?.familyId);
   const { addMeal } = useMeals(user?.familyId);
   const [mealError, setMealError] = useState<string | null>(null);
 
@@ -28,10 +28,10 @@ export default function WeekMenuPage() {
 
   if (!user) return null;
 
-  const handleSaveMeal = async (name: string, sourceDay: string) => {
+  const handleSaveMeal = async (name: string, mealIngredients: string, sourceDay: string) => {
     setMealError(null);
     try {
-      await addMeal(name, "", "", sourceDay);
+      await addMeal(name, mealIngredients, "", sourceDay);
     } catch (err) {
       setMealError(err instanceof Error ? err.message : "Kon maaltijd niet opslaan");
       throw err;
@@ -46,6 +46,7 @@ export default function WeekMenuPage() {
         {mealError && <p role="alert" className="mb-4 text-sm text-red-600">{mealError}</p>}
         <WeekMenuForm
           initialDays={days}
+          initialIngredients={ingredients}
           isSaving={isSaving}
           onSave={saveMenu}
           onSaveMeal={handleSaveMeal}
