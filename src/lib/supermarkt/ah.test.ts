@@ -23,10 +23,8 @@ describe("AH connector", () => {
           {
             webshopId: "12345",
             title: "AH Halfvolle melk",
-            priceBeforeBonus: 139,
-            currentPrice: 139,
+            priceBeforeBonus: 1.39,
             unitPriceDescription: "1 L",
-            images: [],
           },
         ],
       }),
@@ -49,9 +47,8 @@ describe("AH connector", () => {
           {
             webshopId: "12345",
             title: "AH Halfvolle melk",
-            currentPrice: 139,
+            priceBeforeBonus: 1.39,
             unitPriceDescription: "1 L",
-            images: [],
           },
         ],
       }),
@@ -70,7 +67,7 @@ describe("AH connector", () => {
     });
   });
 
-  it("should handle euro-format prices (e.g. 1.39)", async () => {
+  it("should handle various euro prices correctly", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ access_token: "test-token", expires_in: 7200 }),
@@ -81,18 +78,40 @@ describe("AH connector", () => {
         products: [
           {
             webshopId: "99",
-            title: "AH Product",
-            currentPrice: 1.39,
+            title: "AH Dure kaas",
+            priceBeforeBonus: 12.49,
             unitPriceDescription: "500 g",
-            images: [],
+          },
+        ],
+      }),
+    });
+
+    const results = await search("kaas");
+    expect(results[0].price).toBe(1249);
+    expect(results[0].displayPrice).toBe("€ 12,49");
+  });
+
+  it("should use salesUnitSize as fallback for unit quantity", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ access_token: "test-token", expires_in: 7200 }),
+    });
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        products: [
+          {
+            webshopId: "50",
+            title: "AH Product",
+            priceBeforeBonus: 2.99,
+            salesUnitSize: "750 ml",
           },
         ],
       }),
     });
 
     const results = await search("product");
-    expect(results[0].price).toBe(139);
-    expect(results[0].displayPrice).toBe("€ 1,39");
+    expect(results[0].unitQuantity).toBe("750 ml");
   });
 
   it("should cache token and reuse for subsequent searches", async () => {

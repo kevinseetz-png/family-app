@@ -35,11 +35,9 @@ async function getToken(): Promise<string | null> {
   }
 }
 
-function parsePriceToCents(value: unknown): number {
-  if (typeof value === "number") {
-    // If < 100, it's likely euros (e.g. 1.39) — convert to cents
-    // If >= 100, it's likely already cents (e.g. 139)
-    return value < 50 ? Math.round(value * 100) : Math.round(value);
+function eurosToCents(value: unknown): number {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return Math.round(value * 100);
   }
   return 0;
 }
@@ -65,22 +63,19 @@ export async function search(query: string): Promise<SupermarktProduct[]> {
     interface AHRawProduct {
       webshopId: string;
       title: string;
-      currentPrice?: number;
       priceBeforeBonus?: number;
-      price?: { now?: number; unitSize?: string };
+      salesUnitSize?: string;
       unitPriceDescription?: string;
-      images?: Array<{ url: string }>;
     }
 
     return (products as AHRawProduct[]).map((p) => {
-      const rawPrice = p.currentPrice ?? p.priceBeforeBonus ?? p.price?.now ?? 0;
-      const price = parsePriceToCents(rawPrice);
+      const price = eurosToCents(p.priceBeforeBonus);
       return {
         id: String(p.webshopId),
         name: String(p.title),
         price,
         displayPrice: formatPrice(price),
-        unitQuantity: String(p.unitPriceDescription ?? p.price?.unitSize ?? ""),
+        unitQuantity: String(p.unitPriceDescription ?? p.salesUnitSize ?? ""),
         imageUrl: null,
         supermarkt: "ah" as const,
       };
