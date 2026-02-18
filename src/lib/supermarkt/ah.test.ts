@@ -26,13 +26,13 @@ describe("AH connector", () => {
             priceBeforeBonus: 139,
             currentPrice: 139,
             unitPriceDescription: "1 L",
-            images: [{ url: "https://ah.nl/img/12345" }],
+            images: [],
           },
         ],
       }),
     });
 
-    const results = await search("melk");
+    await search("melk");
     expect(mockFetch).toHaveBeenCalledTimes(2);
     expect(mockFetch.mock.calls[0][0]).toContain("auth/token/anonymous");
   });
@@ -49,10 +49,9 @@ describe("AH connector", () => {
           {
             webshopId: "12345",
             title: "AH Halfvolle melk",
-            priceBeforeBonus: 139,
             currentPrice: 139,
             unitPriceDescription: "1 L",
-            images: [{ url: "https://ah.nl/img/12345" }],
+            images: [],
           },
         ],
       }),
@@ -66,13 +65,37 @@ describe("AH connector", () => {
       price: 139,
       displayPrice: "€ 1,39",
       unitQuantity: "1 L",
-      imageUrl: "https://ah.nl/img/12345",
+      imageUrl: null,
       supermarkt: "ah",
     });
   });
 
+  it("should handle euro-format prices (e.g. 1.39)", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({ access_token: "test-token", expires_in: 7200 }),
+    });
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        products: [
+          {
+            webshopId: "99",
+            title: "AH Product",
+            currentPrice: 1.39,
+            unitPriceDescription: "500 g",
+            images: [],
+          },
+        ],
+      }),
+    });
+
+    const results = await search("product");
+    expect(results[0].price).toBe(139);
+    expect(results[0].displayPrice).toBe("€ 1,39");
+  });
+
   it("should cache token and reuse for subsequent searches", async () => {
-    // First search: token + search
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ access_token: "cached-token", expires_in: 7200 }),
@@ -83,14 +106,12 @@ describe("AH connector", () => {
     });
     await search("melk");
 
-    // Second search: only search (token cached)
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({ products: [] }),
     });
     await search("kaas");
 
-    // Token should only be fetched once (calls: token, search1, search2 = 3)
     expect(mockFetch).toHaveBeenCalledTimes(3);
   });
 
@@ -110,30 +131,5 @@ describe("AH connector", () => {
 
     const results = await search("melk");
     expect(results).toEqual([]);
-  });
-
-  it("should handle products without images", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({ access_token: "test-token", expires_in: 7200 }),
-    });
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        products: [
-          {
-            webshopId: "99",
-            title: "AH Product",
-            priceBeforeBonus: 250,
-            currentPrice: 250,
-            unitPriceDescription: "500 g",
-            images: [],
-          },
-        ],
-      }),
-    });
-
-    const results = await search("product");
-    expect(results[0].imageUrl).toBeNull();
   });
 });

@@ -32,15 +32,13 @@ export async function search(query: string): Promise<SupermarktProduct[]> {
         ? `${p.quantityOptions[0].defaultAmount} ${p.quantityOptions[0].unit}`
         : "";
 
-      const imageUrl = p.imageInfo?.primaryView?.[0]?.url ?? null;
-
       return {
         id: String(p.id),
         name: String(p.title),
         price: priceCents,
         displayPrice: formatPrice(priceCents),
         unitQuantity,
-        imageUrl,
+        imageUrl: null,
         supermarkt: "jumbo" as const,
       };
     });

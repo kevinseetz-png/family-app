@@ -35,6 +35,15 @@ async function getToken(): Promise<string | null> {
   }
 }
 
+function parsePriceToCents(value: unknown): number {
+  if (typeof value === "number") {
+    // If < 100, it's likely euros (e.g. 1.39) — convert to cents
+    // If >= 100, it's likely already cents (e.g. 139)
+    return value < 50 ? Math.round(value * 100) : Math.round(value);
+  }
+  return 0;
+}
+
 export async function search(query: string): Promise<SupermarktProduct[]> {
   try {
     const token = await getToken();
@@ -56,22 +65,27 @@ export async function search(query: string): Promise<SupermarktProduct[]> {
     interface AHRawProduct {
       webshopId: string;
       title: string;
-      currentPrice: number;
+      currentPrice?: number;
+      priceBeforeBonus?: number;
+      price?: { now?: number; unitSize?: string };
       unitPriceDescription?: string;
       images?: Array<{ url: string }>;
     }
 
-    return (products as AHRawProduct[]).map((p) => ({
-      id: String(p.webshopId),
-      name: String(p.title),
-      price: p.currentPrice,
-      displayPrice: formatPrice(p.currentPrice),
-      unitQuantity: String(p.unitPriceDescription ?? ""),
-      imageUrl: p.images && p.images.length > 0 ? p.images[0].url : null,
-      supermarkt: "ah" as const,
-    }));
+    return (products as AHRawProduct[]).map((p) => {
+      const rawPrice = p.currentPrice ?? p.priceBeforeBonus ?? p.price?.now ?? 0;
+      const price = parsePriceToCents(rawPrice);
+      return {
+        id: String(p.webshopId),
+        name: String(p.title),
+        price,
+        displayPrice: formatPrice(price),
+        unitQuantity: String(p.unitPriceDescription ?? p.price?.unitSize ?? ""),
+        imageUrl: null,
+        supermarkt: "ah" as const,
+      };
+    });
   } catch {
     return [];
   }
 }
-

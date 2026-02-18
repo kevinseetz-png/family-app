@@ -50,7 +50,7 @@ describe("Jumbo connector", () => {
       price: 149,
       displayPrice: "€ 1,49",
       unitQuantity: "1 stuk",
-      imageUrl: "https://jumbo.nl/img/j-123",
+      imageUrl: null,
       supermarkt: "jumbo",
     });
   });
