@@ -14,6 +14,7 @@ const ALL_TABS = [
   { href: "/klusjes", label: "Taken" },
   { href: "/medicijn", label: "Medicijn" },
   { href: "/community", label: "Community" },
+  { href: "/supermarkt", label: "Supermarkt" },
 ] as const;
 
 export function TabBar() {
