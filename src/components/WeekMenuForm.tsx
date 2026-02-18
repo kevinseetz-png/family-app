@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import type { WeekMenuDays, WeekMenuIngredients, DayKey } from "@/types/weekmenu";
+import type { Meal } from "@/types/meal";
 
 const DAY_LABELS: { key: DayKey; label: string; fullLabel: string }[] = [
   { key: "mon", label: "Ma", fullLabel: "Maandag" },
@@ -18,12 +19,13 @@ const EMPTY_INGREDIENTS: WeekMenuIngredients = { mon: "", tue: "", wed: "", thu:
 interface WeekMenuFormProps {
   initialDays: WeekMenuDays;
   initialIngredients?: WeekMenuIngredients;
+  meals?: Meal[];
   isSaving: boolean;
   onSave: (days: WeekMenuDays, ingredients: WeekMenuIngredients) => Promise<void>;
   onSaveMeal?: (name: string, ingredients: string, sourceDay: string) => Promise<void>;
 }
 
-export function WeekMenuForm({ initialDays, initialIngredients, isSaving, onSave, onSaveMeal }: WeekMenuFormProps) {
+export function WeekMenuForm({ initialDays, initialIngredients, meals = [], isSaving, onSave, onSaveMeal }: WeekMenuFormProps) {
   const [days, setDays] = useState<WeekMenuDays>(initialDays);
   const [ingredients, setIngredients] = useState<WeekMenuIngredients>(initialIngredients ?? EMPTY_INGREDIENTS);
   const [expandedDays, setExpandedDays] = useState<Set<DayKey>>(new Set());
@@ -31,9 +33,35 @@ export function WeekMenuForm({ initialDays, initialIngredients, isSaving, onSave
   const [savingMeal, setSavingMeal] = useState<string | null>(null);
   const [savedMeals, setSavedMeals] = useState<Set<string>>(new Set());
 
+  /** Find a matching meal by name (case-insensitive) */
+  const findMatchingMeal = useCallback((name: string): Meal | undefined => {
+    const trimmed = name.trim().toLowerCase();
+    if (!trimmed) return undefined;
+    return meals.find((m) => m.name.toLowerCase().trim() === trimmed);
+  }, [meals]);
+
+  /** Check if a meal name already exists in the saved meals */
+  const isMealAlreadySaved = useCallback((name: string): boolean => {
+    return !!findMatchingMeal(name);
+  }, [findMatchingMeal]);
+
   const handleChange = (key: DayKey, value: string) => {
     setDays((prev) => ({ ...prev, [key]: value }));
     setSuccess(false);
+  };
+
+  /** When user leaves the meal name field, auto-fill ingredients from existing meal */
+  const handleBlur = (key: DayKey) => {
+    const mealName = days[key].trim();
+    if (!mealName) return;
+
+    // Only auto-fill if the user hasn't already typed ingredients for this day
+    if (ingredients[key]?.trim()) return;
+
+    const match = findMatchingMeal(mealName);
+    if (match?.ingredients) {
+      setIngredients((prev) => ({ ...prev, [key]: match.ingredients }));
+    }
   };
 
   const handleIngredientsChange = (key: DayKey, value: string) => {
@@ -83,6 +111,8 @@ export function WeekMenuForm({ initialDays, initialIngredients, isSaving, onSave
       {DAY_LABELS.map(({ key, label, fullLabel }) => {
         const isExpanded = expandedDays.has(key);
         const hasIngredients = !!ingredients[key]?.trim();
+        const alreadySaved = isMealAlreadySaved(days[key]);
+        const isMarkedSaved = savedMeals.has(key) || alreadySaved;
 
         return (
           <div key={key} className="rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
@@ -97,6 +127,7 @@ export function WeekMenuForm({ initialDays, initialIngredients, isSaving, onSave
                   maxLength={500}
                   value={days[key]}
                   onChange={(e) => handleChange(key, e.target.value)}
+                  onBlur={() => handleBlur(key)}
                   placeholder="Wat eten we?"
                   className="flex-1 rounded-lg border border-gray-300 dark:border-gray-600 px-3 py-2 text-gray-900 dark:text-gray-100 dark:bg-gray-700 focus:ring-2 focus:ring-emerald-500 focus:outline-none"
                 />
@@ -105,16 +136,24 @@ export function WeekMenuForm({ initialDays, initialIngredients, isSaving, onSave
                     type="button"
                     onClick={() => handleSaveMeal(key, fullLabel)}
                     disabled={!days[key].trim() || savingMeal === key}
-                    className="px-3 py-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                    aria-label={`Bewaar ${days[key] || "maaltijd"} als kaart`}
-                    title="Bewaar als maaltijdkaart"
+                    className={`px-3 py-2 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed transition-colors ${
+                      isMarkedSaved
+                        ? "text-emerald-600 cursor-default"
+                        : "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
+                    }`}
+                    aria-label={
+                      isMarkedSaved
+                        ? `${days[key] || "Maaltijd"} is al opgeslagen`
+                        : `Bewaar ${days[key] || "maaltijd"} als kaart`
+                    }
+                    title={isMarkedSaved ? "Al opgeslagen als maaltijdkaart" : "Bewaar als maaltijdkaart"}
                   >
                     {savingMeal === key ? (
                       <svg className="w-5 h-5 animate-spin" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                    ) : savedMeals.has(key) ? (
+                    ) : isMarkedSaved ? (
                       <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-emerald-600" viewBox="0 0 20 20" fill="currentColor">
                         <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
                       </svg>
