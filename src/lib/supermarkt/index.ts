@@ -3,6 +3,7 @@ import { SUPERMARKT_LABELS, ACTIVE_SUPERMARKTEN } from "@/types/supermarkt";
 import { search as ahSearch } from "./ah";
 import { search as jumboSearch } from "./jumbo";
 import { search as picnicSearch } from "./picnic-adapter";
+import { search as dirkSearch } from "./dirk";
 import { createScraper } from "./scraper";
 
 const CONNECTOR_TIMEOUT_MS = 5000;
@@ -17,6 +18,7 @@ function buildConnectors(familyId: string): ConnectorEntry[] {
     ah: ahSearch,
     jumbo: jumboSearch,
     picnic: (q) => picnicSearch(q, familyId),
+    dirk: dirkSearch,
   };
 
   return ACTIVE_SUPERMARKTEN.map((id) => ({

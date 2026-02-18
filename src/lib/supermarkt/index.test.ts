@@ -12,6 +12,10 @@ vi.mock("./picnic-adapter", () => ({
   search: vi.fn(),
 }));
 
+vi.mock("./dirk", () => ({
+  search: vi.fn(),
+}));
+
 vi.mock("./scraper", () => ({
   createScraper: vi.fn(),
 }));
@@ -20,11 +24,13 @@ import { searchAllSupermarkten } from "./index";
 import { search as ahSearch } from "./ah";
 import { search as jumboSearch } from "./jumbo";
 import { search as picnicSearch } from "./picnic-adapter";
+import { search as dirkSearch } from "./dirk";
 import type { SupermarktProduct } from "@/types/supermarkt";
 
 const mockAhSearch = vi.mocked(ahSearch);
 const mockJumboSearch = vi.mocked(jumboSearch);
 const mockPicnicSearch = vi.mocked(picnicSearch);
+const mockDirkSearch = vi.mocked(dirkSearch);
 
 const mockProduct = (supermarkt: string, name: string, price: number): SupermarktProduct => ({
   id: `${supermarkt}-1`,
@@ -36,6 +42,13 @@ const mockProduct = (supermarkt: string, name: string, price: number): Supermark
   supermarkt: supermarkt as SupermarktProduct["supermarkt"],
 });
 
+function mockAllEmpty() {
+  mockAhSearch.mockResolvedValue([]);
+  mockJumboSearch.mockResolvedValue([]);
+  mockPicnicSearch.mockResolvedValue([]);
+  mockDirkSearch.mockResolvedValue([]);
+}
+
 describe("searchAllSupermarkten", () => {
   beforeEach(() => {
     vi.clearAllMocks();
@@ -45,6 +58,7 @@ describe("searchAllSupermarkten", () => {
     mockAhSearch.mockResolvedValue([mockProduct("ah", "AH Melk", 139)]);
     mockJumboSearch.mockResolvedValue([mockProduct("jumbo", "Jumbo Melk", 149)]);
     mockPicnicSearch.mockResolvedValue([mockProduct("picnic", "Picnic Melk", 129)]);
+    mockDirkSearch.mockResolvedValue([mockProduct("dirk", "Dirk Melk", 119)]);
 
     const results = await searchAllSupermarkten("melk", "fam1");
 
@@ -59,12 +73,17 @@ describe("searchAllSupermarkten", () => {
     const picnicResult = results.find((r) => r.supermarkt === "picnic");
     expect(picnicResult?.products).toHaveLength(1);
     expect(picnicResult?.error).toBeNull();
+
+    const dirkResult = results.find((r) => r.supermarkt === "dirk");
+    expect(dirkResult?.products).toHaveLength(1);
+    expect(dirkResult?.error).toBeNull();
   });
 
   it("should handle individual connector failures gracefully", async () => {
     mockAhSearch.mockRejectedValue(new Error("AH API down"));
     mockJumboSearch.mockResolvedValue([mockProduct("jumbo", "Jumbo Melk", 149)]);
     mockPicnicSearch.mockResolvedValue([]);
+    mockDirkSearch.mockResolvedValue([]);
 
     const results = await searchAllSupermarkten("melk", "fam1");
 
@@ -78,9 +97,7 @@ describe("searchAllSupermarkten", () => {
   });
 
   it("should only include active supermarkets in results", async () => {
-    mockAhSearch.mockResolvedValue([]);
-    mockJumboSearch.mockResolvedValue([]);
-    mockPicnicSearch.mockResolvedValue([]);
+    mockAllEmpty();
 
     const results = await searchAllSupermarkten("test", "fam1");
 
@@ -88,15 +105,13 @@ describe("searchAllSupermarkten", () => {
     expect(supermarktIds).toContain("ah");
     expect(supermarktIds).toContain("jumbo");
     expect(supermarktIds).toContain("picnic");
+    expect(supermarktIds).toContain("dirk");
     // Stubs should not be queried
-    expect(supermarktIds).not.toContain("dirk");
     expect(supermarktIds).not.toContain("lidl");
   });
 
   it("should include correct labels for each supermarket", async () => {
-    mockAhSearch.mockResolvedValue([]);
-    mockJumboSearch.mockResolvedValue([]);
-    mockPicnicSearch.mockResolvedValue([]);
+    mockAllEmpty();
 
     const results = await searchAllSupermarkten("test", "fam1");
 
@@ -105,12 +120,13 @@ describe("searchAllSupermarkten", () => {
 
     const jumboResult = results.find((r) => r.supermarkt === "jumbo");
     expect(jumboResult?.label).toBe("Jumbo");
+
+    const dirkResult = results.find((r) => r.supermarkt === "dirk");
+    expect(dirkResult?.label).toBe("Dirk");
   });
 
   it("should pass familyId to picnic adapter", async () => {
-    mockAhSearch.mockResolvedValue([]);
-    mockJumboSearch.mockResolvedValue([]);
-    mockPicnicSearch.mockResolvedValue([]);
+    mockAllEmpty();
 
     await searchAllSupermarkten("melk", "fam1");
     expect(mockPicnicSearch).toHaveBeenCalledWith("melk", "fam1");
