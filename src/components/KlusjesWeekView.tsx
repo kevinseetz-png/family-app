@@ -45,7 +45,7 @@ interface KlusjesWeekViewProps {
   onDelete: (id: string) => Promise<void>;
 }
 
-export function KlusjesWeekView({ items, getItemsForDate, onStatusChange, onDelete }: KlusjesWeekViewProps) {
+export function KlusjesWeekView({ items, getItemsForDate, onStatusChange }: KlusjesWeekViewProps) {
   const [weekStart, setWeekStart] = useState(() => getMonday(new Date()));
 
   const weekDates = useMemo(() => {

@@ -11,7 +11,6 @@ import { AddTaskModal } from "@/components/AddTaskModal";
 import type { KlusjesItem, KlusjesStatus, ReminderOption } from "@/types/klusjes";
 import { REMINDER_OPTIONS } from "@/types/klusjes";
 import {
-  CATEGORY_CONFIG,
   BUILT_IN_CATEGORIES,
   DEFAULT_BIRTHDAY_GROUPS,
   getCategoryConfig,
@@ -1894,7 +1893,7 @@ export default function AgendaPage() {
   const { user, isLoading: authLoading } = useAuthContext();
   const router = useRouter();
   const { events, isLoading, error, addEvent, updateEvent, deleteEvent, getEventsForDate, getEventsForMonth } = useAgenda(user?.familyId);
-  const { items: tasks, isLoading: tasksLoading, addItem: addTask, updateItem: updateTask, updateStatus: updateTaskStatus, getItemsForDate: getTasksForDate } = useKlusjes(user?.familyId);
+  const { addItem: addTask, updateItem: updateTask, updateStatus: updateTaskStatus, getItemsForDate: getTasksForDate } = useKlusjes(user?.familyId);
   const { categories: customCategories, hiddenBuiltIn, addCategory, deleteCategory, toggleBuiltIn } = useCustomCategories(user?.familyId);
   const [showCategoryManager, setShowCategoryManager] = useState(false);
 
@@ -1987,7 +1986,7 @@ export default function AgendaPage() {
       );
     }
     return filtered;
-  }, [searchQuery, activeCategories]);
+  }, [searchQuery, activeCategories, allCategoriesCount]);
 
   // Build event dates map for calendar dots
   const eventDates = useMemo(() => {

@@ -1,11 +1,11 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto";
 
 let cachedKey: Buffer | null = null;
+let cachedLegacyKey: Buffer | null = null;
 
 function getKey(): Buffer {
   if (cachedKey) return cachedKey;
 
-  // Prefer explicit key, fall back to deriving one from the Firebase private key
   const raw = process.env.PICNIC_ENCRYPTION_KEY;
   if (raw) {
     const key = Buffer.from(raw, "hex");
@@ -23,9 +23,19 @@ function getKey(): Buffer {
     );
   }
 
-  // Derive a stable 32-byte key from the Firebase private key
   cachedKey = createHash("sha256").update(firebaseKey).digest();
   return cachedKey;
+}
+
+function getLegacyKey(): Buffer | null {
+  if (cachedLegacyKey) return cachedLegacyKey;
+  if (!process.env.PICNIC_ENCRYPTION_KEY) return null;
+
+  const firebaseKey = process.env.FIREBASE_PRIVATE_KEY;
+  if (!firebaseKey) return null;
+
+  cachedLegacyKey = createHash("sha256").update(firebaseKey).digest();
+  return cachedLegacyKey;
 }
 
 export function encrypt(text: string): string {
@@ -43,4 +53,19 @@ export function decrypt(data: string): string {
   const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(ivHex, "hex"));
   decipher.setAuthTag(Buffer.from(tagHex, "hex"));
   return decipher.update(Buffer.from(encHex, "hex"), undefined, "utf8") + decipher.final("utf8");
+}
+
+export function decryptWithLegacyFallback(data: string): { value: string; migrated: boolean } {
+  try {
+    return { value: decrypt(data), migrated: false };
+  } catch {
+    const legacyKey = getLegacyKey();
+    if (!legacyKey) throw new Error("Decryption failed and no legacy key available");
+
+    const [ivHex, tagHex, encHex] = data.split(":");
+    const decipher = createDecipheriv("aes-256-gcm", legacyKey, Buffer.from(ivHex, "hex"));
+    decipher.setAuthTag(Buffer.from(tagHex, "hex"));
+    const value = decipher.update(Buffer.from(encHex, "hex"), undefined, "utf8") + decipher.final("utf8");
+    return { value, migrated: true };
+  }
 }

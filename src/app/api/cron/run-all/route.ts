@@ -62,7 +62,7 @@ function subtractMinutesFromTime(dateStr: string, time: string, minutes: number)
 }
 
 async function runAgendaReminders(): Promise<number> {
-  const { date: today, time: currentTime, minutesOfDay: currentMinutes } = getNow();
+  const { date: today, minutesOfDay: currentMinutes } = getNow();
   let reminded = 0;
 
   /**
