@@ -4,9 +4,9 @@ import { search as ahSearch } from "./ah";
 import { search as jumboSearch } from "./jumbo";
 import { search as picnicSearch } from "./picnic-adapter";
 import { search as dirkSearch } from "./dirk";
-import { createScraper } from "./scraper";
+import { search as checkjebonSearch } from "./checkjebon";
 
-const CONNECTOR_TIMEOUT_MS = 5000;
+const CONNECTOR_TIMEOUT_MS = 8000;
 
 interface ConnectorEntry {
   supermarkt: SupermarktId;
@@ -23,7 +23,7 @@ function buildConnectors(familyId: string): ConnectorEntry[] {
 
   return ACTIVE_SUPERMARKTEN.map((id) => ({
     supermarkt: id,
-    search: connectorMap[id] ?? createScraper(id),
+    search: connectorMap[id] ?? ((q: string) => checkjebonSearch(q, id)),
   }));
 }
 

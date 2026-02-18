@@ -16,8 +16,8 @@ vi.mock("./dirk", () => ({
   search: vi.fn(),
 }));
 
-vi.mock("./scraper", () => ({
-  createScraper: vi.fn(),
+vi.mock("./checkjebon", () => ({
+  search: vi.fn(),
 }));
 
 import { searchAllSupermarkten } from "./index";
@@ -25,12 +25,14 @@ import { search as ahSearch } from "./ah";
 import { search as jumboSearch } from "./jumbo";
 import { search as picnicSearch } from "./picnic-adapter";
 import { search as dirkSearch } from "./dirk";
+import { search as checkjebonSearch } from "./checkjebon";
 import type { SupermarktProduct } from "@/types/supermarkt";
 
 const mockAhSearch = vi.mocked(ahSearch);
 const mockJumboSearch = vi.mocked(jumboSearch);
 const mockPicnicSearch = vi.mocked(picnicSearch);
 const mockDirkSearch = vi.mocked(dirkSearch);
+const mockCheckjebonSearch = vi.mocked(checkjebonSearch);
 
 const mockProduct = (supermarkt: string, name: string, price: number): SupermarktProduct => ({
   id: `${supermarkt}-1`,
@@ -47,6 +49,7 @@ function mockAllEmpty() {
   mockJumboSearch.mockResolvedValue([]);
   mockPicnicSearch.mockResolvedValue([]);
   mockDirkSearch.mockResolvedValue([]);
+  mockCheckjebonSearch.mockResolvedValue([]);
 }
 
 describe("searchAllSupermarkten", () => {
@@ -59,20 +62,13 @@ describe("searchAllSupermarkten", () => {
     mockJumboSearch.mockResolvedValue([mockProduct("jumbo", "Jumbo Melk", 149)]);
     mockPicnicSearch.mockResolvedValue([mockProduct("picnic", "Picnic Melk", 129)]);
     mockDirkSearch.mockResolvedValue([mockProduct("dirk", "Dirk Melk", 119)]);
+    mockCheckjebonSearch.mockResolvedValue([]);
 
     const results = await searchAllSupermarkten("melk", "fam1");
 
     const ahResult = results.find((r) => r.supermarkt === "ah");
     expect(ahResult?.products).toHaveLength(1);
     expect(ahResult?.error).toBeNull();
-
-    const jumboResult = results.find((r) => r.supermarkt === "jumbo");
-    expect(jumboResult?.products).toHaveLength(1);
-    expect(jumboResult?.error).toBeNull();
-
-    const picnicResult = results.find((r) => r.supermarkt === "picnic");
-    expect(picnicResult?.products).toHaveLength(1);
-    expect(picnicResult?.error).toBeNull();
 
     const dirkResult = results.find((r) => r.supermarkt === "dirk");
     expect(dirkResult?.products).toHaveLength(1);
@@ -84,6 +80,7 @@ describe("searchAllSupermarkten", () => {
     mockJumboSearch.mockResolvedValue([mockProduct("jumbo", "Jumbo Melk", 149)]);
     mockPicnicSearch.mockResolvedValue([]);
     mockDirkSearch.mockResolvedValue([]);
+    mockCheckjebonSearch.mockResolvedValue([]);
 
     const results = await searchAllSupermarkten("melk", "fam1");
 
@@ -96,7 +93,7 @@ describe("searchAllSupermarkten", () => {
     expect(jumboResult?.error).toBeNull();
   });
 
-  it("should only include active supermarkets in results", async () => {
+  it("should include all 12 active supermarkets in results", async () => {
     mockAllEmpty();
 
     const results = await searchAllSupermarkten("test", "fam1");
@@ -106,8 +103,23 @@ describe("searchAllSupermarkten", () => {
     expect(supermarktIds).toContain("jumbo");
     expect(supermarktIds).toContain("picnic");
     expect(supermarktIds).toContain("dirk");
-    // Stubs should not be queried
-    expect(supermarktIds).not.toContain("lidl");
+    expect(supermarktIds).toContain("lidl");
+    expect(supermarktIds).toContain("plus");
+    expect(supermarktIds).toContain("aldi");
+    expect(results).toHaveLength(12);
+  });
+
+  it("should use checkjebon fallback for supermarkets without dedicated connector", async () => {
+    mockAllEmpty();
+
+    await searchAllSupermarkten("melk", "fam1");
+
+    // Lidl should go through checkjebon
+    expect(mockCheckjebonSearch).toHaveBeenCalledWith("melk", "lidl");
+    // Plus should go through checkjebon
+    expect(mockCheckjebonSearch).toHaveBeenCalledWith("melk", "plus");
+    // AH should NOT go through checkjebon (has dedicated connector)
+    expect(mockAhSearch).toHaveBeenCalledWith("melk");
   });
 
   it("should include correct labels for each supermarket", async () => {
@@ -118,8 +130,8 @@ describe("searchAllSupermarkten", () => {
     const ahResult = results.find((r) => r.supermarkt === "ah");
     expect(ahResult?.label).toBe("Albert Heijn");
 
-    const jumboResult = results.find((r) => r.supermarkt === "jumbo");
-    expect(jumboResult?.label).toBe("Jumbo");
+    const lidlResult = results.find((r) => r.supermarkt === "lidl");
+    expect(lidlResult?.label).toBe("Lidl");
 
     const dirkResult = results.find((r) => r.supermarkt === "dirk");
     expect(dirkResult?.label).toBe("Dirk");

@@ -20,7 +20,10 @@ export interface SupermarktResult {
   error: string | null;
 }
 
-export const ACTIVE_SUPERMARKTEN: SupermarktId[] = ["ah", "jumbo", "picnic", "dirk"];
+export const ACTIVE_SUPERMARKTEN: SupermarktId[] = [
+  "ah", "jumbo", "picnic", "dirk",
+  "lidl", "aldi", "plus", "hoogvliet", "dekamarkt", "spar", "vomar", "poiesz",
+];
 
 export const SUPERMARKT_LABELS: Record<SupermarktId, string> = {
   ah: "Albert Heijn",
