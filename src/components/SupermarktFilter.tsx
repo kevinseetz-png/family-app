@@ -1,10 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { SUPERMARKT_LABELS } from "@/types/supermarkt";
+import { SUPERMARKT_LABELS, ACTIVE_SUPERMARKTEN } from "@/types/supermarkt";
 import type { SupermarktId } from "@/types/supermarkt";
-
-const ALL_IDS = Object.keys(SUPERMARKT_LABELS) as SupermarktId[];
 
 interface SupermarktFilterProps {
   enabled: Set<SupermarktId>;
@@ -13,6 +11,8 @@ interface SupermarktFilterProps {
 
 export function SupermarktFilter({ enabled, onToggle }: SupermarktFilterProps) {
   const [open, setOpen] = useState(false);
+
+  const activeCount = ACTIVE_SUPERMARKTEN.filter((id) => enabled.has(id)).length;
 
   return (
     <div className="mb-4">
@@ -25,12 +25,12 @@ export function SupermarktFilter({ enabled, onToggle }: SupermarktFilterProps) {
         <svg xmlns="http://www.w3.org/2000/svg" className={`h-4 w-4 transition-transform ${open ? "rotate-90" : ""}`} viewBox="0 0 20 20" fill="currentColor">
           <path fillRule="evenodd" d="M7.293 14.707a1 1 0 010-1.414L10.586 10 7.293 6.707a1 1 0 011.414-1.414l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414 0z" clipRule="evenodd" />
         </svg>
-        Winkels ({enabled.size}/{ALL_IDS.length})
+        Winkels ({activeCount}/{ACTIVE_SUPERMARKTEN.length})
       </button>
 
       {open && (
-        <div className="mt-2 grid grid-cols-2 gap-1">
-          {ALL_IDS.map((id) => (
+        <div className="mt-2 space-y-1">
+          {ACTIVE_SUPERMARKTEN.map((id) => (
             <label
               key={id}
               className="flex items-center gap-2 py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-700/50 cursor-pointer"

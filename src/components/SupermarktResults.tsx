@@ -1,6 +1,6 @@
 "use client";
 
-import type { SupermarktResult, SupermarktId } from "@/types/supermarkt";
+import type { SupermarktResult, SupermarktId, SupermarktProduct } from "@/types/supermarkt";
 
 interface SupermarktResultsProps {
   results: SupermarktResult[];
@@ -9,27 +9,14 @@ interface SupermarktResultsProps {
   enabledSupermarkten: Set<SupermarktId>;
 }
 
-function sortResults(results: SupermarktResult[]): SupermarktResult[] {
-  return [...results].sort((a, b) => {
-    const aHasProducts = a.products.length > 0 && !a.error;
-    const bHasProducts = b.products.length > 0 && !b.error;
-    if (aHasProducts && !bHasProducts) return -1;
-    if (!aHasProducts && bHasProducts) return 1;
-
-    if (aHasProducts && bHasProducts) {
-      const aMin = Math.min(...a.products.map((p) => p.price));
-      const bMin = Math.min(...b.products.map((p) => p.price));
-      return aMin - bMin;
-    }
-
-    return 0;
-  });
+interface FlatProduct extends SupermarktProduct {
+  supermarktLabel: string;
 }
 
 export function SupermarktResults({ results, isSearching, hasSearched, enabledSupermarkten }: SupermarktResultsProps) {
   if (isSearching) {
     return (
-      <div className="space-y-4" role="status" aria-live="polite">
+      <div role="status" aria-live="polite">
         <p className="text-gray-500 dark:text-gray-400 text-center py-8">Zoeken bij supermarkten...</p>
       </div>
     );
@@ -43,57 +30,43 @@ export function SupermarktResults({ results, isSearching, hasSearched, enabledSu
     );
   }
 
-  const filtered = results.filter((r) => enabledSupermarkten.has(r.supermarkt));
-  const sorted = sortResults(filtered);
+  const allProducts: FlatProduct[] = results
+    .filter((r) => enabledSupermarkten.has(r.supermarkt) && !r.error)
+    .flatMap((r) =>
+      r.products.map((p) => ({ ...p, supermarktLabel: r.label })),
+    )
+    .filter((p) => p.price > 0)
+    .sort((a, b) => a.price - b.price);
+
+  if (allProducts.length === 0) {
+    return (
+      <p className="text-gray-500 dark:text-gray-400 text-center py-8" aria-live="polite">
+        Geen resultaten gevonden
+      </p>
+    );
+  }
 
   return (
-    <div className="space-y-4" aria-live="polite">
-      {sorted.map((result) => {
-        const sortedProducts = [...result.products].sort((a, b) => a.price - b.price);
-
-        return (
-          <div
-            key={result.supermarkt}
-            className={`rounded-lg border p-4 ${
-              result.error
-                ? "border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50"
-                : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800"
-            }`}
-          >
-            <h3 className="font-semibold text-gray-900 dark:text-gray-100 mb-3">
-              {result.label}
-            </h3>
-
-            {result.error ? (
-              <p className="text-sm text-gray-500 dark:text-gray-400">{result.error}</p>
-            ) : sortedProducts.length === 0 ? (
-              <p className="text-sm text-gray-500 dark:text-gray-400">Geen resultaten</p>
-            ) : (
-              <ul className="space-y-2">
-                {sortedProducts.map((product) => (
-                  <li key={product.id} className="flex items-center gap-3">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                        {product.name}
-                      </p>
-                      {product.unitQuantity && (
-                        <p className="text-xs text-gray-500 dark:text-gray-400">
-                          {product.unitQuantity}
-                        </p>
-                      )}
-                    </div>
-                    {product.displayPrice && (
-                      <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 flex-shrink-0">
-                        {product.displayPrice}
-                      </span>
-                    )}
-                  </li>
-                ))}
-              </ul>
-            )}
+    <ul className="space-y-2" aria-live="polite">
+      {allProducts.map((product) => (
+        <li
+          key={`${product.supermarkt}-${product.id}`}
+          className="flex items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3"
+        >
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+              {product.name}
+            </p>
+            <p className="text-xs text-gray-500 dark:text-gray-400">
+              {product.supermarktLabel}
+              {product.unitQuantity ? ` · ${product.unitQuantity}` : ""}
+            </p>
           </div>
-        );
-      })}
-    </div>
+          <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 flex-shrink-0">
+            {product.displayPrice}
+          </span>
+        </li>
+      ))}
+    </ul>
   );
 }

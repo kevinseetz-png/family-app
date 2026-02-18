@@ -8,16 +8,16 @@ import { SupermarktSearch } from "@/components/SupermarktSearch";
 import { SupermarktResults } from "@/components/SupermarktResults";
 import { SupermarktFilter } from "@/components/SupermarktFilter";
 import { LoadingSpinner } from "@/components/LoadingSpinner";
-import { SUPERMARKT_LABELS } from "@/types/supermarkt";
+import { ACTIVE_SUPERMARKTEN } from "@/types/supermarkt";
 import type { SupermarktId } from "@/types/supermarkt";
 
-const ALL_IDS = new Set(Object.keys(SUPERMARKT_LABELS) as SupermarktId[]);
+const DEFAULT_ENABLED = new Set<SupermarktId>(ACTIVE_SUPERMARKTEN);
 
 export default function SupermarktPage() {
   const { user, isLoading: authLoading } = useAuthContext();
   const router = useRouter();
   const { query, setQuery, results, isSearching, error } = useSupermarktSearch();
-  const [enabledSupermarkten, setEnabledSupermarkten] = useState<Set<SupermarktId>>(ALL_IDS);
+  const [enabledSupermarkten, setEnabledSupermarkten] = useState<Set<SupermarktId>>(DEFAULT_ENABLED);
 
   useEffect(() => {
     if (!authLoading && !user) {
