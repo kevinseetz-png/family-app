@@ -1,7 +1,7 @@
 import type { SupermarktId, SupermarktResult, SupermarktProduct } from "@/types/supermarkt";
 import { SUPERMARKT_LABELS, ACTIVE_SUPERMARKTEN } from "@/types/supermarkt";
 import { search as ahSearch } from "./ah";
-import { search as jumboSearch } from "./jumbo";
+import { search as jumboSearchLive } from "./jumbo";
 import { search as picnicSearch } from "./picnic-adapter";
 import { search as dirkSearch } from "./dirk";
 import { search as checkjebonSearch } from "./checkjebon";
@@ -14,9 +14,15 @@ interface ConnectorEntry {
 }
 
 function buildConnectors(familyId: string): ConnectorEntry[] {
+  async function jumboWithFallback(q: string): Promise<SupermarktProduct[]> {
+    const live = await jumboSearchLive(q);
+    if (live.length > 0) return live;
+    return checkjebonSearch(q, "jumbo");
+  }
+
   const connectorMap: Record<string, (query: string) => Promise<SupermarktProduct[]>> = {
     ah: ahSearch,
-    jumbo: jumboSearch,
+    jumbo: jumboWithFallback,
     picnic: (q) => picnicSearch(q, familyId),
     dirk: dirkSearch,
   };
