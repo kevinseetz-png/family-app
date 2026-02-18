@@ -35,7 +35,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
       name: item.name,
       imageId: item.image_id,
       price: parseInt(item.display_price, 10),
-      displayPrice: item.display_price,
+      displayPrice: `€ ${(parseInt(item.display_price, 10) / 100).toFixed(2).replace(".", ",")}`,
       unitQuantity: item.unit_quantity,
       maxCount: item.max_count,
     }));
