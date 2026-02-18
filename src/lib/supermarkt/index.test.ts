@@ -20,13 +20,11 @@ import { searchAllSupermarkten } from "./index";
 import { search as ahSearch } from "./ah";
 import { search as jumboSearch } from "./jumbo";
 import { search as picnicSearch } from "./picnic-adapter";
-import { createScraper } from "./scraper";
 import type { SupermarktProduct } from "@/types/supermarkt";
 
 const mockAhSearch = vi.mocked(ahSearch);
 const mockJumboSearch = vi.mocked(jumboSearch);
 const mockPicnicSearch = vi.mocked(picnicSearch);
-const mockCreateScraper = vi.mocked(createScraper);
 
 const mockProduct = (supermarkt: string, name: string, price: number): SupermarktProduct => ({
   id: `${supermarkt}-1`,
@@ -41,17 +39,14 @@ const mockProduct = (supermarkt: string, name: string, price: number): Supermark
 describe("searchAllSupermarkten", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    // Default: scrapers return empty arrays
-    mockCreateScraper.mockReturnValue(vi.fn().mockResolvedValue([]));
   });
 
-  it("should search all supermarkets in parallel", async () => {
+  it("should search active supermarkets in parallel", async () => {
     mockAhSearch.mockResolvedValue([mockProduct("ah", "AH Melk", 139)]);
     mockJumboSearch.mockResolvedValue([mockProduct("jumbo", "Jumbo Melk", 149)]);
     mockPicnicSearch.mockResolvedValue([mockProduct("picnic", "Picnic Melk", 129)]);
 
     const results = await searchAllSupermarkten("melk", "fam1");
-    expect(results).toHaveLength(12);
 
     const ahResult = results.find((r) => r.supermarkt === "ah");
     expect(ahResult?.products).toHaveLength(1);
@@ -60,6 +55,10 @@ describe("searchAllSupermarkten", () => {
     const jumboResult = results.find((r) => r.supermarkt === "jumbo");
     expect(jumboResult?.products).toHaveLength(1);
     expect(jumboResult?.error).toBeNull();
+
+    const picnicResult = results.find((r) => r.supermarkt === "picnic");
+    expect(picnicResult?.products).toHaveLength(1);
+    expect(picnicResult?.error).toBeNull();
   });
 
   it("should handle individual connector failures gracefully", async () => {
@@ -78,27 +77,20 @@ describe("searchAllSupermarkten", () => {
     expect(jumboResult?.error).toBeNull();
   });
 
-  it("should include all 12 supermarkets in results", async () => {
+  it("should only include active supermarkets in results", async () => {
     mockAhSearch.mockResolvedValue([]);
     mockJumboSearch.mockResolvedValue([]);
     mockPicnicSearch.mockResolvedValue([]);
 
     const results = await searchAllSupermarkten("test", "fam1");
-    expect(results).toHaveLength(12);
 
     const supermarktIds = results.map((r) => r.supermarkt);
     expect(supermarktIds).toContain("ah");
     expect(supermarktIds).toContain("jumbo");
     expect(supermarktIds).toContain("picnic");
-    expect(supermarktIds).toContain("dirk");
-    expect(supermarktIds).toContain("lidl");
-    expect(supermarktIds).toContain("aldi");
-    expect(supermarktIds).toContain("plus");
-    expect(supermarktIds).toContain("hoogvliet");
-    expect(supermarktIds).toContain("spar");
-    expect(supermarktIds).toContain("vomar");
-    expect(supermarktIds).toContain("poiesz");
-    expect(supermarktIds).toContain("dekamarkt");
+    // Stubs should not be queried
+    expect(supermarktIds).not.toContain("dirk");
+    expect(supermarktIds).not.toContain("lidl");
   });
 
   it("should include correct labels for each supermarket", async () => {

@@ -1,31 +1,37 @@
-import type { SupermarktId, SupermarktResult } from "@/types/supermarkt";
-import { SUPERMARKT_LABELS } from "@/types/supermarkt";
+import type { SupermarktId, SupermarktResult, SupermarktProduct } from "@/types/supermarkt";
+import { SUPERMARKT_LABELS, ACTIVE_SUPERMARKTEN } from "@/types/supermarkt";
 import { search as ahSearch } from "./ah";
 import { search as jumboSearch } from "./jumbo";
 import { search as picnicSearch } from "./picnic-adapter";
 import { createScraper } from "./scraper";
 
-const SCRAPED_SUPERMARKTEN: SupermarktId[] = [
-  "dirk", "dekamarkt", "lidl", "aldi", "plus", "hoogvliet", "spar", "vomar", "poiesz",
-];
+const CONNECTOR_TIMEOUT_MS = 5000;
 
 interface ConnectorEntry {
   supermarkt: SupermarktId;
-  search: (query: string) => Promise<import("@/types/supermarkt").SupermarktProduct[]>;
+  search: (query: string) => Promise<SupermarktProduct[]>;
 }
 
 function buildConnectors(familyId: string): ConnectorEntry[] {
-  const connectors: ConnectorEntry[] = [
-    { supermarkt: "ah", search: ahSearch },
-    { supermarkt: "jumbo", search: jumboSearch },
-    { supermarkt: "picnic", search: (q) => picnicSearch(q, familyId) },
-  ];
+  const connectorMap: Record<string, (query: string) => Promise<SupermarktProduct[]>> = {
+    ah: ahSearch,
+    jumbo: jumboSearch,
+    picnic: (q) => picnicSearch(q, familyId),
+  };
 
-  for (const id of SCRAPED_SUPERMARKTEN) {
-    connectors.push({ supermarkt: id, search: createScraper(id) });
-  }
+  return ACTIVE_SUPERMARKTEN.map((id) => ({
+    supermarkt: id,
+    search: connectorMap[id] ?? createScraper(id),
+  }));
+}
 
-  return connectors;
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error("Timeout")), ms),
+    ),
+  ]);
 }
 
 export async function searchAllSupermarkten(
@@ -36,7 +42,7 @@ export async function searchAllSupermarkten(
 
   const settled = await Promise.allSettled(
     connectors.map(async (c) => {
-      const products = await c.search(query);
+      const products = await withTimeout(c.search(query), CONNECTOR_TIMEOUT_MS);
       return { supermarkt: c.supermarkt, products };
     }),
   );
