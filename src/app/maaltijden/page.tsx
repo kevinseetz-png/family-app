@@ -32,7 +32,7 @@ function parseIngredients(text: string): string[] {
 export default function MaaltijdenPage() {
   const { user, isLoading: authLoading } = useAuthContext();
   const router = useRouter();
-  const { meals, isLoading, error, updateMeal, deleteMeal, getRandomMeal } = useMeals(user?.familyId);
+  const { meals, isLoading, error, addMeal, updateMeal, deleteMeal, getRandomMeal } = useMeals(user?.familyId);
   const { days: weekMenuDays, ingredients: weekMenuIngredients, isSaving: isWeekMenuSaving, saveMenu } = useWeekMenu(user?.familyId);
   const { status: picnicStatus, search, addToCart } = usePicnic(user?.familyId);
 
@@ -44,6 +44,13 @@ export default function MaaltijdenPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [showDayPicker, setShowDayPicker] = useState(false);
   const [addedToDay, setAddedToDay] = useState<string | null>(null);
+
+  // Add meal modal state
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [addName, setAddName] = useState("");
+  const [addIngredients, setAddIngredients] = useState("");
+  const [addInstructions, setAddInstructions] = useState("");
+  const [isAdding, setIsAdding] = useState(false);
 
   // Picnic modal state
   const [showPicnicModal, setShowPicnicModal] = useState(false);
@@ -175,9 +182,45 @@ export default function MaaltijdenPage() {
     }
   };
 
+  const handleOpenAddModal = () => {
+    setAddName("");
+    setAddIngredients("");
+    setAddInstructions("");
+    setShowAddModal(true);
+  };
+
+  const handleCancelAdd = () => {
+    setShowAddModal(false);
+  };
+
+  const handleSaveAdd = async () => {
+    if (!addName.trim()) return;
+    setIsAdding(true);
+    try {
+      await addMeal(addName.trim(), addIngredients, addInstructions);
+      setShowAddModal(false);
+    } catch (err) {
+      console.error("Failed to add meal:", err);
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
   return (
     <main id="main-content" className="max-w-md mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-6">Maaltijden</h1>
+      <div className="flex items-center justify-between mb-6">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Maaltijden</h1>
+        <button
+          onClick={handleOpenAddModal}
+          className="py-2 px-4 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 transition-colors flex items-center gap-2 text-sm"
+          aria-label="Maaltijd toevoegen"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+            <path fillRule="evenodd" d="M10 3a1 1 0 011 1v5h5a1 1 0 110 2h-5v5a1 1 0 11-2 0v-5H4a1 1 0 110-2h5V4a1 1 0 011-1z" clipRule="evenodd" />
+          </svg>
+          Maaltijd toevoegen
+        </button>
+      </div>
 
       {/* Random meal button */}
       {meals.length > 0 && (
@@ -299,6 +342,77 @@ export default function MaaltijdenPage() {
         </p>
       )}
 
+      {/* Add meal modal */}
+      {showAddModal && (
+        <div role="dialog" aria-modal="true" aria-labelledby="add-meal-title" className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-4 border-b dark:border-gray-700">
+              <h2 id="add-meal-title" className="text-lg font-bold text-gray-900 dark:text-gray-100">Maaltijd toevoegen</h2>
+            </div>
+            <div className="p-4 space-y-4">
+              <div>
+                <label htmlFor="add-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Naam
+                </label>
+                <input
+                  id="add-name"
+                  type="text"
+                  value={addName}
+                  onChange={(e) => setAddName(e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  disabled={isAdding}
+                  autoFocus
+                />
+              </div>
+              <div>
+                <label htmlFor="add-ingredients" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Ingrediënten
+                </label>
+                <textarea
+                  id="add-ingredients"
+                  value={addIngredients}
+                  onChange={(e) => setAddIngredients(e.target.value)}
+                  rows={4}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                  disabled={isAdding}
+                  placeholder="Bijv. pasta, gehakt, tomaten..."
+                />
+              </div>
+              <div>
+                <label htmlFor="add-instructions" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                  Instructies
+                </label>
+                <textarea
+                  id="add-instructions"
+                  value={addInstructions}
+                  onChange={(e) => setAddInstructions(e.target.value)}
+                  rows={6}
+                  className="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 resize-none"
+                  disabled={isAdding}
+                  placeholder="Hoe bereid je dit gerecht?"
+                />
+              </div>
+            </div>
+            <div className="p-4 border-t dark:border-gray-700 flex gap-2">
+              <button
+                onClick={handleSaveAdd}
+                disabled={isAdding || !addName.trim()}
+                className="flex-1 py-2 px-4 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                {isAdding ? "Opslaan..." : "Opslaan"}
+              </button>
+              <button
+                onClick={handleCancelAdd}
+                disabled={isAdding}
+                className="flex-1 py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+              >
+                Annuleren
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Edit modal */}
       {editingMeal && (
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
@@ -387,7 +501,7 @@ export default function MaaltijdenPage() {
       {/* Meal cards */}
       {meals.length === 0 && !error ? (
         <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-          Geen maaltijden opgeslagen. Sla eerst een maaltijd op vanuit het weekmenu.
+          Geen maaltijden opgeslagen. Voeg een maaltijd toe of sla er een op vanuit het weekmenu.
         </p>
       ) : (
         <ul className="space-y-3" role="list">

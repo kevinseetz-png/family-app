@@ -509,6 +509,113 @@ describe("MaaltijdenPage", () => {
     });
   });
 
+  // --- Add Meal feature tests ---
+
+  it("should always show 'Maaltijd toevoegen' button", () => {
+    mockUseAuthContext.mockReturnValue({
+      ...mockAuthContextBase,
+      user: { id: "user1", name: "Test User", email: "test@example.com", familyId: "fam1", role: "member" },
+      isLoading: false,
+    });
+    mockUseMeals.mockReturnValue(mockUseMealsBase);
+
+    render(<MaaltijdenPage />);
+
+    expect(screen.getByRole("button", { name: /maaltijd toevoegen/i })).toBeInTheDocument();
+  });
+
+  it("should open add meal modal when clicking 'Maaltijd toevoegen'", async () => {
+    mockUseAuthContext.mockReturnValue({
+      ...mockAuthContextBase,
+      user: { id: "user1", name: "Test User", email: "test@example.com", familyId: "fam1", role: "member" },
+      isLoading: false,
+    });
+    mockUseMeals.mockReturnValue(mockUseMealsBase);
+
+    render(<MaaltijdenPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: /maaltijd toevoegen/i }));
+
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+    expect(screen.getByLabelText(/naam/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/ingrediënten/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/instructies/i)).toBeInTheDocument();
+  });
+
+  it("should call addMeal when submitting add modal with a name", async () => {
+    const mockAddMeal = vi.fn().mockResolvedValue(undefined);
+    mockUseAuthContext.mockReturnValue({
+      ...mockAuthContextBase,
+      user: { id: "user1", name: "Test User", email: "test@example.com", familyId: "fam1", role: "member" },
+      isLoading: false,
+    });
+    mockUseMeals.mockReturnValue({ ...mockUseMealsBase, addMeal: mockAddMeal });
+
+    render(<MaaltijdenPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: /maaltijd toevoegen/i }));
+    await userEvent.type(screen.getByLabelText(/naam/i), "Lasagne");
+    await userEvent.type(screen.getByLabelText(/ingrediënten/i), "pasta, gehakt");
+    await userEvent.click(screen.getByRole("button", { name: /opslaan/i }));
+
+    await waitFor(() => {
+      expect(mockAddMeal).toHaveBeenCalledWith("Lasagne", "pasta, gehakt", "");
+    });
+  });
+
+  it("should disable save button in add modal when name is empty", async () => {
+    mockUseAuthContext.mockReturnValue({
+      ...mockAuthContextBase,
+      user: { id: "user1", name: "Test User", email: "test@example.com", familyId: "fam1", role: "member" },
+      isLoading: false,
+    });
+    mockUseMeals.mockReturnValue(mockUseMealsBase);
+
+    render(<MaaltijdenPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: /maaltijd toevoegen/i }));
+
+    const saveButton = screen.getByRole("button", { name: /opslaan/i });
+    expect(saveButton).toBeDisabled();
+  });
+
+  it("should close add modal when cancel is clicked", async () => {
+    mockUseAuthContext.mockReturnValue({
+      ...mockAuthContextBase,
+      user: { id: "user1", name: "Test User", email: "test@example.com", familyId: "fam1", role: "member" },
+      isLoading: false,
+    });
+    mockUseMeals.mockReturnValue(mockUseMealsBase);
+
+    render(<MaaltijdenPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: /maaltijd toevoegen/i }));
+    expect(screen.getByRole("dialog")).toBeInTheDocument();
+
+    await userEvent.click(screen.getByRole("button", { name: /annuleren/i }));
+    expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+  });
+
+  it("should close add modal after successful save", async () => {
+    const mockAddMeal = vi.fn().mockResolvedValue(undefined);
+    mockUseAuthContext.mockReturnValue({
+      ...mockAuthContextBase,
+      user: { id: "user1", name: "Test User", email: "test@example.com", familyId: "fam1", role: "member" },
+      isLoading: false,
+    });
+    mockUseMeals.mockReturnValue({ ...mockUseMealsBase, addMeal: mockAddMeal });
+
+    render(<MaaltijdenPage />);
+
+    await userEvent.click(screen.getByRole("button", { name: /maaltijd toevoegen/i }));
+    await userEvent.type(screen.getByLabelText(/naam/i), "Soep");
+    await userEvent.click(screen.getByRole("button", { name: /opslaan/i }));
+
+    await waitFor(() => {
+      expect(screen.queryByRole("dialog")).not.toBeInTheDocument();
+    });
+  });
+
   it("should show existing weekmenu entries in day picker", async () => {
     mockUseAuthContext.mockReturnValue({
       ...mockAuthContextBase,
