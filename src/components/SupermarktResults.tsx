@@ -2,9 +2,7 @@
 
 import { useState, useMemo } from "react";
 import type { SupermarktResult, SupermarktId, SupermarktProduct } from "@/types/supermarkt";
-import { pricePerUnit, pricePerUnitValue, quantityKey, quantityLabel, extractBrand } from "@/lib/supermarkt/format";
-import { SupermarktChipFilter } from "./SupermarktChipFilter";
-import type { ChipOption } from "./SupermarktChipFilter";
+import { pricePerUnit, pricePerUnitValue, quantityKey } from "@/lib/supermarkt/format";
 
 interface SupermarktResultsProps {
   results: SupermarktResult[];
@@ -19,29 +17,12 @@ interface FlatProduct extends SupermarktProduct {
   ppu: string | null;
   ppuValue: number | null;
   qtyKey: string | null;
-  brand: string;
 }
 
 type SortMode = "price" | "unitprice";
 
-function buildChipOptions(products: FlatProduct[], getter: (p: FlatProduct) => string | null): ChipOption[] {
-  const counts = new Map<string, number>();
-  for (const p of products) {
-    const key = getter(p);
-    if (!key) continue;
-    counts.set(key, (counts.get(key) ?? 0) + 1);
-  }
-  return Array.from(counts.entries())
-    .map(([key, count]) => ({ key, label: key, count }))
-    .sort((a, b) => b.count - a.count);
-}
-
 export function SupermarktResults({ results, isSearching, hasSearched, enabledSupermarkten, autoQtyFilter }: SupermarktResultsProps) {
   const [sortMode, setSortMode] = useState<SortMode>("price");
-  const [selectedQty, setSelectedQty] = useState<string | null>(null);
-  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
-
-  const effectiveQty = autoQtyFilter ?? selectedQty;
 
   const allProducts: FlatProduct[] = useMemo(() =>
     results
@@ -53,30 +34,11 @@ export function SupermarktResults({ results, isSearching, hasSearched, enabledSu
           ppu: p.unitQuantity ? pricePerUnit(p.price, p.unitQuantity) : null,
           ppuValue: p.unitQuantity ? pricePerUnitValue(p.price, p.unitQuantity) : null,
           qtyKey: p.unitQuantity ? quantityKey(p.unitQuantity) : null,
-          brand: extractBrand(p.name),
         })),
       )
       .filter((p) => p.price > 0),
     [results, enabledSupermarkten],
   );
-
-  const qtyOptions = useMemo(() => {
-    const counts = new Map<string, { label: string; count: number }>();
-    for (const p of allProducts) {
-      if (!p.qtyKey || !p.unitQuantity) continue;
-      const existing = counts.get(p.qtyKey);
-      if (existing) {
-        existing.count++;
-      } else {
-        counts.set(p.qtyKey, { label: quantityLabel(p.unitQuantity) ?? p.unitQuantity, count: 1 });
-      }
-    }
-    return Array.from(counts.entries())
-      .map(([key, { label, count }]) => ({ key, label, count }))
-      .sort((a, b) => a.label.localeCompare(b.label, "nl", { numeric: true }));
-  }, [allProducts]);
-
-  const brandOptions = useMemo(() => buildChipOptions(allProducts, (p) => p.brand), [allProducts]);
 
   if (isSearching) {
     return (
@@ -102,11 +64,7 @@ export function SupermarktResults({ results, isSearching, hasSearched, enabledSu
     );
   }
 
-  const filtered = allProducts.filter((p) => {
-    if (effectiveQty && p.qtyKey !== effectiveQty) return false;
-    if (selectedBrand && p.brand !== selectedBrand) return false;
-    return true;
-  });
+  const filtered = autoQtyFilter ? allProducts.filter((p) => p.qtyKey === autoQtyFilter) : allProducts;
 
   const sorted = [...filtered].sort((a, b) => {
     if (sortMode === "price") {
@@ -122,8 +80,11 @@ export function SupermarktResults({ results, isSearching, hasSearched, enabledSu
 
   return (
     <div aria-live="polite">
-      <SupermarktChipFilter label="Merk" options={brandOptions} selected={selectedBrand} onSelect={setSelectedBrand} />
-      <SupermarktChipFilter label="Hoeveelheid" options={qtyOptions} selected={effectiveQty} onSelect={autoQtyFilter ? () => {} : setSelectedQty} />
+      {autoQtyFilter && filtered.length < allProducts.length && (
+        <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-2">
+          Gefilterd op hoeveelheid ({filtered.length} van {allProducts.length} resultaten)
+        </p>
+      )}
       <div className="flex justify-end mb-2">
         <button
           type="button"

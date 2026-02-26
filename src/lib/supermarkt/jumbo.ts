@@ -14,11 +14,16 @@ interface JumboRawProduct {
 
 export async function search(query: string): Promise<SupermarktProduct[]> {
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 5000);
     const res = await fetch(`${SEARCH_URL}?q=${encodeURIComponent(query)}&offset=0&limit=20`, {
       headers: {
         "User-Agent": "Jumbo/9.6.0",
+        "Accept": "application/json",
       },
+      signal: controller.signal,
     });
+    clearTimeout(timer);
 
     if (!res.ok) return [];
 

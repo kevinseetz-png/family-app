@@ -15,16 +15,26 @@ interface ConnectorEntry {
 
 function buildConnectors(familyId: string): ConnectorEntry[] {
   async function jumboWithFallback(q: string): Promise<SupermarktProduct[]> {
-    const live = await jumboSearchLive(q);
-    if (live.length > 0) return live;
-    return checkjebonSearch(q, "jumbo");
+    const [live, fallback] = await Promise.all([
+      jumboSearchLive(q).catch(() => [] as SupermarktProduct[]),
+      checkjebonSearch(q, "jumbo"),
+    ]);
+    return live.length > 0 ? live : fallback;
+  }
+
+  async function dirkWithFallback(q: string): Promise<SupermarktProduct[]> {
+    const [live, fallback] = await Promise.all([
+      dirkSearch(q).catch(() => [] as SupermarktProduct[]),
+      checkjebonSearch(q, "dirk"),
+    ]);
+    return live.length > 0 ? live : fallback;
   }
 
   const connectorMap: Record<string, (query: string) => Promise<SupermarktProduct[]>> = {
     ah: ahSearch,
     jumbo: jumboWithFallback,
     picnic: (q) => picnicSearch(q, familyId),
-    dirk: dirkSearch,
+    dirk: dirkWithFallback,
   };
 
   return ACTIVE_SUPERMARKTEN.map((id) => ({
