@@ -7,14 +7,14 @@ export function parseUnitQuantity(unitStr: string): { amount: number; unit: "g" 
   const trimmed = unitStr.trim();
   if (!trimmed) return null;
 
-  const match = trimmed.match(/^([0-9]+(?:[.,][0-9]+)?)\s*(g|kg|ml|l|liter)$/i);
+  const match = trimmed.match(/^([0-9]+(?:[.,][0-9]+)?)\s*(gram|g|kg|ml|l|liter)\.?$/i);
   if (!match) return null;
 
   const amount = parseFloat(match[1].replace(",", "."));
   const rawUnit = match[2].toLowerCase();
 
   let unit: "g" | "kg" | "ml" | "l";
-  if (rawUnit === "g") unit = "g";
+  if (rawUnit === "g" || rawUnit === "gram") unit = "g";
   else if (rawUnit === "kg") unit = "kg";
   else if (rawUnit === "ml") unit = "ml";
   else unit = "l";
@@ -103,7 +103,7 @@ export function extractBrand(productName: string): string {
 }
 
 export function extractQuantityFromQuery(query: string): { cleanQuery: string; qtyFilter: string | null } {
-  const match = query.match(/\b([0-9]+(?:[.,][0-9]+)?)\s*(g|kg|ml|l|liter)\b/i);
+  const match = query.match(/\b([0-9]+(?:[.,][0-9]+)?)\s*(gram|g|kg|ml|l|liter)\.?\b/i);
   if (!match) return { cleanQuery: query, qtyFilter: null };
   const parsed = parseUnitQuantity(match[0]);
   if (!parsed) return { cleanQuery: query, qtyFilter: null };

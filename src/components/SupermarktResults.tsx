@@ -43,35 +43,22 @@ export function SupermarktResults({ results, isSearching, hasSearched, enabledSu
 
   const effectiveQty = autoQtyFilter ?? selectedQty;
 
-  if (isSearching) {
-    return (
-      <div role="status" aria-live="polite">
-        <p className="text-gray-500 dark:text-gray-400 text-center py-8">Zoeken bij supermarkten...</p>
-      </div>
-    );
-  }
-
-  if (!hasSearched) {
-    return (
-      <p className="text-gray-500 dark:text-gray-400 text-center py-8">
-        Zoek een product om prijzen te vergelijken
-      </p>
-    );
-  }
-
-  const allProducts: FlatProduct[] = results
-    .filter((r) => enabledSupermarkten.has(r.supermarkt) && !r.error)
-    .flatMap((r) =>
-      r.products.map((p) => ({
-        ...p,
-        supermarktLabel: r.label,
-        ppu: p.unitQuantity ? pricePerUnit(p.price, p.unitQuantity) : null,
-        ppuValue: p.unitQuantity ? pricePerUnitValue(p.price, p.unitQuantity) : null,
-        qtyKey: p.unitQuantity ? quantityKey(p.unitQuantity) : null,
-        brand: extractBrand(p.name),
-      })),
-    )
-    .filter((p) => p.price > 0);
+  const allProducts: FlatProduct[] = useMemo(() =>
+    results
+      .filter((r) => enabledSupermarkten.has(r.supermarkt) && !r.error)
+      .flatMap((r) =>
+        r.products.map((p) => ({
+          ...p,
+          supermarktLabel: r.label,
+          ppu: p.unitQuantity ? pricePerUnit(p.price, p.unitQuantity) : null,
+          ppuValue: p.unitQuantity ? pricePerUnitValue(p.price, p.unitQuantity) : null,
+          qtyKey: p.unitQuantity ? quantityKey(p.unitQuantity) : null,
+          brand: extractBrand(p.name),
+        })),
+      )
+      .filter((p) => p.price > 0),
+    [results, enabledSupermarkten],
+  );
 
   const qtyOptions = useMemo(() => {
     const counts = new Map<string, { label: string; count: number }>();
@@ -90,6 +77,22 @@ export function SupermarktResults({ results, isSearching, hasSearched, enabledSu
   }, [allProducts]);
 
   const brandOptions = useMemo(() => buildChipOptions(allProducts, (p) => p.brand), [allProducts]);
+
+  if (isSearching) {
+    return (
+      <div role="status" aria-live="polite">
+        <p className="text-gray-500 dark:text-gray-400 text-center py-8">Zoeken bij supermarkten...</p>
+      </div>
+    );
+  }
+
+  if (!hasSearched) {
+    return (
+      <p className="text-gray-500 dark:text-gray-400 text-center py-8">
+        Zoek een product om prijzen te vergelijken
+      </p>
+    );
+  }
 
   if (allProducts.length === 0) {
     return (

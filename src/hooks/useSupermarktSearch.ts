@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { SupermarktResult } from "@/types/supermarkt";
 import { extractQuantityFromQuery } from "@/lib/supermarkt/format";
 
