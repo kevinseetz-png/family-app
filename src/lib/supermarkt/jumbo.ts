@@ -1,47 +1,71 @@
 import type { SupermarktProduct } from "@/types/supermarkt";
 import { formatPrice } from "./format";
 
-const SEARCH_URL = "https://mobileapi.jumbo.com/v17/search";
+const GRAPHQL_URL = "https://www.jumbo.com/api/graphql";
 
-interface JumboRawProduct {
+const SEARCH_QUERY = `
+  query SearchProducts($input: ProductSearchInput!) {
+    searchProducts(input: $input) {
+      products {
+        id: sku
+        title
+        subtitle: packSizeDisplay
+        prices: price {
+          price
+          promoPrice
+          pricePerUnit { price unit }
+        }
+      }
+    }
+  }
+`;
+
+interface JumboGqlProduct {
   id: string;
   title: string;
-  prices?: { price: { amount: number } };
-  quantity?: string;
-  quantityOptions?: Array<{ unit: string; defaultAmount: number }>;
-  imageInfo?: { primaryView: Array<{ url: string }> } | null;
+  subtitle: string;
+  prices: {
+    price: number;
+    promoPrice: number | null;
+    pricePerUnit: { price: number; unit: string } | null;
+  } | null;
 }
 
 export async function search(query: string): Promise<SupermarktProduct[]> {
   try {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 5000);
-    const res = await fetch(`${SEARCH_URL}?q=${encodeURIComponent(query)}&offset=0&limit=20`, {
+    const res = await fetch(GRAPHQL_URL, {
+      method: "POST",
       headers: {
-        "User-Agent": "Jumbo/9.6.0",
-        "Accept": "application/json",
+        "Content-Type": "application/json",
+        "apollographql-client-name": "JUMBO_WEB",
+        "apollographql-client-version": "master-v30.5.0-web",
       },
+      body: JSON.stringify({
+        query: SEARCH_QUERY,
+        variables: {
+          input: { searchTerms: query, searchType: "keyword", offSet: 0, limit: 20 },
+        },
+      }),
       signal: controller.signal,
     });
     clearTimeout(timer);
 
     if (!res.ok) return [];
 
-    const data = await res.json();
-    const products = (data.products?.data ?? []) as JumboRawProduct[];
+    const json = await res.json();
+    const products = (json.data?.searchProducts?.products ?? []) as JumboGqlProduct[];
 
     return products.map((p) => {
-      const priceAmount = p.prices?.price?.amount ?? 0;
-      const priceCents = Math.round(priceAmount * 100);
-
-      const unitQuantity = p.quantity ?? "";
+      const priceCents = p.prices?.promoPrice ?? p.prices?.price ?? 0;
 
       return {
         id: String(p.id),
         name: String(p.title),
         price: priceCents,
         displayPrice: formatPrice(priceCents),
-        unitQuantity,
+        unitQuantity: p.subtitle ?? "",
         imageUrl: null,
         supermarkt: "jumbo" as const,
       };

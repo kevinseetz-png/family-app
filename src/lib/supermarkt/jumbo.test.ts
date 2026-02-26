@@ -10,35 +10,36 @@ describe("Jumbo connector", () => {
     vi.clearAllMocks();
   });
 
-  it("should call Jumbo mobile API with query", async () => {
+  it("should call Jumbo GraphQL API with query", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        products: { data: [] },
+        data: { searchProducts: { products: [] } },
       }),
     });
 
     await search("melk");
     expect(mockFetch).toHaveBeenCalledTimes(1);
     expect(mockFetch.mock.calls[0][0]).toContain("jumbo.com");
-    expect(mockFetch.mock.calls[0][0]).toContain("melk");
+    const body = JSON.parse(mockFetch.mock.calls[0][1].body);
+    expect(body.variables.input.searchTerms).toBe("melk");
   });
 
   it("should map Jumbo products to SupermarktProduct format", async () => {
     mockFetch.mockResolvedValueOnce({
       ok: true,
       json: async () => ({
-        products: {
-          data: [
-            {
-              id: "j-123",
-              title: "Jumbo Halfvolle Melk",
-              prices: { price: { amount: 1.49 } },
-              quantity: "1 L",
-              quantityOptions: [{ unit: "stuk", defaultAmount: 1 }],
-              imageInfo: { primaryView: [{ url: "https://jumbo.nl/img/j-123" }] },
-            },
-          ],
+        data: {
+          searchProducts: {
+            products: [
+              {
+                id: "j-123",
+                title: "Jumbo Halfvolle Melk",
+                subtitle: "1 L",
+                prices: { price: 149, promoPrice: null, pricePerUnit: { price: 149, unit: "l" } },
+              },
+            ],
+          },
         },
       }),
     });
@@ -56,6 +57,29 @@ describe("Jumbo connector", () => {
     });
   });
 
+  it("should use promoPrice when available", async () => {
+    mockFetch.mockResolvedValueOnce({
+      ok: true,
+      json: async () => ({
+        data: {
+          searchProducts: {
+            products: [
+              {
+                id: "j-789",
+                title: "Jumbo Kwark",
+                subtitle: "500 g",
+                prices: { price: 199, promoPrice: 149, pricePerUnit: null },
+              },
+            ],
+          },
+        },
+      }),
+    });
+
+    const results = await search("kwark");
+    expect(results[0].price).toBe(149);
+  });
+
   it("should return empty array on API failure", async () => {
     mockFetch.mockResolvedValueOnce({ ok: false, status: 500 });
 
@@ -68,27 +92,5 @@ describe("Jumbo connector", () => {
 
     const results = await search("melk");
     expect(results).toEqual([]);
-  });
-
-  it("should handle products without images", async () => {
-    mockFetch.mockResolvedValueOnce({
-      ok: true,
-      json: async () => ({
-        products: {
-          data: [
-            {
-              id: "j-456",
-              title: "Jumbo Product",
-              prices: { price: { amount: 2.99 } },
-              quantityOptions: [{ unit: "stuk", defaultAmount: 1 }],
-              imageInfo: null,
-            },
-          ],
-        },
-      }),
-    });
-
-    const results = await search("product");
-    expect(results[0].imageUrl).toBeNull();
   });
 });
