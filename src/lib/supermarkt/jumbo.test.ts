@@ -34,6 +34,7 @@ describe("Jumbo connector", () => {
               id: "j-123",
               title: "Jumbo Halfvolle Melk",
               prices: { price: { amount: 1.49 } },
+              quantity: "1 L",
               quantityOptions: [{ unit: "stuk", defaultAmount: 1 }],
               imageInfo: { primaryView: [{ url: "https://jumbo.nl/img/j-123" }] },
             },
@@ -49,7 +50,7 @@ describe("Jumbo connector", () => {
       name: "Jumbo Halfvolle Melk",
       price: 149,
       displayPrice: "€ 1,49",
-      unitQuantity: "1 stuk",
+      unitQuantity: "1 L",
       imageUrl: null,
       supermarkt: "jumbo",
     });

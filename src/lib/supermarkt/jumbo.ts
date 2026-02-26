@@ -7,6 +7,7 @@ interface JumboRawProduct {
   id: string;
   title: string;
   prices?: { price: { amount: number } };
+  quantity?: string;
   quantityOptions?: Array<{ unit: string; defaultAmount: number }>;
   imageInfo?: { primaryView: Array<{ url: string }> } | null;
 }
@@ -28,9 +29,7 @@ export async function search(query: string): Promise<SupermarktProduct[]> {
       const priceAmount = p.prices?.price?.amount ?? 0;
       const priceCents = Math.round(priceAmount * 100);
 
-      const unitQuantity = p.quantityOptions?.[0]
-        ? `${p.quantityOptions[0].defaultAmount} ${p.quantityOptions[0].unit}`
-        : "";
+      const unitQuantity = p.quantity ?? "";
 
       return {
         id: String(p.id),

@@ -75,7 +75,7 @@ export async function search(query: string): Promise<SupermarktProduct[]> {
         name: String(p.title),
         price,
         displayPrice: formatPrice(price),
-        unitQuantity: String(p.unitPriceDescription ?? p.salesUnitSize ?? ""),
+        unitQuantity: String(p.salesUnitSize ?? ""),
         imageUrl: null,
         supermarkt: "ah" as const,
       };

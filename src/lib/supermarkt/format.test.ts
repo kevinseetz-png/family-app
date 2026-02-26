@@ -174,6 +174,18 @@ describe("quantityKey", () => {
     expect(quantityKey("500 g")).toBe("500_g");
   });
 
+  it("should normalize 1000 ml to 1 L", () => {
+    expect(quantityKey("1000 ml")).toBe("1_l");
+  });
+
+  it("should normalize 1000 g to 1 kg", () => {
+    expect(quantityKey("1000 g")).toBe("1_kg");
+  });
+
+  it("should not normalize 500 ml", () => {
+    expect(quantityKey("500 ml")).toBe("500_ml");
+  });
+
   it("should return null for unparseable input", () => {
     expect(quantityKey("1 stuk")).toBeNull();
   });
@@ -186,6 +198,10 @@ describe("quantityLabel", () => {
 
   it("should return label for '500 ml'", () => {
     expect(quantityLabel("500 ml")).toBe("500 ml");
+  });
+
+  it("should normalize 1000 ml to 1 L", () => {
+    expect(quantityLabel("1000 ml")).toBe("1 L");
   });
 
   it("should return label for '1 kg'", () => {

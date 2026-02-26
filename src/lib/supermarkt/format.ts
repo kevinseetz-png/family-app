@@ -77,15 +77,27 @@ export function pricePerUnitValue(priceCents: number, unitStr: string): number |
   return computePPU(priceCents, unitStr)?.sortValue ?? null;
 }
 
+function normalizeQuantity(parsed: { amount: number; unit: "g" | "kg" | "ml" | "l" }): { amount: number; unit: "g" | "kg" | "ml" | "l" } {
+  if (parsed.unit === "ml" && parsed.amount >= 1000 && parsed.amount % 1000 === 0) {
+    return { amount: parsed.amount / 1000, unit: "l" };
+  }
+  if (parsed.unit === "g" && parsed.amount >= 1000 && parsed.amount % 1000 === 0) {
+    return { amount: parsed.amount / 1000, unit: "kg" };
+  }
+  return parsed;
+}
+
 export function quantityKey(unitStr: string): string | null {
   const parsed = parseUnitQuantity(unitStr);
   if (!parsed) return null;
-  return `${parsed.amount}_${parsed.unit}`;
+  const norm = normalizeQuantity(parsed);
+  return `${norm.amount}_${norm.unit}`;
 }
 
 export function quantityLabel(unitStr: string): string | null {
   const parsed = parseUnitQuantity(unitStr);
   if (!parsed) return null;
+  const norm = normalizeQuantity(parsed);
   const unitLabels: Record<string, string> = { g: "g", kg: "kg", ml: "ml", l: "L" };
-  return `${parsed.amount} ${unitLabels[parsed.unit]}`;
+  return `${norm.amount} ${unitLabels[norm.unit]}`;
 }
