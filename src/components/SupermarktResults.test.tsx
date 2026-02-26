@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { render, screen } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { SupermarktResults } from "./SupermarktResults";
 import type { SupermarktResult, SupermarktId } from "@/types/supermarkt";
 
@@ -109,5 +110,52 @@ describe("SupermarktResults", () => {
   it("should not show products with error results", () => {
     render(<SupermarktResults results={mockResults} isSearching={false} hasSearched={true} enabledSupermarkten={allEnabled} />);
     expect(screen.queryByText("Niet beschikbaar")).not.toBeInTheDocument();
+  });
+
+  it("should show quantity filter chips when multiple quantities exist", () => {
+    const mixedResults: SupermarktResult[] = [
+      {
+        supermarkt: "ah",
+        label: "Albert Heijn",
+        products: [
+          { id: "ah-1", name: "AH Melk 1L", price: 139, displayPrice: "€ 1,39", unitQuantity: "1 l", imageUrl: null, supermarkt: "ah" },
+          { id: "ah-2", name: "AH Melk 500ml", price: 99, displayPrice: "€ 0,99", unitQuantity: "500 ml", imageUrl: null, supermarkt: "ah" },
+        ],
+        error: null,
+      },
+    ];
+    render(<SupermarktResults results={mixedResults} isSearching={false} hasSearched={true} enabledSupermarkten={allEnabled} />);
+    expect(screen.getByText("Alle")).toBeInTheDocument();
+    expect(screen.getByText("1 L (1)")).toBeInTheDocument();
+    expect(screen.getByText("500 ml (1)")).toBeInTheDocument();
+  });
+
+  it("should filter products when a quantity chip is clicked", async () => {
+    const user = userEvent.setup();
+    const mixedResults: SupermarktResult[] = [
+      {
+        supermarkt: "ah",
+        label: "Albert Heijn",
+        products: [
+          { id: "ah-1", name: "AH Melk 1L", price: 139, displayPrice: "€ 1,39", unitQuantity: "1 l", imageUrl: null, supermarkt: "ah" },
+          { id: "ah-2", name: "AH Melk 500ml", price: 99, displayPrice: "€ 0,99", unitQuantity: "500 ml", imageUrl: null, supermarkt: "ah" },
+        ],
+        error: null,
+      },
+    ];
+    render(<SupermarktResults results={mixedResults} isSearching={false} hasSearched={true} enabledSupermarkten={allEnabled} />);
+
+    await user.click(screen.getByText("1 L (1)"));
+    expect(screen.getByText("AH Melk 1L")).toBeInTheDocument();
+    expect(screen.queryByText("AH Melk 500ml")).not.toBeInTheDocument();
+
+    await user.click(screen.getByText("Alle"));
+    expect(screen.getByText("AH Melk 1L")).toBeInTheDocument();
+    expect(screen.getByText("AH Melk 500ml")).toBeInTheDocument();
+  });
+
+  it("should not show quantity filter when all products have the same quantity", () => {
+    render(<SupermarktResults results={mockResults} isSearching={false} hasSearched={true} enabledSupermarkten={allEnabled} />);
+    expect(screen.queryByText("Alle")).not.toBeInTheDocument();
   });
 });
