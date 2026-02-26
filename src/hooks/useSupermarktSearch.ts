@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { SupermarktResult } from "@/types/supermarkt";
+import { extractQuantityFromQuery } from "@/lib/supermarkt/format";
 
 const DEBOUNCE_MS = 500;
 
@@ -10,12 +11,14 @@ export function useSupermarktSearch() {
   const [results, setResults] = useState<SupermarktResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [autoQtyFilter, setAutoQtyFilter] = useState<string | null>(null);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (!query.trim()) {
       setResults([]);
       setError(null);
+      setAutoQtyFilter(null);
       return;
     }
 
@@ -23,13 +26,18 @@ export function useSupermarktSearch() {
       clearTimeout(timerRef.current);
     }
 
+    const { cleanQuery, qtyFilter } = extractQuantityFromQuery(query.trim());
+    setAutoQtyFilter(qtyFilter);
+
+    const searchQuery = cleanQuery || query.trim();
+
     timerRef.current = setTimeout(async () => {
       setIsSearching(true);
       setError(null);
 
       try {
         const res = await fetch(
-          `/api/supermarkt/search?query=${encodeURIComponent(query.trim())}`,
+          `/api/supermarkt/search?query=${encodeURIComponent(searchQuery)}`,
         );
 
         if (!res.ok) {
@@ -55,5 +63,5 @@ export function useSupermarktSearch() {
     };
   }, [query]);
 
-  return { query, setQuery, results, isSearching, error };
+  return { query, setQuery, results, isSearching, error, autoQtyFilter };
 }

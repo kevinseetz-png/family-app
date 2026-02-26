@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { SupermarktResults } from "./SupermarktResults";
 import type { SupermarktResult, SupermarktId } from "@/types/supermarkt";
@@ -67,16 +67,13 @@ describe("SupermarktResults", () => {
 
   it("should show supermarket name per product", () => {
     render(<SupermarktResults results={mockResults} isSearching={false} hasSearched={true} enabledSupermarkten={allEnabled} />);
-    // AH has 2 products, each shows "Albert Heijn" label
     expect(screen.getAllByText(/Albert Heijn/).length).toBe(2);
-    // Jumbo appears in both product name and label text
     expect(screen.getAllByText(/Jumbo/).length).toBeGreaterThanOrEqual(1);
   });
 
   it("should sort all products by cheapest first", () => {
     render(<SupermarktResults results={mockResults} isSearching={false} hasSearched={true} enabledSupermarkten={allEnabled} />);
     const items = screen.getAllByRole("listitem");
-    // Jumbo 1,29 should be first, then AH 1,39, then AH 1,49
     expect(items[0]).toHaveTextContent("Jumbo Halfvolle melk");
     expect(items[1]).toHaveTextContent("AH Halfvolle melk");
     expect(items[2]).toHaveTextContent("AH Volle melk");
@@ -125,9 +122,9 @@ describe("SupermarktResults", () => {
       },
     ];
     render(<SupermarktResults results={mixedResults} isSearching={false} hasSearched={true} enabledSupermarkten={allEnabled} />);
-    expect(screen.getByText("Alle")).toBeInTheDocument();
-    expect(screen.getByText("1 L (1)")).toBeInTheDocument();
-    expect(screen.getByText("500 ml (1)")).toBeInTheDocument();
+    const qtyFilter = screen.getByRole("group", { name: /hoeveelheid/i });
+    expect(within(qtyFilter).getByText("1 L (1)")).toBeInTheDocument();
+    expect(within(qtyFilter).getByText("500 ml (1)")).toBeInTheDocument();
   });
 
   it("should filter products when a quantity chip is clicked", async () => {
@@ -145,17 +142,52 @@ describe("SupermarktResults", () => {
     ];
     render(<SupermarktResults results={mixedResults} isSearching={false} hasSearched={true} enabledSupermarkten={allEnabled} />);
 
-    await user.click(screen.getByText("1 L (1)"));
+    const qtyFilter = screen.getByRole("group", { name: /hoeveelheid/i });
+    await user.click(within(qtyFilter).getByText("1 L (1)"));
     expect(screen.getByText("AH Melk 1L")).toBeInTheDocument();
     expect(screen.queryByText("AH Melk 500ml")).not.toBeInTheDocument();
 
-    await user.click(screen.getByText("Alle"));
+    await user.click(within(qtyFilter).getByText("Alle"));
     expect(screen.getByText("AH Melk 1L")).toBeInTheDocument();
     expect(screen.getByText("AH Melk 500ml")).toBeInTheDocument();
   });
 
-  it("should not show quantity filter when all products have the same quantity", () => {
-    render(<SupermarktResults results={mockResults} isSearching={false} hasSearched={true} enabledSupermarkten={allEnabled} />);
-    expect(screen.queryByText("Alle")).not.toBeInTheDocument();
+  it("should show brand filter when multiple brands exist", () => {
+    const mixedBrands: SupermarktResult[] = [
+      {
+        supermarkt: "ah",
+        label: "Albert Heijn",
+        products: [
+          { id: "ah-1", name: "AH Halfvolle melk", price: 139, displayPrice: "€ 1,39", unitQuantity: "1 l", imageUrl: null, supermarkt: "ah" },
+          { id: "ah-2", name: "Campina Halfvolle melk", price: 159, displayPrice: "€ 1,59", unitQuantity: "1 l", imageUrl: null, supermarkt: "ah" },
+        ],
+        error: null,
+      },
+    ];
+    render(<SupermarktResults results={mixedBrands} isSearching={false} hasSearched={true} enabledSupermarkten={allEnabled} />);
+    const brandFilter = screen.getByRole("group", { name: /merk/i });
+    expect(within(brandFilter).getByText("AH (1)")).toBeInTheDocument();
+    expect(within(brandFilter).getByText("Campina (1)")).toBeInTheDocument();
+  });
+
+  it("should filter products when a brand chip is clicked", async () => {
+    const user = userEvent.setup();
+    const mixedBrands: SupermarktResult[] = [
+      {
+        supermarkt: "ah",
+        label: "Albert Heijn",
+        products: [
+          { id: "ah-1", name: "AH Halfvolle melk", price: 139, displayPrice: "€ 1,39", unitQuantity: "1 l", imageUrl: null, supermarkt: "ah" },
+          { id: "ah-2", name: "Campina Halfvolle melk", price: 159, displayPrice: "€ 1,59", unitQuantity: "1 l", imageUrl: null, supermarkt: "ah" },
+        ],
+        error: null,
+      },
+    ];
+    render(<SupermarktResults results={mixedBrands} isSearching={false} hasSearched={true} enabledSupermarkten={allEnabled} />);
+
+    const brandFilter = screen.getByRole("group", { name: /merk/i });
+    await user.click(within(brandFilter).getByText("Campina (1)"));
+    expect(screen.getByText("Campina Halfvolle melk")).toBeInTheDocument();
+    expect(screen.queryByText("AH Halfvolle melk")).not.toBeInTheDocument();
   });
 });

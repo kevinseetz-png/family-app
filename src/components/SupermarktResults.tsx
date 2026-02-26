@@ -2,14 +2,16 @@
 
 import { useState, useMemo } from "react";
 import type { SupermarktResult, SupermarktId, SupermarktProduct } from "@/types/supermarkt";
-import { pricePerUnit, pricePerUnitValue, quantityKey, quantityLabel } from "@/lib/supermarkt/format";
-import { SupermarktQuantityFilter } from "./SupermarktQuantityFilter";
+import { pricePerUnit, pricePerUnitValue, quantityKey, quantityLabel, extractBrand } from "@/lib/supermarkt/format";
+import { SupermarktChipFilter } from "./SupermarktChipFilter";
+import type { ChipOption } from "./SupermarktChipFilter";
 
 interface SupermarktResultsProps {
   results: SupermarktResult[];
   isSearching: boolean;
   hasSearched: boolean;
   enabledSupermarkten: Set<SupermarktId>;
+  autoQtyFilter?: string | null;
 }
 
 interface FlatProduct extends SupermarktProduct {
@@ -17,13 +19,29 @@ interface FlatProduct extends SupermarktProduct {
   ppu: string | null;
   ppuValue: number | null;
   qtyKey: string | null;
+  brand: string;
 }
 
 type SortMode = "price" | "unitprice";
 
-export function SupermarktResults({ results, isSearching, hasSearched, enabledSupermarkten }: SupermarktResultsProps) {
+function buildChipOptions(products: FlatProduct[], getter: (p: FlatProduct) => string | null): ChipOption[] {
+  const counts = new Map<string, number>();
+  for (const p of products) {
+    const key = getter(p);
+    if (!key) continue;
+    counts.set(key, (counts.get(key) ?? 0) + 1);
+  }
+  return Array.from(counts.entries())
+    .map(([key, count]) => ({ key, label: key, count }))
+    .sort((a, b) => b.count - a.count);
+}
+
+export function SupermarktResults({ results, isSearching, hasSearched, enabledSupermarkten, autoQtyFilter }: SupermarktResultsProps) {
   const [sortMode, setSortMode] = useState<SortMode>("price");
   const [selectedQty, setSelectedQty] = useState<string | null>(null);
+  const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
+
+  const effectiveQty = autoQtyFilter ?? selectedQty;
 
   if (isSearching) {
     return (
@@ -50,6 +68,7 @@ export function SupermarktResults({ results, isSearching, hasSearched, enabledSu
         ppu: p.unitQuantity ? pricePerUnit(p.price, p.unitQuantity) : null,
         ppuValue: p.unitQuantity ? pricePerUnitValue(p.price, p.unitQuantity) : null,
         qtyKey: p.unitQuantity ? quantityKey(p.unitQuantity) : null,
+        brand: extractBrand(p.name),
       })),
     )
     .filter((p) => p.price > 0);
@@ -70,6 +89,8 @@ export function SupermarktResults({ results, isSearching, hasSearched, enabledSu
       .sort((a, b) => a.label.localeCompare(b.label, "nl", { numeric: true }));
   }, [allProducts]);
 
+  const brandOptions = useMemo(() => buildChipOptions(allProducts, (p) => p.brand), [allProducts]);
+
   if (allProducts.length === 0) {
     return (
       <p className="text-gray-500 dark:text-gray-400 text-center py-8" aria-live="polite">
@@ -78,7 +99,11 @@ export function SupermarktResults({ results, isSearching, hasSearched, enabledSu
     );
   }
 
-  const filtered = selectedQty ? allProducts.filter((p) => p.qtyKey === selectedQty) : allProducts;
+  const filtered = allProducts.filter((p) => {
+    if (effectiveQty && p.qtyKey !== effectiveQty) return false;
+    if (selectedBrand && p.brand !== selectedBrand) return false;
+    return true;
+  });
 
   const sorted = [...filtered].sort((a, b) => {
     if (sortMode === "price") {
@@ -94,7 +119,8 @@ export function SupermarktResults({ results, isSearching, hasSearched, enabledSu
 
   return (
     <div aria-live="polite">
-      <SupermarktQuantityFilter options={qtyOptions} selected={selectedQty} onSelect={setSelectedQty} />
+      <SupermarktChipFilter label="Merk" options={brandOptions} selected={selectedBrand} onSelect={setSelectedBrand} />
+      <SupermarktChipFilter label="Hoeveelheid" options={qtyOptions} selected={effectiveQty} onSelect={autoQtyFilter ? () => {} : setSelectedQty} />
       <div className="flex justify-end mb-2">
         <button
           type="button"

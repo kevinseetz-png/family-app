@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest";
-import { parseUnitQuantity, pricePerUnit, quantityKey, quantityLabel } from "./format";
+import { parseUnitQuantity, pricePerUnit, quantityKey, quantityLabel, extractQuantityFromQuery, extractBrand } from "./format";
 
 describe("parseUnitQuantity", () => {
   describe("grams (g)", () => {
@@ -210,5 +210,45 @@ describe("quantityLabel", () => {
 
   it("should return null for unparseable input", () => {
     expect(quantityLabel("1 stuk")).toBeNull();
+  });
+});
+
+describe("extractQuantityFromQuery", () => {
+  it("should extract quantity from 'kwark 1kg'", () => {
+    expect(extractQuantityFromQuery("kwark 1kg")).toEqual({ cleanQuery: "kwark", qtyFilter: "1_kg" });
+  });
+
+  it("should extract quantity from 'melk 1l'", () => {
+    expect(extractQuantityFromQuery("melk 1l")).toEqual({ cleanQuery: "melk", qtyFilter: "1_l" });
+  });
+
+  it("should normalize 1000ml to 1_l", () => {
+    expect(extractQuantityFromQuery("yoghurt 1000ml")).toEqual({ cleanQuery: "yoghurt", qtyFilter: "1_l" });
+  });
+
+  it("should normalize 1000g to 1_kg", () => {
+    expect(extractQuantityFromQuery("kwark 1000g")).toEqual({ cleanQuery: "kwark", qtyFilter: "1_kg" });
+  });
+
+  it("should return null qtyFilter when no quantity in query", () => {
+    expect(extractQuantityFromQuery("melk")).toEqual({ cleanQuery: "melk", qtyFilter: null });
+  });
+
+  it("should handle '500 ml' with space", () => {
+    expect(extractQuantityFromQuery("yoghurt 500 ml")).toEqual({ cleanQuery: "yoghurt", qtyFilter: "500_ml" });
+  });
+});
+
+describe("extractBrand", () => {
+  it("should extract AH from product name", () => {
+    expect(extractBrand("AH Halfvolle melk")).toBe("AH");
+  });
+
+  it("should extract Campina from product name", () => {
+    expect(extractBrand("Campina Halfvolle melk")).toBe("Campina");
+  });
+
+  it("should return Huismerk for unknown brand", () => {
+    expect(extractBrand("Halfvolle melk")).toBe("Huismerk");
   });
 });

@@ -87,6 +87,31 @@ function normalizeQuantity(parsed: { amount: number; unit: "g" | "kg" | "ml" | "
   return parsed;
 }
 
+export function extractBrand(productName: string): string {
+  const lower = productName.toLowerCase();
+  const prefixMatch = productName.match(/^(AH|Jumbo|Lidl|Aldi|Plus|Dirk|SPAR|Vomar|Hoogvliet|DekaMarkt|Poiesz|Picnic)\b/i);
+  if (prefixMatch) return prefixMatch[1];
+  const brands = [
+    "Campina", "Arla", "Optimel", "Chocomel", "Friesche Vlag", "Melkunie",
+    "De Zaanse Hoeve", "Alpro", "Oatly", "HiPRO", "Almhof", "Ehrmann",
+    "Danone", "Mona", "Zuivelhoeve", "Boerenland", "Milner", "Valess",
+  ];
+  for (const brand of brands) {
+    if (lower.includes(brand.toLowerCase())) return brand;
+  }
+  return "Huismerk";
+}
+
+export function extractQuantityFromQuery(query: string): { cleanQuery: string; qtyFilter: string | null } {
+  const match = query.match(/\b([0-9]+(?:[.,][0-9]+)?)\s*(g|kg|ml|l|liter)\b/i);
+  if (!match) return { cleanQuery: query, qtyFilter: null };
+  const parsed = parseUnitQuantity(match[0]);
+  if (!parsed) return { cleanQuery: query, qtyFilter: null };
+  const norm = normalizeQuantity(parsed);
+  const cleanQuery = query.replace(match[0], "").replace(/\s+/g, " ").trim();
+  return { cleanQuery, qtyFilter: `${norm.amount}_${norm.unit}` };
+}
+
 export function quantityKey(unitStr: string): string | null {
   const parsed = parseUnitQuantity(unitStr);
   if (!parsed) return null;

@@ -16,7 +16,7 @@ const DEFAULT_ENABLED = new Set<SupermarktId>(ACTIVE_SUPERMARKTEN);
 export default function SupermarktPage() {
   const { user, isLoading: authLoading } = useAuthContext();
   const router = useRouter();
-  const { query, setQuery, results, isSearching, error } = useSupermarktSearch();
+  const { query, setQuery, results, isSearching, error, autoQtyFilter } = useSupermarktSearch();
   const [enabledSupermarkten, setEnabledSupermarkten] = useState<Set<SupermarktId>>(DEFAULT_ENABLED);
 
   useEffect(() => {
@@ -60,6 +60,7 @@ export default function SupermarktPage() {
         isSearching={isSearching}
         hasSearched={query.trim().length > 0}
         enabledSupermarkten={enabledSupermarkten}
+        autoQtyFilter={autoQtyFilter}
       />
     </main>
   );
