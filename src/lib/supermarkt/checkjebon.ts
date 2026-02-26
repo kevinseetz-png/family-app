@@ -49,10 +49,11 @@ export async function search(
     const store = data.find((s) => s.n === supermarktId);
     if (!store) return [];
 
-    const terms = query.toLowerCase().split(/\s+/).filter(Boolean);
+    const terms = query.toLowerCase().replace(/(\d)\s*(kg|g|l|ml|st)\b/gi, "$1 $2").split(/\s+/).filter(Boolean);
     const matches = store.d.filter((product) => {
-      const name = product.n.toLowerCase();
-      return terms.every((term) => name.includes(term));
+      const name = product.n.toLowerCase().replace(/(\d)\s*(kg|g|l|ml|st)\b/gi, "$1 $2");
+      const words = name.split(/\s+/);
+      return terms.every((term) => words.some((w) => w.startsWith(term) || term.startsWith(w)));
     });
 
     return matches.slice(0, 20).map((p, i) => {
