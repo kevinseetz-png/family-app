@@ -2,7 +2,7 @@ import type { SupermarktProduct } from "@/types/supermarkt";
 import { formatPrice } from "./format";
 
 const GRAPHQL_URL = "https://web-gateway.dirk.nl/graphql";
-const DEFAULT_STORE_ID = 1;
+const DEFAULT_STORE_ID = 50;
 
 const SEARCH_QUERY = `
   query SearchProducts($search: String!, $limit: Int!) {
