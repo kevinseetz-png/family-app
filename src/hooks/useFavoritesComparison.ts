@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import type { SupermarktFavorite, SupermarktProduct, SupermarktResult } from "@/types/supermarkt";
+import { pricePerUnitValue } from "@/lib/supermarkt/format";
 
 export interface FavoriteComparison {
   favorite: SupermarktFavorite;
@@ -94,7 +95,14 @@ export function useFavoritesComparison(favorites: SupermarktFavorite[]) {
           .filter((r) => !r.error)
           .flatMap((r) => r.products)
           .filter((p) => p.price > 0)
-          .sort((a, b) => a.price - b.price);
+          .sort((a, b) => {
+            const ppuA = a.unitQuantity ? pricePerUnitValue(a.price, a.unitQuantity) : null;
+            const ppuB = b.unitQuantity ? pricePerUnitValue(b.price, b.unitQuantity) : null;
+            if (ppuA !== null && ppuB !== null) return ppuA - ppuB;
+            if (ppuA !== null) return -1;
+            if (ppuB !== null) return 1;
+            return a.price - b.price;
+          });
 
         return { favorite: fav, cheapest: allProducts[0] ?? null };
       }),

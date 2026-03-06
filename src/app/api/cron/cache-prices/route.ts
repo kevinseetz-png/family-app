@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { adminDb } from "@/lib/firebase-admin";
 import { searchAllSupermarkten } from "@/lib/supermarkt/index";
+import { pricePerUnitValue } from "@/lib/supermarkt/format";
 import type { SupermarktProduct } from "@/types/supermarkt";
 
 const MAX_BATCH_OPS = 500;
@@ -61,7 +62,14 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
           .filter((r) => !r.error)
           .flatMap((r) => r.products)
           .filter((p) => p.price > 0)
-          .sort((a, b) => a.price - b.price);
+          .sort((a, b) => {
+            const ppuA = a.unitQuantity ? pricePerUnitValue(a.price, a.unitQuantity) : null;
+            const ppuB = b.unitQuantity ? pricePerUnitValue(b.price, b.unitQuantity) : null;
+            if (ppuA !== null && ppuB !== null) return ppuA - ppuB;
+            if (ppuA !== null) return -1;
+            if (ppuB !== null) return 1;
+            return a.price - b.price;
+          });
 
         queryResults.set(key, {
           products: allProducts.slice(0, 30), // Keep top 30 to limit Firestore doc size
