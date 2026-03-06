@@ -247,6 +247,15 @@ export const supermarktSearchSchema = z.object({
   query: z.string().min(1, "Zoekterm is verplicht").max(100, "Zoekterm is te lang"),
 });
 
+// Supermarkt favorites schemas
+export const supermarktFavoriteSchema = z.object({
+  name: z.string().min(1, "Naam is verplicht").max(200, "Naam is te lang"),
+});
+
+export const supermarktFavoriteDeleteSchema = z.object({
+  id: z.string().min(1, "Invalid request"),
+});
+
 // Picnic integration schemas
 export const picnicLoginSchema = z.object({
   username: z.string().min(1, "E-mailadres is verplicht"),

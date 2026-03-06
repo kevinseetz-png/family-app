@@ -1,1 +1,8 @@
-{}
+{
+  "crons": [
+    {
+      "path": "/api/cron/cache-prices",
+      "schedule": "0 6 * * *"
+    }
+  ]
+}

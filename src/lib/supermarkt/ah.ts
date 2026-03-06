@@ -64,12 +64,16 @@ export async function search(query: string): Promise<SupermarktProduct[]> {
       webshopId: string;
       title: string;
       priceBeforeBonus?: number;
+      currentPrice?: number;
       salesUnitSize?: string;
       unitPriceDescription?: string;
     }
 
     return (products as AHRawProduct[]).map((p) => {
-      const price = eurosToCents(p.priceBeforeBonus);
+      const regularPrice = eurosToCents(p.priceBeforeBonus);
+      const currentPrice = eurosToCents(p.currentPrice);
+      const isOnSale = currentPrice > 0 && regularPrice > 0 && currentPrice < regularPrice;
+      const price = isOnSale ? currentPrice : regularPrice;
       return {
         id: String(p.webshopId),
         name: String(p.title),
@@ -78,6 +82,9 @@ export async function search(query: string): Promise<SupermarktProduct[]> {
         unitQuantity: String(p.salesUnitSize ?? ""),
         imageUrl: null,
         supermarkt: "ah" as const,
+        wasPrice: isOnSale ? regularPrice : null,
+        displayWasPrice: isOnSale ? formatPrice(regularPrice) : null,
+        isOnSale,
       };
     });
   } catch {

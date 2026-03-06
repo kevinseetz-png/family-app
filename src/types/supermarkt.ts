@@ -11,6 +11,17 @@ export interface SupermarktProduct {
   unitQuantity: string;
   imageUrl: string | null;
   supermarkt: SupermarktId;
+  wasPrice: number | null;
+  displayWasPrice: string | null;
+  isOnSale: boolean;
+}
+
+export interface SupermarktFavorite {
+  id: string;
+  familyId: string;
+  name: string;
+  createdBy: string;
+  createdAt: string;
 }
 
 export interface SupermarktResult {

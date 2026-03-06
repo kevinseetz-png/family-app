@@ -75,8 +75,10 @@ export async function search(query: string): Promise<SupermarktProduct[]> {
     );
 
     return pricedProducts.map((p) => {
-      const priceEuros = p.offerPrice > 0 ? p.offerPrice : p.normalPrice;
-      const priceCents = Math.round(priceEuros * 100);
+      const normalCents = Math.round(p.normalPrice * 100);
+      const offerCents = p.offerPrice > 0 ? Math.round(p.offerPrice * 100) : 0;
+      const isOnSale = offerCents > 0 && offerCents < normalCents;
+      const priceCents = isOnSale ? offerCents : normalCents;
       const name = p.productInformation?.headerText ?? `Product ${p.productId}`;
       const packaging = p.productInformation?.packaging ?? "";
 
@@ -88,6 +90,9 @@ export async function search(query: string): Promise<SupermarktProduct[]> {
         unitQuantity: packaging,
         imageUrl: null,
         supermarkt: "dirk" as const,
+        wasPrice: isOnSale ? normalCents : null,
+        displayWasPrice: isOnSale ? formatPrice(normalCents) : null,
+        isOnSale,
       };
     });
   } catch {

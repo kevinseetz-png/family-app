@@ -66,6 +66,9 @@ export async function search(
         unitQuantity: p.s,
         imageUrl: null,
         supermarkt: supermarktId,
+        wasPrice: null,
+        displayWasPrice: null,
+        isOnSale: false,
       };
     });
   } catch {

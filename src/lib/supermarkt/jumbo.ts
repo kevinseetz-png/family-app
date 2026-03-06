@@ -58,16 +58,22 @@ export async function search(query: string): Promise<SupermarktProduct[]> {
     const products = (json.data?.searchProducts?.products ?? []) as JumboGqlProduct[];
 
     return products.map((p) => {
-      const priceCents = p.prices?.promoPrice ?? p.prices?.price ?? 0;
+      const regularPrice = p.prices?.price ?? 0;
+      const promoPrice = p.prices?.promoPrice ?? null;
+      const isOnSale = promoPrice !== null && promoPrice > 0 && promoPrice < regularPrice;
+      const price = isOnSale ? promoPrice : regularPrice;
 
       return {
         id: String(p.id),
         name: String(p.title),
-        price: priceCents,
-        displayPrice: formatPrice(priceCents),
+        price,
+        displayPrice: formatPrice(price),
         unitQuantity: p.subtitle ?? "",
         imageUrl: null,
         supermarkt: "jumbo" as const,
+        wasPrice: isOnSale ? regularPrice : null,
+        displayWasPrice: isOnSale ? formatPrice(regularPrice) : null,
+        isOnSale,
       };
     });
   } catch {

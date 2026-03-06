@@ -64,6 +64,9 @@ describe("AH connector", () => {
       unitQuantity: "1 L",
       imageUrl: null,
       supermarkt: "ah",
+      wasPrice: null,
+      displayWasPrice: null,
+      isOnSale: false,
     });
   });
 

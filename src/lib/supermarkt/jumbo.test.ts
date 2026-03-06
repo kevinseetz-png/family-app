@@ -54,6 +54,9 @@ describe("Jumbo connector", () => {
       unitQuantity: "1 L",
       imageUrl: null,
       supermarkt: "jumbo",
+      wasPrice: null,
+      displayWasPrice: null,
+      isOnSale: false,
     });
   });
 
@@ -78,6 +81,9 @@ describe("Jumbo connector", () => {
 
     const results = await search("kwark");
     expect(results[0].price).toBe(149);
+    expect(results[0].isOnSale).toBe(true);
+    expect(results[0].wasPrice).toBe(199);
+    expect(results[0].displayWasPrice).toBe("€ 1,99");
   });
 
   it("should return empty array on API failure", async () => {

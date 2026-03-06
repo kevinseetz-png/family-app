@@ -19,6 +19,9 @@ export async function search(query: string, familyId: string): Promise<Supermark
         unitQuantity: item.unit_quantity,
         imageUrl: null,
         supermarkt: "picnic" as const,
+        wasPrice: null,
+        displayWasPrice: null,
+        isOnSale: false,
       };
     });
   } catch {
