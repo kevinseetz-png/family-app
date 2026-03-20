@@ -119,7 +119,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
       name,
       ingredients: ingredients || "",
       instructions: instructions || "",
-      sourceDay,
+      ...(sourceDay !== undefined && { sourceDay }),
       createdBy: user.id,
       createdByName: user.name,
       createdAt: new Date(),
