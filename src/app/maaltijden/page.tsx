@@ -51,6 +51,7 @@ export default function MaaltijdenPage() {
   const [addIngredients, setAddIngredients] = useState("");
   const [addInstructions, setAddInstructions] = useState("");
   const [isAdding, setIsAdding] = useState(false);
+  const [addError, setAddError] = useState<string | null>(null);
 
   // Picnic modal state
   const [showPicnicModal, setShowPicnicModal] = useState(false);
@@ -186,6 +187,7 @@ export default function MaaltijdenPage() {
     setAddName("");
     setAddIngredients("");
     setAddInstructions("");
+    setAddError(null);
     setShowAddModal(true);
   };
 
@@ -195,12 +197,14 @@ export default function MaaltijdenPage() {
 
   const handleSaveAdd = async () => {
     if (!addName.trim()) return;
+    setAddError(null);
     setIsAdding(true);
     try {
       await addMeal(addName.trim(), addIngredients, addInstructions);
       setShowAddModal(false);
     } catch (err) {
-      console.error("Failed to add meal:", err);
+      const message = err instanceof Error ? err.message : "Opslaan mislukt";
+      setAddError(message);
     } finally {
       setIsAdding(false);
     }
@@ -345,11 +349,11 @@ export default function MaaltijdenPage() {
       {/* Add meal modal */}
       {showAddModal && (
         <div role="dialog" aria-modal="true" aria-labelledby="add-meal-title" className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-4 border-b dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-xl max-w-md w-full max-h-[90vh] flex flex-col">
+            <div className="p-4 border-b dark:border-gray-700 flex-shrink-0">
               <h2 id="add-meal-title" className="text-lg font-bold text-gray-900 dark:text-gray-100">Maaltijd toevoegen</h2>
             </div>
-            <div className="p-4 space-y-4">
+            <div className="p-4 space-y-4 overflow-y-auto flex-1">
               <div>
                 <label htmlFor="add-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                   Naam
@@ -393,21 +397,26 @@ export default function MaaltijdenPage() {
                 />
               </div>
             </div>
-            <div className="p-4 border-t dark:border-gray-700 flex gap-2">
-              <button
-                onClick={handleSaveAdd}
-                disabled={isAdding || !addName.trim()}
-                className="flex-1 py-2 px-4 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-              >
-                {isAdding ? "Opslaan..." : "Opslaan"}
-              </button>
-              <button
-                onClick={handleCancelAdd}
-                disabled={isAdding}
-                className="flex-1 py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
-              >
-                Annuleren
-              </button>
+            <div className="p-4 border-t dark:border-gray-700 space-y-2 flex-shrink-0">
+              {addError && (
+                <p className="text-sm text-red-600 dark:text-red-400" role="alert">{addError}</p>
+              )}
+              <div className="flex gap-2">
+                <button
+                  onClick={handleSaveAdd}
+                  disabled={isAdding || !addName.trim()}
+                  className="flex-1 py-2 px-4 bg-emerald-600 text-white rounded-lg font-medium hover:bg-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  {isAdding ? "Opslaan..." : "Opslaan"}
+                </button>
+                <button
+                  onClick={handleCancelAdd}
+                  disabled={isAdding}
+                  className="flex-1 py-2 px-4 bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 rounded-lg font-medium hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors"
+                >
+                  Annuleren
+                </button>
+              </div>
             </div>
           </div>
         </div>
